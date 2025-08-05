@@ -5,6 +5,14 @@ on:
     branches:
       - main
 
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The tag to use for the release (e.g., "ci-test" or "canary").'
+        type: string
+        required: false
+        default: ''
+
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
@@ -35,11 +43,22 @@ jobs:
       - name: Lint
         run: bun turbo lint -F "{packages/*}"
 
+      - name: Set version and publish commands
+        id: commands
+        run: |
+          if [[ -n "${{ github.event.inputs.tag }}" ]]; then
+            echo "version_cmd=bun changeset version --snapshot ${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+            echo "publish_cmd=bun changeset publish --tag ${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "version_cmd=bun changeset version" >> $GITHUB_OUTPUT
+            echo "publish_cmd=bun changeset publish" >> $GITHUB_OUTPUT
+          fi
+
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1
         with:
-          # This expects you to have a script called release which does a build for your packages and calls changeset publish
-          publish: bun changeset publish
+          version: ${{ steps.commands.outputs.version_cmd }}
+          publish: ${{ steps.commands.outputs.publish_cmd }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
