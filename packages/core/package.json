@@ -1,6 +1,6 @@
 {
   "name": "@prosemark/core",
-  "version": "0.0.0",
+  "version": "0.0.0-ci-test-1",
   "type": "module",
   "files": [
     "dist"
