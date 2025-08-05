@@ -1,6 +1,6 @@
 {
   "name": "docs",
-  "version": "0.0.1",
+  "private": true,
   "dependencies": {
     "@astrojs/starlight": "^0.34.5",
     "@prosemark/core": "workspace:*",
