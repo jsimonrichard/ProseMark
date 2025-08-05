@@ -24,7 +24,7 @@ class HTMLWidget extends WidgetType {
       for (const node of [...root.childNodes]) {
         if (node.nodeType === 3) {
           // this node is a text node
-          if (/^\s*$/.test(node.nodeValue || '')) {
+          if (/^\s*$/.test(node.nodeValue ?? '')) {
             node.remove();
             continue;
           }
