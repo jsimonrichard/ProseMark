@@ -25,14 +25,14 @@ jobs:
       - name: Install Dependencies
         run: bun install --frozen-lockfile
 
+      - name: TurboRepo Build
+        run: bun turbo build -F "{packages/*}"
+
       - name: Check Types
         run: bun turbo check-types -F "{packages/*}"
 
       - name: Lint
         run: bun turbo lint -F "{packages/*}"
-
-      - name: TurboRepo Build
-        run: bun turbo build -F "{packages/*}"
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
