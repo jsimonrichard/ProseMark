@@ -2,19 +2,13 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "command": "./node_modules/.bin/astro dev",
-      "name": "Development server",
+      "name": "Run Extension",
+      "type": "extensionHost",
       "request": "launch",
-      "type": "node-terminal"
-    },
-    {
-      "type": "chrome",
-      "request": "launch",
-      "name": "Brave",
-      "runtimeExecutable": "/usr/bin/brave-browser",
-      "userDataDir": true,
-      "url": "http://localhost:5173/",
-      "webRoot": "${workspaceFolder}"
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/apps/vscode-extension"
+      ],
+      "outFiles": ["${workspaceFolder}/apps/vscode-extension/dist/**/*.js"]
     }
   ]
 }
