@@ -11,11 +11,16 @@ class Checkbox extends WidgetType {
   }
 
   toDOM() {
+    const wrap = document.createElement('span');
+    wrap.className = 'cm-checkbox-wrap';
+
     const el = document.createElement('input');
     el.type = 'checkbox';
     el.className = 'cm-checkbox';
     el.checked = this.value;
-    return el;
+
+    wrap.appendChild(el);
+    return wrap;
   }
 
   ignoreEvent(_event: Event) {
@@ -31,6 +36,11 @@ export const taskExtension = [
         state.doc.sliceString(node.from + 1, node.to - 1).toLowerCase() === 'x';
       return Decoration.replace({
         widget: new Checkbox(value),
+      }).range(node.from - 2, node.to);
+    },
+    onUnFold: (state, node) => {
+      return Decoration.mark({
+        class: 'cm-checkbox-wrap',
       }).range(node.from - 2, node.to);
     },
     unfoldZone: (_state, node) => ({

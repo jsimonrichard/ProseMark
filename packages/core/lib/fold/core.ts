@@ -26,7 +26,10 @@ const buildDecorations = (state: EditorState) => {
   const specs = state.facet(foldableSyntaxFacet);
   syntaxTree(state).iterate({
     enter: (node) => {
-      if (selectionTouchesRange(state.selection.ranges, node)) return;
+      const isSelectionRange = selectionTouchesRange(
+        state.selection.ranges,
+        node,
+      );
 
       for (const spec of specs) {
         // Generate Path
@@ -51,25 +54,40 @@ const buildDecorations = (state: EditorState) => {
           continue;
         }
 
-        // Check custom unfold zone
-        if (spec.unfoldZone) {
-          if (
-            selectionTouchesRange(
-              state.selection.ranges,
-              spec.unfoldZone(state, node),
-            )
-          ) {
-            return;
+        let isFold = !isSelectionRange;
+
+        if (isFold) {
+          // Check custom unfold zone
+          if (spec.unfoldZone) {
+            if (
+              selectionTouchesRange(
+                state.selection.ranges,
+                spec.unfoldZone(state, node),
+              )
+            ) {
+              isFold = false;
+            }
           }
         }
 
-        // Run folding logic
-        if (spec.onFold) {
-          const res = spec.onFold(state, node);
-          if (res instanceof Array) {
-            decorations.push(...res);
-          } else if (res) {
-            decorations.push(res);
+        if (isFold) {
+          // Run folding logic
+          if (spec.onFold) {
+            const res = spec.onFold(state, node);
+            if (res instanceof Array) {
+              decorations.push(...res);
+            } else if (res) {
+              decorations.push(res);
+            }
+          }
+        } else {
+          if (spec.onUnFold) {
+            const res = spec.onUnFold(state, node);
+            if (res instanceof Array) {
+              decorations.push(...res);
+            } else if (res) {
+              decorations.push(res);
+            }
           }
         }
       }
@@ -97,6 +115,10 @@ export const foldExtension = [foldDecorationExtension];
 export interface FoldableSyntaxSpec {
   nodePath: string | string[] | ((nodePath: string) => boolean);
   onFold?: (
+    state: EditorState,
+    node: SyntaxNodeRef,
+  ) => Range<Decoration> | Range<Decoration>[] | undefined;
+  onUnFold?: (
     state: EditorState,
     node: SyntaxNodeRef,
   ) => Range<Decoration> | Range<Decoration>[] | undefined;

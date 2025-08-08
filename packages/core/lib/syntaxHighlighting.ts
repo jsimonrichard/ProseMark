@@ -123,6 +123,16 @@ export const baseTheme = EditorView.theme({
     verticalAlign: 'bottom',
     backgroundColor: 'var(--pm-blockquote-vertical-line-background-color)',
   },
+  '.cm-checkbox-wrap': {
+    display: 'inline-block',
+    height: '1.8rem',
+    lineHeight: '1.8rem',
+    position: 'relative',
+  },
+  '.cm-checkbox-wrap .cm-checkbox': {
+    position: 'relative',
+    top: '1px',
+  },
 });
 
 export const generalSyntaxHighlights = syntaxHighlighting(
