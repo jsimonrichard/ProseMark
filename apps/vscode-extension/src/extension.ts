@@ -59,7 +59,6 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
     });
 
     webviewPanel.webview.onDidReceiveMessage((e) => {
-      console.log('Received message from webview:', e);
       switch (e.type) {
         case 'update':
           this.updateTextDocument(document, e.changes);

@@ -78,7 +78,6 @@ let view: EditorView | undefined;
 
 window.addEventListener('message', (event) => {
   const message = event.data as VSCodeMessage;
-  console.log('Received message from extension:', message);
 
   switch (message.type) {
     case 'set':
