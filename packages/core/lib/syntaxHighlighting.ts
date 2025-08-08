@@ -59,6 +59,7 @@ export const baseSyntaxHighlights = syntaxHighlighting(
     {
       tag: markdownTags.listMark,
       color: 'var(--pm-muted-color)',
+      class: 'cm-list-mark',
     },
     {
       tag: markdownTags.escapeMark,
@@ -102,9 +103,16 @@ export const baseTheme = EditorView.theme({
     cursor: 'pointer',
     color: 'var(--pm-link-color)',
   },
-  '.cm-rendered-list-mark': {
-    color: 'var(--pm-muted-color)',
-    margin: '0 0.2em',
+  '.cm-rendered-list-mark .cm-list-mark': {
+    color: 'transparent',
+    position: 'relative',
+    display: 'inline-block',
+  },
+  '.cm-rendered-list-mark .cm-list-mark::after': {
+    color: 'black',
+    position: 'absolute',
+    content: '"•"',
+    left: '-5px',
   },
   '.cm-blockquote-vertical-line': {
     display: 'inline-block',
