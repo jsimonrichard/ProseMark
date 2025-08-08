@@ -8,9 +8,11 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
-    --pm-header-mark-color: var(--vscode-editor-selectionBackground);
+    /* All VS Code Theme variables: https://gist.github.com/estruyf/ba49203e1a7d6868e9320a4ea480c27a */
+
+    --pm-header-mark-color: var(--vscode-textLink-foreground);
     --pm-link-color: var(--vscode-textLink-foreground);
-    --pm-muted-color: var(--vscode-editor-inactiveSelectionBackground);
+    --pm-muted-color: var(--vscode-icon-foreground);
     --pm-code-background-color: var(--vscode-textCodeBlock-background);
     --pm-code-btn-background-color: var(--vscode-button-background);
     --pm-code-btn-hover-background-color: var(--vscode-button-hoverBackground);
