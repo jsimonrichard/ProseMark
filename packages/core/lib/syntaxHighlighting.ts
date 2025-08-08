@@ -107,12 +107,13 @@ export const baseTheme = EditorView.theme({
     color: 'transparent',
     position: 'relative',
     display: 'inline-block',
+    width: '10px',
   },
   '.cm-rendered-list-mark .cm-list-mark::after': {
     color: 'black',
     position: 'absolute',
     content: '"•"',
-    left: '-5px',
+    left: '-3px',
   },
   '.cm-blockquote-vertical-line': {
     display: 'inline-block',
