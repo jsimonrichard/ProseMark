@@ -67,10 +67,19 @@ const buildView = (state: EditorState) => {
   if (!parent) {
     throw new Error('Parent element for ProseMark container not found!');
   }
-  return new EditorView({
+  const view = new EditorView({
     state,
     parent,
   });
+  parent?.addEventListener('click', () => {
+    if (
+      document.activeElement !== parent &&
+      !parent.contains(document.activeElement)
+    ) {
+      view.focus(); // Explicitly focus the editor view
+    }
+  });
+  return view;
 };
 
 let state: EditorState | undefined;

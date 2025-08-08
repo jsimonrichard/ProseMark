@@ -1,7 +1,8 @@
 :root {
     font-family: var(--vscode-font-family);
-    line-height: 1.5;
+    line-height: 1.4;
     font-weight: var(--vscode-font-weight);
+    /* font-size: var(--vscode-font-size); */
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -43,21 +44,20 @@
     --pm-cursor-color: var(--vscode-editorCursor-foreground);
 }
 
-#app {
-    width: 800px;
-    margin: 0 auto;
-    padding: 2rem;
-}
-
 #codemirror-container {
-    width: 100%;
-    height: 100%;
+    min-height: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    margin-top: 1rem;
     --font: Inter;
     * {
         margin-top: 0px;
     }
+    cursor: text;
 }
 
-.cm-editor {
-    height: 100%;
+@media (min-width: 800px) {
+    #codemirror-container {
+        margin-top: 3rem;
+    }
 }
