@@ -37,7 +37,8 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
       (e) => {
         if (
           e.document.uri.toString() === document.uri.toString() &&
-          !this.isUpdating
+          !this.isUpdating &&
+          e.contentChanges
         ) {
           webviewPanel.webview.postMessage({
             type: 'update',
@@ -108,7 +109,7 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
         document.uri,
         new vscode.Range(
           change.fromLine,
-          change.fromLine,
+          change.fromChar,
           change.toLine,
           change.toChar,
         ),

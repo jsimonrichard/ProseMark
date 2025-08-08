@@ -38,14 +38,16 @@ const buildState = (text: string) => {
               let changes: any[] = [];
 
               t.changes.iterChanges((fromA, toA, _fromB, _toB, inserted) => {
-                const fromLine = update.state.doc.lineAt(fromA).number;
-                const toLine = update.state.doc.lineAt(toA).number;
+                // calculate line and char (col) numbers from document position
+                const fromLine = t.startState.doc.lineAt(fromA);
+                const toLine = t.startState.doc.lineAt(toA);
                 changes.push({
-                  fromLine,
-                  fromChar: fromA - fromLine,
-                  toLine,
-                  toChar: toA - toLine,
-                  insert: inserted,
+                  // switch to 0-based line numbers
+                  fromLine: fromLine.number - 1,
+                  fromChar: fromA - fromLine.from,
+                  toLine: toLine.number - 1,
+                  toChar: toA - toLine.from,
+                  insert: inserted.toString(),
                 });
               });
 
@@ -107,8 +109,10 @@ window.addEventListener('message', (event) => {
       const { changes } = message;
       view.dispatch({
         changes: changes.map((c) => {
-          const fromLine = state!.doc.line(c.fromLine);
-          const toLine = state!.doc.line(c.toLine);
+          // Calculate document position using line and char (col) numbers
+          // switch to 1-based line numbers
+          const fromLine = state!.doc.line(c.fromLine + 1);
+          const toLine = state!.doc.line(c.toLine + 1);
           return {
             from: fromLine.from + c.fromChar,
             to: toLine.from + c.toChar,
