@@ -3,10 +3,10 @@
   "tasks": [
     {
       "type": "bun",
-      "script": "bun run ./esbuild.js --watch",
+      "script": "bun run watch",
       "problemMatcher": [],
       "label": "bun: build",
-      "detail": "bun run ./esbuild.js --watch - package.json",
+      "detail": "tsc --noEmit && concurrently \"tsc -w\" \"tsup --watch\"",
       "group": {
         "kind": "build",
         "isDefault": true
