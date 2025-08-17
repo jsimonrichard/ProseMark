@@ -10,6 +10,7 @@ import { htmlBlockExtension } from '@prosemark/render-html';
 import { GFM } from '@lezer/markdown';
 import { EditorState } from '@codemirror/state';
 import type { VSCodeMessage, WebViewMessage } from './common';
+import './style.css';
 
 type VSCodeAPI = {
   postMessage: (m: WebViewMessage) => void;

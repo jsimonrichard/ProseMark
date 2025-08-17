@@ -77,7 +77,7 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
       vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'main.js'),
     );
     const styleUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'src', 'style.css'),
+      vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'main.css'),
     );
 
     return /* html */ `
