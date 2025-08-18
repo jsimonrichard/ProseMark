@@ -31,11 +31,11 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
-    "compile": "bun run check-types && bun run lint && tsup",
-    "watch": "tsc --noEmit && concurrently \"tsc -w\" \"tsup --watch\"",
-    "watch:tsup": "tsup --watch",
+    "compile": "bun run check-types && bun run lint && tsdown",
+    "watch": "tsc --noEmit && concurrently \"tsc -w\" \"tsdown --watch\"",
+    "watch:tsup": "tsdown --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "bun run check-types && bun run lint && tsup",
+    "package": "bun run check-types && bun run lint && tsdown",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "bun run compile-tests && bun run compile && bun run lint",
@@ -62,7 +62,7 @@
     "@vscode/vsce": "^3.6.0",
     "concurrently": "^9.2.0",
     "eslint": "^9.32.0",
-    "tsup": "^8.5.0",
+    "tsdown": "^0.14.1",
     "typescript": "^5.9.2"
   },
   "dependencies": {}

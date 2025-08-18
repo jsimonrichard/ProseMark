@@ -84,7 +84,7 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
 
   private getHtmlForWebview(webview: vscode.Webview): string {
     const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'main.js'),
+      vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'main.iife.js'),
     );
     const styleUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'main.css'),
