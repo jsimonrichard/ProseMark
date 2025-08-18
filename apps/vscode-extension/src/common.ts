@@ -6,10 +6,15 @@ export type Change = {
   insert?: string;
 };
 
-export type WebViewMessage = {
-  type: 'update';
-  changes: Change[];
-};
+export type WebViewMessage =
+  | {
+      type: 'update';
+      changes: Change[];
+    }
+  | {
+      type: 'link_click';
+      link: string;
+    };
 
 export type VSCodeMessage =
   | {
@@ -20,3 +25,7 @@ export type VSCodeMessage =
       type: 'update';
       changes: Change[];
     };
+
+export const exhaustiveMatchingGuard = (_: never): never => {
+  throw new Error('Should not have reached here!');
+};

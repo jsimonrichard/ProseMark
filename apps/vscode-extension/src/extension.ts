@@ -1,5 +1,10 @@
 import * as vscode from 'vscode';
-import type { WebViewMessage } from './common';
+import * as path from 'path';
+import {
+  exhaustiveMatchingGuard,
+  type Change,
+  type WebViewMessage,
+} from './common';
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
@@ -59,11 +64,16 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
     });
 
     webviewPanel.webview.onDidReceiveMessage((e) => {
-      switch (e.type) {
+      const type = e.type as WebViewMessage['type'];
+      switch (type) {
         case 'update':
           this.updateTextDocument(document, e.changes);
           return;
+        case 'link_click':
+          this.followLink(e.link, document.uri);
+          return;
       }
+      return exhaustiveMatchingGuard(type);
     });
 
     webviewPanel.webview.postMessage({
@@ -99,7 +109,7 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
 
   private async updateTextDocument(
     document: vscode.TextDocument,
-    changes: WebViewMessage['changes'],
+    changes: Change[],
   ) {
     this.isUpdating = true;
     const edit = new vscode.WorkspaceEdit();
@@ -118,6 +128,30 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
     const result = await vscode.workspace.applyEdit(edit);
     this.isUpdating = false;
     return result;
+  }
+
+  /// Follow a link within the markdown document, relative to the current document
+  private async followLink(link: string, currentDocumentUri: vscode.Uri) {
+    const uri = vscode.Uri.parse(link);
+
+    if (uri.scheme === 'file') {
+      // use this instead of uri directly since uri.path may have an extra `/`
+      let fileUri;
+      if (link.startsWith('file://')) {
+        fileUri = uri;
+      } else if (path.isAbsolute(link)) {
+        fileUri = vscode.Uri.file(link);
+      } else {
+        fileUri = vscode.Uri.file(
+          path.join(path.dirname(currentDocumentUri.path), link),
+        );
+      }
+      await vscode.commands.executeCommand('vscode.open', fileUri);
+    } else if (uri.scheme === 'http' || uri.scheme === 'https') {
+      await vscode.env.openExternal(uri);
+    } else {
+      vscode.commands.executeCommand('vscode.open', uri);
+    }
   }
 }
 

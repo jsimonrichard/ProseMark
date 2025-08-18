@@ -14,6 +14,7 @@
     prosemarkBasicSetup,
     prosemarkBaseThemeSetup,
     prosemarkMarkdownSyntaxExtensions,
+    defaultClickLinkHandler,
   } from '@prosemark/core';
   import { htmlBlockExtension } from '@prosemark/render-html';
   import { GFM } from '@lezer/markdown';
@@ -34,6 +35,7 @@
       }),
       prosemarkBasicSetup(),
       prosemarkBaseThemeSetup(),
+      defaultClickLinkHandler,
       htmlBlockExtension,
       keymap.of([
         {

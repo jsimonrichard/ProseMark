@@ -5,6 +5,7 @@ import {
   prosemarkBasicSetup,
   prosemarkBaseThemeSetup,
   prosemarkMarkdownSyntaxExtensions,
+  clickLinkHandler,
 } from '@prosemark/core';
 import { htmlBlockExtension } from '@prosemark/render-html';
 import { GFM } from '@lezer/markdown';
@@ -29,6 +30,9 @@ const buildState = (text: string) => {
       }),
       prosemarkBasicSetup(),
       prosemarkBaseThemeSetup(),
+      clickLinkHandler.of((url) => {
+        vscode.postMessage({ type: 'link_click', link: url });
+      }),
       htmlBlockExtension,
       // Send client updates back to VS Code
       EditorView.updateListener.of((update) => {
