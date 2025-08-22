@@ -79,16 +79,18 @@ const buildDecorations = (state: EditorState) => {
 
           const cursor = node.node.cursor();
           console.assert(cursor.firstChild(), 'A hide node must have children');
-          cursor.iterate((node) => {
-            if (names.includes(node.type.name)) {
+
+          // Manual traversal to ensure all children are processed
+          do {
+            if (names.includes(cursor.type.name)) {
               decorations.push(
                 (spec.block ? hideBlockDecoration : hideInlineDecoration).range(
-                  node.from,
-                  node.to,
+                  cursor.from,
+                  cursor.to,
                 ),
               );
             }
-          });
+          } while (cursor.nextSibling());
         }
       }
     },
