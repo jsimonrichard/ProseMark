@@ -6,7 +6,7 @@ description: A guide for getting started with the ProseMark libraries.
 This guide describes how to get a basic instance of ProseMark running on a web app. It's equivalent to our [Demo](/demo).
 
 :::note
-ProseMark is an set of extensions for, not a replacement of, [CodeMirror](https://codemirror.net/). This guide won't require a deep knowledge of CodeMirror, but we strongly recommend getting familiar with its system and terminology. A comprehensive overview of its functionality can be found in CodeMirror's [System Guide](https://codemirror.net/docs/guide/).
+ProseMark is a set of extensions for, not a replacement of, [CodeMirror](https://codemirror.net/). This guide won't require a deep knowledge of CodeMirror, but we strongly recommend getting familiar with its system and terminology. A comprehensive overview of its functionality can be found in CodeMirror's [System Guide](https://codemirror.net/docs/guide/).
 :::
 
 ## Installing ProseMark
