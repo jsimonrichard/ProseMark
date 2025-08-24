@@ -1,5 +1,8 @@
 :root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    /* Inter + tailwindcss font-sans*/
+    font-family:
+        Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     line-height: 1.5;
     font-weight: 400;
 
@@ -35,5 +38,8 @@ h1 {
 #codemirror-container {
     min-height: 100px;
     width: 100%;
-    --font: Inter;
+    /* Inter + tailwindcss font-sans*/
+    --font:
+        Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
