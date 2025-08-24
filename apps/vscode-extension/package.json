@@ -2,7 +2,8 @@
   "name": "vscode-prosemark",
   "displayName": "ProseMark",
   "description": "A \"What You See Is What You Mean\" editor, like Typora or Obsidian",
-  "version": "0.0.0",
+  "publisher": "jsimonrichard",
+  "version": "0.0.1",
   "repository": {
     "type": "GitHub",
     "url": "https://github.com/jsimonrichard/ProseMark"

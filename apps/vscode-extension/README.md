@@ -2,6 +2,8 @@
 
 A "What You See Is What You Mean" Markdown editor for Visual Studio Code, inspired by editors like Typora and Obsidian. ProseMark provides a seamless writing experience where you can focus on your content without being distracted by Markdown syntax.
 
+The extension can be downloaded here: https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark.
+
 The documentation for the ProseMark libraries can be found at https://prosemark.com.
 
 ## Features
