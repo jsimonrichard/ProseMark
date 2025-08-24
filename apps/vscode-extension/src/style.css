@@ -1,0 +1,63 @@
+:root {
+    font-family: var(--vscode-font-family);
+    line-height: 1.4;
+    font-weight: var(--vscode-font-weight);
+    /* font-size: var(--vscode-font-size); */
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* All VS Code Theme variables: https://gist.github.com/estruyf/ba49203e1a7d6868e9320a4ea480c27a */
+
+    --pm-header-mark-color: var(--vscode-textLink-foreground);
+    --pm-link-color: var(--vscode-textLink-foreground);
+    --pm-muted-color: var(--vscode-icon-foreground);
+    --pm-code-background-color: var(--vscode-textCodeBlock-background);
+    --pm-code-btn-background-color: var(--vscode-button-background);
+    --pm-code-btn-hover-background-color: var(--vscode-button-hoverBackground);
+    --pm-blockquote-vertical-line-background-color: var(
+        --vscode-editor-selectionBackground
+    );
+
+    --pm-syntax-link: var(--vscode-textLink-foreground);
+    --pm-syntax-keyword: var(--vscode-debugTokenExpression-name);
+    --pm-syntax-atom: var(--vscode-debugTokenExpression-boolean);
+    --pm-syntax-literal: var(--vscode-debugTokenExpression-number);
+    --pm-syntax-string: var(--vscode-debugTokenExpression-string);
+    --pm-syntax-regexp: var(--vscode-debugTokenExpression-string);
+    --pm-syntax-definition-variable: var(
+        --vscode-symbolIcon-variableForeground
+    );
+    --pm-syntax-local-variable: var(--vscode-foreground);
+    --pm-syntax-type-namespace: var(--vscode-symbolIcon-classForeground);
+    --pm-syntax-class-name: var(--vscode-symbolIcon-classForeground);
+    --pm-syntax-special-variable-macro: var(
+        --vscode-symbolIcon-constructorForeground
+    );
+    --pm-syntax-definition-property: var(
+        --vscode-symbolIcon-propertyForeground
+    );
+    --pm-syntax-comment: var(--vscode-editor-inactiveSelectionBackground);
+    --pm-syntax-invalid: var(--vscode-errorForeground);
+    --pm-cursor-color: var(--vscode-editorCursor-foreground);
+}
+
+#codemirror-container {
+    min-height: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    margin-top: 1rem;
+    --font: Inter;
+    * {
+        margin-top: 0px;
+    }
+    cursor: text;
+}
+
+@media (min-width: 800px) {
+    #codemirror-container {
+        margin-top: 3rem;
+    }
+}

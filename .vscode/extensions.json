@@ -4,6 +4,8 @@
     "esbenp.prettier-vscode",
     "github.vscode-github-actions",
     "dbaeumer.vscode-eslint",
-    "swiftlydaniel.oklch-color-visualiser"
+    "swiftlydaniel.oklch-color-visualiser",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.extension-test-runner"
   ]
 }

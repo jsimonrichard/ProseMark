@@ -6,6 +6,7 @@ import {
 } from '@codemirror/language';
 import { eventHandlersWithClass, iterChildren } from './utils';
 import { markdownTags } from './markdownTags';
+import { Facet } from '@codemirror/state';
 
 function getUrlFromLink(view: EditorView, pos: number): string | undefined {
   const tree = syntaxTree(view.state);
@@ -31,6 +32,14 @@ function getUrlFromLink(view: EditorView, pos: number): string | undefined {
   return url;
 }
 
+export type ClickLinkHandler = (link: string) => void;
+
+export const clickLinkHandler = Facet.define<ClickLinkHandler>();
+
+export const defaultClickLinkHandler = clickLinkHandler.of((url) => {
+  window.open(url, '_blank');
+});
+
 const clickFullLinkExtension = EditorView.domEventHandlers(
   eventHandlersWithClass({
     mousedown: {
@@ -45,7 +54,9 @@ const clickFullLinkExtension = EditorView.domEventHandlers(
           return;
         }
 
-        window.open(url, '_blank');
+        view.state.facet(clickLinkHandler).map((handler) => {
+          handler(url);
+        });
       },
     },
   }),
@@ -94,7 +105,9 @@ const clickRawUrlExtension = EditorView.domEventHandlers(
           return;
         }
 
-        window.open(url, '_blank');
+        view.state.facet(clickLinkHandler).map((handler) => {
+          handler(url);
+        });
       },
     },
   }),

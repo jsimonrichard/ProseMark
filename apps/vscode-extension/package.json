@@ -1,0 +1,69 @@
+{
+  "name": "vscode-prosemark",
+  "displayName": "ProseMark",
+  "description": "A \"What You See Is What You Mean\" editor, like Typora or Obsidian",
+  "version": "0.0.0",
+  "repository": {
+    "type": "GitHub",
+    "url": "https://github.com/jsimonrichard/ProseMark"
+  },
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.101.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "prosemark.editor",
+        "displayName": "ProseMark",
+        "selector": [
+          {
+            "filenamePattern": "*.md"
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "bun run package",
+    "compile": "bun run check-types && bun run lint && tsdown",
+    "watch": "tsc --noEmit && concurrently \"tsc -w\" \"tsdown --watch\"",
+    "watch:tsup": "tsdown --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "bun run check-types && bun run lint && tsdown",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "bun run compile-tests && bun run compile && bun run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@codemirror/lang-markdown": "^6.2.5",
+    "@codemirror/language": "^6.10.2",
+    "@codemirror/language-data": "^6.5.1",
+    "@codemirror/view": "^6.28.0",
+    "@lezer-unofficial/printer": "^1.0.1",
+    "@lezer/markdown": "^1.2.1",
+    "@prosemark/core": "workspace:*",
+    "@prosemark/render-html": "workspace:*",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.101.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.6.0",
+    "concurrently": "^9.2.0",
+    "eslint": "^9.32.0",
+    "tsdown": "^0.14.1",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {}
+}

@@ -8,6 +8,7 @@ import {
   prosemarkBasicSetup,
   prosemarkBaseThemeSetup,
   prosemarkMarkdownSyntaxExtensions,
+  defaultClickLinkHandler,
 } from '@prosemark/core';
 import * as ProseMark from '@prosemark/core';
 import { htmlBlockExtension } from '@prosemark/render-html';
@@ -38,6 +39,7 @@ const editor = new EditorView({
     EditorView.lineWrapping,
     prosemarkBasicSetup(),
     prosemarkBaseThemeSetup(),
+    defaultClickLinkHandler,
     keymap.of([
       indentWithTab,
       {
