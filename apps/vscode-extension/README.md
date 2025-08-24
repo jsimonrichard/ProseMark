@@ -11,9 +11,8 @@ The documentation for the ProseMark libraries can be found at https://prosemark.
 
 ## How to Use
 
-1.  Install the ProseMark extension from the Visual Studio Code Marketplace.
-2.  Open any file with a `.md` extension.
-3.  ProseMark will automatically open as the editor for that file.
+1.  Open any file with a `.md` extension.
+2.  ProseMark will automatically open as the editor for that file.
 
 ## Extension Settings
 
@@ -21,6 +20,6 @@ This extension does not currently contribute any settings to VS Code.
 
 ## Known Issues
 
-- Links are not yet clickable (in the extension only)
+No known issues at this time.
 
 Please report any bugs or feature requests on the [GitHub issues page](https://github.com/jsimonrichard/ProseMark/issues).
