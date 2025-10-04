@@ -1,4 +1,4 @@
-import { EditorView, keymap } from '@codemirror/view';
+import { EditorView } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import {
@@ -10,15 +10,20 @@ import {
 import { htmlBlockExtension } from '@prosemark/render-html';
 import { GFM } from '@lezer/markdown';
 import { EditorState, StateEffect } from '@codemirror/state';
-import type { VSCodeMessage, VSCodeProcMap, WebViewMessage } from '../common';
+import type {
+  Change,
+  VSCodeMessage,
+  VSCodeProcMap,
+  WebViewMessage,
+} from '../common';
 import './style.css';
 import { indentUnit } from '@codemirror/language';
 
-type VSCodeAPI = {
+interface VSCodeAPI {
   postMessage: (m: WebViewMessage) => void;
-};
+}
 
-declare const acquireVsCodeApi: () => any;
+declare const acquireVsCodeApi: () => VSCodeAPI;
 const vscode: VSCodeAPI = acquireVsCodeApi();
 
 const buildState = (text: string, vimModeEnabled?: boolean) => {
@@ -42,7 +47,7 @@ const buildState = (text: string, vimModeEnabled?: boolean) => {
           update.transactions
             .filter((t) => !t.isUserEvent('updateFromVSCode'))
             .map((t) => {
-              let changes: any[] = [];
+              const changes: Change[] = [];
 
               t.changes.iterChanges((fromA, toA, _fromB, _toB, inserted) => {
                 // calculate line and char (col) numbers from document position
@@ -78,7 +83,7 @@ const buildView = (state: EditorState) => {
     state,
     parent,
   });
-  parent?.addEventListener('click', () => {
+  parent.addEventListener('click', () => {
     if (
       document.activeElement !== parent &&
       !parent.contains(document.activeElement)
@@ -97,6 +102,7 @@ const procs: VSCodeProcMap = {
     state = buildState(text, vimModeEnabled);
     view = buildView(state);
     procs.setDynamicConfig(dynamicConfig);
+    procs.focus();
   },
   set: (text) => {
     view?.dispatch({
@@ -115,7 +121,10 @@ const procs: VSCodeProcMap = {
       changes: changes.map((c) => {
         // Calculate document position using line and char (col) numbers
         // switch to 1-based line numbers
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const fromLine = state!.doc.line(c.fromLine + 1);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const toLine = state!.doc.line(c.toLine + 1);
         return {
           from: fromLine.from + c.fromChar,
@@ -145,6 +154,7 @@ const procs: VSCodeProcMap = {
 window.addEventListener('message', (event) => {
   const message = event.data as VSCodeMessage;
   if ('value' in message) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     procs[message.type](message.value as any);
   } else {
     procs[message.type]();

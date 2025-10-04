@@ -7,7 +7,7 @@ import {
   type WebViewMessage,
 } from './common';
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.window.registerCustomEditorProvider(
       'prosemark.editor',
@@ -28,28 +28,28 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
 
   constructor(private readonly context: vscode.ExtensionContext) {}
 
-  public async resolveCustomTextEditor(
+  public resolveCustomTextEditor(
     document: vscode.TextDocument,
     webviewPanel: vscode.WebviewPanel,
     _token: vscode.CancellationToken,
-  ): Promise<void> {
+  ): void {
     console.info('Resolving custom text editor for', document.uri.toString());
     webviewPanel.webview.options = {
       enableScripts: true,
     };
     webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
 
-    const postMessage: (msg: VSCodeMessage) => void =
-      webviewPanel.webview.postMessage;
+    const postMessage = (msg: VSCodeMessage) =>
+      webviewPanel.webview.postMessage(msg);
 
     const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
-      (e) => {
+      async (e) => {
         if (
           e.document.uri.toString() === document.uri.toString() &&
           !this.isUpdating &&
-          e.contentChanges
+          e.contentChanges.length
         ) {
-          postMessage({
+          await postMessage({
             type: 'update',
             value: e.contentChanges.map((c) => ({
               fromLine: c.range.start.line,
@@ -77,10 +77,10 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel.webview.onDidReceiveMessage((e: WebViewMessage) => {
       switch (e.type) {
         case 'update':
-          this.updateTextDocument(document, e.value);
+          void this.updateTextDocument(document, e.value);
           return;
         case 'linkClick':
-          this.followLink(e.value, document.uri);
+          void this.followLink(e.value, document.uri);
           return;
       }
       return exhaustiveMatchingGuard(e);
@@ -95,7 +95,7 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
     const config = vscode.workspace.getConfiguration('prosemark');
     const vimModeEnabled = config.get<boolean>('enableVimMode', false);
 
-    postMessage({
+    void postMessage({
       type: 'init',
       value: {
         text: document.getText(),
@@ -104,20 +104,19 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
         insertSpaces,
       },
     });
-
-    // a short delay is needed to ensure the webview is ready to receive the message
-    // setTimeout(() => {
-    //   postMessage({ type: 'focus' });
-    // }, 100);
   }
 
   private getHtmlForWebview(webview: vscode.Webview): string {
-    const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'main.iife.js'),
-    );
-    const styleUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'main.css'),
-    );
+    const scriptUri = webview
+      .asWebviewUri(
+        vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'main.iife.js'),
+      )
+      .toString();
+    const styleUri = webview
+      .asWebviewUri(
+        vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'main.css'),
+      )
+      .toString();
 
     return /* html */ `
       <!DOCTYPE html>
@@ -151,7 +150,7 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
           change.toLine,
           change.toChar,
         ),
-        change.insert ?? '',
+        change.insert,
       );
     }
     const result = await vscode.workspace.applyEdit(edit);
@@ -184,4 +183,5 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
   }
 }
 
-export function deactivate() {}
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export function deactivate(): void {}

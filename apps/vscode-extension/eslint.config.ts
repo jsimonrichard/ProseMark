@@ -12,6 +12,9 @@ export default tseslint.config([
   {
     languageOptions: {
       parserOptions: {
+        projectService: {
+          allowDefaultProject: [],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -45,7 +48,7 @@ export default tseslint.config([
           format: ['camelCase', 'PascalCase'],
         },
       ],
-
+      '@typescript-eslint/no-explicit-any': 'off',
       curly: 'warn',
       eqeqeq: 'warn',
       'no-throw-literal': 'warn',

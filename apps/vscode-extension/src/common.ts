@@ -1,4 +1,7 @@
-type ProcMapToMessage<P extends Record<string, (arg?: any) => any>> = {
+type ProcMapToMessage<
+  KS extends string,
+  P extends Record<KS, (arg?: any) => any>,
+> = {
   [K in keyof P]: P[K] extends (arg: unknown) => any
     ? { type: K }
     : P[K] extends (arg: infer A) => any
@@ -9,30 +12,30 @@ type ProcMapToMessage<P extends Record<string, (arg?: any) => any>> = {
       : { type: K };
 }[keyof P];
 
-type ProcMap = Record<string, (arg: any) => any>;
-type Message = ProcMapToMessage<ProcMap>;
-
-export type Change = {
+export interface Change {
   fromLine: number;
   fromChar: number;
   toLine: number;
   toChar: number;
   insert: string;
-};
+}
 
-export type WebviewProcMap = {
+export interface WebviewProcMap {
   update: (changes: Change[]) => void;
   linkClick: (link: string) => void;
-};
+}
 
-export type WebViewMessage = ProcMapToMessage<WebviewProcMap>;
+export type WebViewMessage = ProcMapToMessage<
+  keyof WebviewProcMap,
+  WebviewProcMap
+>;
 
-export type DynamicConfig = {
+export interface DynamicConfig {
   tabSize?: number;
   insertSpaces?: boolean;
-};
+}
 
-export type VSCodeProcMap = {
+export interface VSCodeProcMap {
   init: (
     v: {
       text: string;
@@ -43,9 +46,12 @@ export type VSCodeProcMap = {
   update: (changes: Change[]) => void;
   focus: () => void;
   setDynamicConfig: (dynamicConfig: DynamicConfig) => void;
-};
+}
 
-export type VSCodeMessage = ProcMapToMessage<VSCodeProcMap>;
+export type VSCodeMessage = ProcMapToMessage<
+  keyof VSCodeProcMap,
+  VSCodeProcMap
+>;
 
 export const exhaustiveMatchingGuard = (_: never): never => {
   throw new Error('Should not have reached here!');
