@@ -37,7 +37,7 @@
     },
     "apps/vscode-extension": {
       "name": "vscode-prosemark",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "devDependencies": {
         "@codemirror/lang-markdown": "^6.2.5",
         "@codemirror/language": "^6.10.2",
@@ -63,7 +63,7 @@
     },
     "packages/core": {
       "name": "@prosemark/core",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "dependencies": {
         "@lezer/common": "^1.2.3",
         "@lezer/markdown": "^1.4.3",
@@ -102,7 +102,7 @@
     },
     "packages/render-html": {
       "name": "@prosemark/render-html",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "dependencies": {
         "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.38.0",

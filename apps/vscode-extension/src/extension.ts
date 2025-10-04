@@ -88,18 +88,17 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
 
     // Send VS Code editor settings to the webview
     const editorConfig = vscode.workspace.getConfiguration('editor');
-    // const vimMode
     const tabSize = editorConfig.get<number>('tabSize', 2);
     const insertSpaces = editorConfig.get<boolean>('insertSpaces', true);
 
-    const config = vscode.workspace.getConfiguration('prosemark');
-    const vimModeEnabled = config.get<boolean>('enableVimMode', false);
+    // const config = vscode.workspace.getConfiguration('prosemark');
+    // const vimModeEnabled = config.get<boolean>('vimModeEnabled', false);
 
     void postMessage({
       type: 'init',
       value: {
         text: document.getText(),
-        vimModeEnabled,
+        vimModeEnabled: false,
         tabSize,
         insertSpaces,
       },

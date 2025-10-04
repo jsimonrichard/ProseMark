@@ -1,4 +1,4 @@
-import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view';
+import { EditorView } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import {
@@ -18,6 +18,7 @@ import type {
 } from '../common';
 import './style.css';
 import { indentUnit } from '@codemirror/language';
+// import { vim } from '@replit/codemirror-vim';
 
 interface VSCodeAPI {
   postMessage: (m: WebViewMessage) => void;
@@ -32,7 +33,7 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
   const state = EditorState.create({
     doc: text,
     extensions: [
-      vimModeEnabled ? [] : [],
+      vimModeEnabled ? [] : [], // A no-op for now
       markdown({
         codeLanguages: languages,
         extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
