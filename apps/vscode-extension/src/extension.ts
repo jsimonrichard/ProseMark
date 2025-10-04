@@ -59,8 +59,33 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
       },
     );
 
+    const viewStateSubscription = webviewPanel.onDidChangeViewState((e) => {
+      if (e.webviewPanel.visible) {
+        webviewPanel.webview.postMessage({ type: 'focus' });
+      }
+    });
+
     webviewPanel.onDidDispose(() => {
       changeDocumentSubscription.dispose();
+      viewStateSubscription.dispose();
+    });
+
+    webviewPanel.webview.onDidReceiveMessage((e) => {
+      const type = e.type as WebViewMessage['type'];
+      switch (type) {
+        case 'update':
+          this.updateTextDocument(document, e.changes);
+          return;
+        case 'link_click':
+          this.followLink(e.link, document.uri);
+          return;
+      }
+      return exhaustiveMatchingGuard(type);
+    });
+
+    webviewPanel.onDidDispose(() => {
+      changeDocumentSubscription.dispose();
+      viewStateSubscription.dispose();
     });
 
     webviewPanel.webview.onDidReceiveMessage((e) => {
@@ -80,6 +105,11 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
       type: 'set',
       text: document.getText(),
     });
+
+    // a short delay is needed to ensure the webview is ready to receive the message
+    setTimeout(() => {
+      webviewPanel.webview.postMessage({ type: 'focus' });
+    }, 100);
   }
 
   private getHtmlForWebview(webview: vscode.Webview): string {

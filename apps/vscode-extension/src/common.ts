@@ -24,6 +24,9 @@ export type VSCodeMessage =
   | {
       type: 'update';
       changes: Change[];
+    }
+  | {
+      type: 'focus';
     };
 
 export const exhaustiveMatchingGuard = (_: never): never => {

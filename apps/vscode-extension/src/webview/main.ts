@@ -136,5 +136,11 @@ window.addEventListener('message', (event) => {
       });
 
       return;
+
+    case 'focus':
+      if (view) {
+        view.focus();
+      }
+      return;
   }
 });
