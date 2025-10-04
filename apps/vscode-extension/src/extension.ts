@@ -3,6 +3,7 @@ import * as path from 'path';
 import {
   exhaustiveMatchingGuard,
   type Change,
+  type VSCodeMessage,
   type WebViewMessage,
 } from './common';
 
@@ -38,6 +39,9 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
     };
     webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
 
+    const postMessage: (msg: VSCodeMessage) => void =
+      webviewPanel.webview.postMessage;
+
     const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
       (e) => {
         if (
@@ -45,9 +49,9 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
           !this.isUpdating &&
           e.contentChanges
         ) {
-          webviewPanel.webview.postMessage({
+          postMessage({
             type: 'update',
-            changes: e.contentChanges.map((c) => ({
+            value: e.contentChanges.map((c) => ({
               fromLine: c.range.start.line,
               fromChar: c.range.start.character,
               toLine: c.range.end.line,
@@ -61,7 +65,7 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
 
     const viewStateSubscription = webviewPanel.onDidChangeViewState((e) => {
       if (e.webviewPanel.visible) {
-        webviewPanel.webview.postMessage({ type: 'focus' });
+        postMessage({ type: 'focus' });
       }
     });
 
@@ -70,46 +74,41 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
       viewStateSubscription.dispose();
     });
 
-    webviewPanel.webview.onDidReceiveMessage((e) => {
-      const type = e.type as WebViewMessage['type'];
-      switch (type) {
+    webviewPanel.webview.onDidReceiveMessage((e: WebViewMessage) => {
+      switch (e.type) {
         case 'update':
-          this.updateTextDocument(document, e.changes);
+          this.updateTextDocument(document, e.value);
           return;
-        case 'link_click':
-          this.followLink(e.link, document.uri);
+        case 'linkClick':
+          this.followLink(e.value, document.uri);
           return;
       }
-      return exhaustiveMatchingGuard(type);
+      return exhaustiveMatchingGuard(e);
     });
 
-    webviewPanel.onDidDispose(() => {
-      changeDocumentSubscription.dispose();
-      viewStateSubscription.dispose();
-    });
+    // Send VS Code editor settings to the webview
+    const editorConfig = vscode.workspace.getConfiguration('editor');
+    // const vimMode
+    const tabSize = editorConfig.get<number>('tabSize', 2);
+    const insertSpaces = editorConfig.get<boolean>('insertSpaces', true);
 
-    webviewPanel.webview.onDidReceiveMessage((e) => {
-      const type = e.type as WebViewMessage['type'];
-      switch (type) {
-        case 'update':
-          this.updateTextDocument(document, e.changes);
-          return;
-        case 'link_click':
-          this.followLink(e.link, document.uri);
-          return;
-      }
-      return exhaustiveMatchingGuard(type);
-    });
+    const config = vscode.workspace.getConfiguration('prosemark');
+    const vimModeEnabled = config.get<boolean>('enableVimMode', false);
 
-    webviewPanel.webview.postMessage({
-      type: 'set',
-      text: document.getText(),
+    postMessage({
+      type: 'init',
+      value: {
+        text: document.getText(),
+        vimModeEnabled,
+        tabSize,
+        insertSpaces,
+      },
     });
 
     // a short delay is needed to ensure the webview is ready to receive the message
-    setTimeout(() => {
-      webviewPanel.webview.postMessage({ type: 'focus' });
-    }, 100);
+    // setTimeout(() => {
+    //   postMessage({ type: 'focus' });
+    // }, 100);
   }
 
   private getHtmlForWebview(webview: vscode.Webview): string {

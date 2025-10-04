@@ -9,9 +9,10 @@ import {
 } from '@prosemark/core';
 import { htmlBlockExtension } from '@prosemark/render-html';
 import { GFM } from '@lezer/markdown';
-import { EditorState } from '@codemirror/state';
-import type { VSCodeMessage, WebViewMessage } from '../common';
+import { EditorState, StateEffect } from '@codemirror/state';
+import type { VSCodeMessage, VSCodeProcMap, WebViewMessage } from '../common';
 import './style.css';
+import { indentUnit } from '@codemirror/language';
 
 type VSCodeAPI = {
   postMessage: (m: WebViewMessage) => void;
@@ -20,10 +21,11 @@ type VSCodeAPI = {
 declare const acquireVsCodeApi: () => any;
 const vscode: VSCodeAPI = acquireVsCodeApi();
 
-const buildState = (text: string) => {
+const buildState = (text: string, vimModeEnabled?: boolean) => {
   return EditorState.create({
     doc: text,
     extensions: [
+      vimModeEnabled ? [] : [],
       markdown({
         codeLanguages: languages,
         extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
@@ -31,7 +33,7 @@ const buildState = (text: string) => {
       prosemarkBasicSetup(),
       prosemarkBaseThemeSetup(),
       clickLinkHandler.of((url) => {
-        vscode.postMessage({ type: 'link_click', link: url });
+        vscode.postMessage({ type: 'linkClick', value: url });
       }),
       htmlBlockExtension,
       // Send client updates back to VS Code
@@ -58,7 +60,7 @@ const buildState = (text: string) => {
 
               vscode.postMessage({
                 type: 'update',
-                changes,
+                value: changes,
               });
             });
         }
@@ -90,57 +92,61 @@ const buildView = (state: EditorState) => {
 let state: EditorState | undefined;
 let view: EditorView | undefined;
 
+const procs: VSCodeProcMap = {
+  init: ({ text, vimModeEnabled, ...dynamicConfig }) => {
+    state = buildState(text, vimModeEnabled);
+    view = buildView(state);
+    procs.setDynamicConfig(dynamicConfig);
+  },
+  set: (text) => {
+    view?.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: text },
+      userEvent: 'updateFromVSCode',
+    });
+  },
+  update: (changes) => {
+    if (!state || !view) {
+      throw new Error(
+        'ProseMark state and view should have been rebuilt already',
+      );
+    }
+
+    view.dispatch({
+      changes: changes.map((c) => {
+        // Calculate document position using line and char (col) numbers
+        // switch to 1-based line numbers
+        const fromLine = state!.doc.line(c.fromLine + 1);
+        const toLine = state!.doc.line(c.toLine + 1);
+        return {
+          from: fromLine.from + c.fromChar,
+          to: toLine.from + c.toChar,
+          insert: c.insert,
+        };
+      }),
+      userEvent: 'updateFromVSCode',
+    });
+  },
+  focus: () => view?.focus(),
+  setDynamicConfig: (dynamicConfig) => {
+    const { tabSize = 2, insertSpaces = true } = dynamicConfig;
+    const indentUnit_ = insertSpaces ? ' '.repeat(tabSize) : '\t';
+    console.log('Trying to update tab size!');
+    if (view) {
+      const indentEffect = StateEffect.appendConfig.of([
+        EditorState.tabSize.of(tabSize),
+        indentUnit.of(indentUnit_),
+      ]);
+      view.dispatch({ effects: indentEffect });
+    }
+    return;
+  },
+};
+
 window.addEventListener('message', (event) => {
   const message = event.data as VSCodeMessage;
-
-  switch (message.type) {
-    case 'set':
-      const { text } = message;
-      let shouldDispatch = true;
-      if (!state) {
-        state = buildState(text);
-        shouldDispatch = false;
-      }
-      if (!view) {
-        view = buildView(state);
-      }
-      if (shouldDispatch) {
-        view?.dispatch({
-          changes: { from: 0, to: view.state.doc.length, insert: text },
-          userEvent: 'updateFromVSCode',
-        });
-      }
-      break;
-
-    case 'update':
-      if (!state || !view) {
-        throw new Error(
-          'ProseMark state and view should have been rebuilt already',
-        );
-      }
-
-      const { changes } = message;
-      view.dispatch({
-        changes: changes.map((c) => {
-          // Calculate document position using line and char (col) numbers
-          // switch to 1-based line numbers
-          const fromLine = state!.doc.line(c.fromLine + 1);
-          const toLine = state!.doc.line(c.toLine + 1);
-          return {
-            from: fromLine.from + c.fromChar,
-            to: toLine.from + c.toChar,
-            insert: c.insert,
-          };
-        }),
-        userEvent: 'updateFromVSCode',
-      });
-
-      return;
-
-    case 'focus':
-      if (view) {
-        view.focus();
-      }
-      return;
+  if ('value' in message) {
+    procs[message.type](message.value as any);
+  } else {
+    procs[message.type]();
   }
 });
