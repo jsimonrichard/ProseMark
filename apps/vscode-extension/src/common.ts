@@ -3,7 +3,7 @@ export type Change = {
   fromChar: number;
   toLine: number;
   toChar: number;
-  insert?: string;
+  insert: string;
 };
 
 export type WebViewMessage =

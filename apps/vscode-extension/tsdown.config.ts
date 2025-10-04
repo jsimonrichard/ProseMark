@@ -9,11 +9,13 @@ const defaultConfig = defineConfig({
 export default defineConfig([
   {
     ...defaultConfig,
-    entry: 'src/main.ts',
+    name: 'webview',
+    entry: 'src/webview/main.ts',
     format: 'iife',
   },
   {
     ...defaultConfig,
+    name: 'extension backend',
     entry: 'src/extension.ts',
     platform: 'node',
     format: 'cjs',
