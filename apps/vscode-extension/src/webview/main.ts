@@ -1,4 +1,4 @@
-import { EditorView } from '@codemirror/view';
+import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import {
@@ -26,8 +26,10 @@ interface VSCodeAPI {
 declare const acquireVsCodeApi: () => VSCodeAPI;
 const vscode: VSCodeAPI = acquireVsCodeApi();
 
-const buildState = (text: string, vimModeEnabled?: boolean) => {
-  return EditorState.create({
+let view: EditorView | undefined;
+
+const buildEditor = (text: string, vimModeEnabled?: boolean) => {
+  const state = EditorState.create({
     doc: text,
     extensions: [
       vimModeEnabled ? [] : [],
@@ -72,14 +74,12 @@ const buildState = (text: string, vimModeEnabled?: boolean) => {
       }),
     ],
   });
-};
 
-const buildView = (state: EditorState) => {
   const parent = document.querySelector('#codemirror-container');
   if (!parent) {
     throw new Error('Parent element for ProseMark container not found!');
   }
-  const view = new EditorView({
+  const view_ = new EditorView({
     state,
     parent,
   });
@@ -88,19 +88,15 @@ const buildView = (state: EditorState) => {
       document.activeElement !== parent &&
       !parent.contains(document.activeElement)
     ) {
-      view.focus(); // Explicitly focus the editor view
+      view_.focus(); // Explicitly focus the editor view
     }
   });
-  return view;
+  return view_;
 };
-
-let state: EditorState | undefined;
-let view: EditorView | undefined;
 
 const procs: VSCodeProcMap = {
   init: ({ text, vimModeEnabled, ...dynamicConfig }) => {
-    state = buildState(text, vimModeEnabled);
-    view = buildView(state);
+    view = buildEditor(text, vimModeEnabled);
     procs.setDynamicConfig(dynamicConfig);
     procs.focus();
   },
@@ -111,7 +107,7 @@ const procs: VSCodeProcMap = {
     });
   },
   update: (changes) => {
-    if (!state || !view) {
+    if (!view) {
       throw new Error(
         'ProseMark state and view should have been rebuilt already',
       );
@@ -123,9 +119,11 @@ const procs: VSCodeProcMap = {
         // switch to 1-based line numbers
 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const fromLine = state!.doc.line(c.fromLine + 1);
+        const fromLine = view!.state.doc.line(c.fromLine + 1);
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const toLine = state!.doc.line(c.toLine + 1);
+        const toLine = view!.state.doc.line(c.toLine + 1);
+        console.log(fromLine, toLine, c);
+
         return {
           from: fromLine.from + c.fromChar,
           to: toLine.from + c.toChar,
