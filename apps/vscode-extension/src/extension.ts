@@ -24,8 +24,6 @@ export function activate(context: vscode.ExtensionContext): void {
 class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
   public static readonly viewType = 'prosemark.editor';
 
-  private isUpdating = false;
-
   constructor(private readonly context: vscode.ExtensionContext) {}
 
   public resolveCustomTextEditor(
@@ -33,88 +31,83 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel: vscode.WebviewPanel,
     _token: vscode.CancellationToken,
   ): void {
-    console.info('Resolving custom text editor for', document.uri.toString());
+    const _editor = new ProseMarkEditor(
+      this.context.extensionUri,
+      document,
+      webviewPanel,
+    );
+  }
+}
+
+class ProseMarkEditor {
+  private documentUri: vscode.Uri;
+  private isUpdatingFromWebview = false;
+  private wordCountStatusBarItem: vscode.StatusBarItem;
+  private changeDocumentSubscription: vscode.Disposable;
+  private viewStateSubscription: vscode.Disposable;
+
+  constructor(
+    private extensionUri: vscode.Uri,
+    document: vscode.TextDocument,
+    private webviewPanel: vscode.WebviewPanel,
+  ) {
+    this.documentUri = document.uri;
+
+    // Set up webview
     webviewPanel.webview.options = {
       enableScripts: true,
     };
-    webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
+    webviewPanel.webview.html = this.getHtmlForWebview();
 
-    const postMessage = (msg: VSCodeMessage) =>
-      webviewPanel.webview.postMessage(msg);
+    // Set up word count status bar
+    this.wordCountStatusBarItem = this.initWordCountStatusBar();
+    const { wordCount, charCount } = this.getInitWordAndCharCount(document);
+    this.updateWordCount(wordCount, charCount);
+    this.wordCountStatusBarItem.show();
 
-    const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
-      async (e) => {
-        if (
-          e.document.uri.toString() === document.uri.toString() &&
-          !this.isUpdating &&
-          e.contentChanges.length
-        ) {
-          await postMessage({
-            type: 'update',
-            value: e.contentChanges.map((c) => ({
-              fromLine: c.range.start.line,
-              fromChar: c.range.start.character,
-              toLine: c.range.end.line,
-              toChar: c.range.end.character,
-              insert: c.text,
-            })),
-          });
-        }
-      },
+    // Set up handlers
+    this.changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
+      (e) => this.handleTextDocumentChange(e.contentChanges),
     );
+    this.viewStateSubscription = webviewPanel.onDidChangeViewState((e) => {
+      console.log('view state changed to', webviewPanel.visible);
 
-    const viewStateSubscription = webviewPanel.onDidChangeViewState((e) => {
       if (e.webviewPanel.visible) {
-        postMessage({ type: 'focus' });
+        this.postMessageToWebview({ type: 'focus' });
+        this.wordCountStatusBarItem.show();
+      } else {
+        this.wordCountStatusBarItem.hide();
       }
     });
 
     webviewPanel.onDidDispose(() => {
-      changeDocumentSubscription.dispose();
-      viewStateSubscription.dispose();
+      this.dispose();
     });
 
-    webviewPanel.webview.onDidReceiveMessage((e: WebViewMessage) => {
-      switch (e.type) {
-        case 'update':
-          void this.updateTextDocument(document, e.value);
-          return;
-        case 'linkClick':
-          void this.followLink(e.value, document.uri);
-          return;
-      }
-      return exhaustiveMatchingGuard(e);
+    webviewPanel.webview.onDidReceiveMessage((m: WebViewMessage) => {
+      this.handleWebViewMessage(m);
     });
 
     // Send VS Code editor settings to the webview
-    const editorConfig = vscode.workspace.getConfiguration('editor');
-    const tabSize = editorConfig.get<number>('tabSize', 2);
-    const insertSpaces = editorConfig.get<boolean>('insertSpaces', true);
+    const initConfig = this.getInitConfig();
 
-    // const config = vscode.workspace.getConfiguration('prosemark');
-    // const vimModeEnabled = config.get<boolean>('vimModeEnabled', false);
-
-    void postMessage({
+    this.postMessageToWebview({
       type: 'init',
       value: {
         text: document.getText(),
-        vimModeEnabled: false,
-        tabSize,
-        insertSpaces,
+        ...initConfig,
       },
     });
   }
 
-  private getHtmlForWebview(webview: vscode.Webview): string {
-    const scriptUri = webview
+  private getHtmlForWebview(): string {
+    const scriptUri = this.webviewPanel.webview
       .asWebviewUri(
-        vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'main.iife.js'),
+        vscode.Uri.joinPath(this.extensionUri, 'dist', 'main.iife.js'),
       )
       .toString();
-    const styleUri = webview
-      .asWebviewUri(
-        vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'main.css'),
-      )
+    const styleUri = this.webviewPanel.webview
+      .asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'dist', 'main.css'))
       .toString();
 
     return /* html */ `
@@ -134,15 +127,64 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
     `;
   }
 
-  private async updateTextDocument(
-    document: vscode.TextDocument,
-    changes: Change[],
+  private dispose() {
+    this.changeDocumentSubscription.dispose();
+    this.viewStateSubscription.dispose();
+    this.wordCountStatusBarItem.dispose();
+  }
+
+  private postMessageToWebview(msg: VSCodeMessage) {
+    return this.webviewPanel.webview.postMessage(msg);
+  }
+
+  private handleWebViewMessage(msg: WebViewMessage) {
+    switch (msg.type) {
+      case 'update':
+        this.isUpdatingFromWebview = true;
+        this.updateTextDocument(msg.value)
+          .catch((e: unknown) => {
+            console.error(
+              'Encountered an error while trying to update the document:',
+              e,
+            );
+          })
+          .finally(() => {
+            this.isUpdatingFromWebview = false;
+          });
+        return;
+      case 'linkClick':
+        void this.followLink(msg.value, this.documentUri);
+        return;
+      case 'updateWordCountMsg':
+        this.updateWordCount(msg.value.wordCount, msg.value.charCount);
+        return;
+    }
+    return exhaustiveMatchingGuard(msg);
+  }
+
+  private async handleTextDocumentChange(
+    contentChanges: readonly vscode.TextDocumentContentChangeEvent[],
   ) {
-    this.isUpdating = true;
+    // If this change came from outside the webview, update the webview
+    if (!this.isUpdatingFromWebview && contentChanges.length) {
+      await this.postMessageToWebview({
+        type: 'update',
+        value: contentChanges.map((c) => ({
+          fromLine: c.range.start.line,
+          fromChar: c.range.start.character,
+          toLine: c.range.end.line,
+          toChar: c.range.end.character,
+          insert: c.text,
+        })),
+      });
+    }
+  }
+
+  private async updateTextDocument(changes: Change[]) {
     const edit = new vscode.WorkspaceEdit();
     for (const change of changes) {
       edit.replace(
-        document.uri,
+        this.documentUri,
         new vscode.Range(
           change.fromLine,
           change.fromChar,
@@ -153,8 +195,46 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
       );
     }
     const result = await vscode.workspace.applyEdit(edit);
-    this.isUpdating = false;
     return result;
+  }
+
+  private initWordCountStatusBar() {
+    const wordCountStatusBarItem = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Right,
+      100,
+    );
+    wordCountStatusBarItem.tooltip = "Current ProseMark document's word count";
+    return wordCountStatusBarItem;
+  }
+
+  private updateWordCount(wordCount: number, charCount: number) {
+    this.wordCountStatusBarItem.text = `Word Count: ${wordCount.toString()}, Char Count: ${charCount.toString()}`;
+  }
+
+  private getInitWordAndCharCount(document: vscode.TextDocument) {
+    const text = document.getText();
+    const textTrimmed = text.trim();
+    const wordCount = textTrimmed.length ? textTrimmed.split(/\s+/).length : 0;
+    const charCount = text.length;
+    return {
+      wordCount,
+      charCount,
+    };
+  }
+
+  private getInitConfig() {
+    const editorConfig = vscode.workspace.getConfiguration('editor');
+    const tabSize = editorConfig.get<number>('tabSize', 2);
+    const insertSpaces = editorConfig.get<boolean>('insertSpaces', true);
+
+    // const config = vscode.workspace.getConfiguration('prosemark');
+    // const vimModeEnabled = config.get<boolean>('vimModeEnabled', false);
+
+    return {
+      vimModeEnabled: false,
+      tabSize,
+      insertSpaces,
+    };
   }
 
   /// Follow a link within the markdown document, relative to the current document

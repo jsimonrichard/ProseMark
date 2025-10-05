@@ -29,6 +29,56 @@ const vscode: VSCodeAPI = acquireVsCodeApi();
 
 let view: EditorView | undefined;
 
+// Send updates to VS Code about text changes and word count
+const updateVSCodeExtension = EditorView.updateListener.of((update) => {
+  if (update.docChanged || update.selectionSet) {
+    const doc = update.state.doc.toString();
+    const selection = update.state.selection.main;
+    const textToAnalyze = selection.empty
+      ? doc
+      : update.state.doc.sliceString(selection.from, selection.to);
+    const wordCount =
+      textToAnalyze.trim().length === 0
+        ? 0
+        : textToAnalyze.trim().split(/\s+/).length;
+    const charCount = textToAnalyze.length;
+    vscode.postMessage({
+      type: 'updateWordCountMsg',
+      value: {
+        wordCount,
+        charCount,
+      },
+    });
+  }
+
+  if (update.docChanged && view) {
+    update.transactions
+      .filter((t) => !t.isUserEvent('updateFromVSCode'))
+      .map((t) => {
+        const changes: Change[] = [];
+
+        t.changes.iterChanges((fromA, toA, _fromB, _toB, inserted) => {
+          // calculate line and char (col) numbers from document position
+          const fromLine = t.startState.doc.lineAt(fromA);
+          const toLine = t.startState.doc.lineAt(toA);
+          changes.push({
+            // switch to 0-based line numbers
+            fromLine: fromLine.number - 1,
+            fromChar: fromA - fromLine.from,
+            toLine: toLine.number - 1,
+            toChar: toA - toLine.from,
+            insert: inserted.toString(),
+          });
+        });
+
+        vscode.postMessage({
+          type: 'update',
+          value: changes,
+        });
+      });
+  }
+});
+
 const buildEditor = (text: string, vimModeEnabled?: boolean) => {
   const state = EditorState.create({
     doc: text,
@@ -44,35 +94,7 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
         vscode.postMessage({ type: 'linkClick', value: url });
       }),
       htmlBlockExtension,
-      // Send client updates back to VS Code
-      EditorView.updateListener.of((update) => {
-        if (update.docChanged && view) {
-          update.transactions
-            .filter((t) => !t.isUserEvent('updateFromVSCode'))
-            .map((t) => {
-              const changes: Change[] = [];
-
-              t.changes.iterChanges((fromA, toA, _fromB, _toB, inserted) => {
-                // calculate line and char (col) numbers from document position
-                const fromLine = t.startState.doc.lineAt(fromA);
-                const toLine = t.startState.doc.lineAt(toA);
-                changes.push({
-                  // switch to 0-based line numbers
-                  fromLine: fromLine.number - 1,
-                  fromChar: fromA - fromLine.from,
-                  toLine: toLine.number - 1,
-                  toChar: toA - toLine.from,
-                  insert: inserted.toString(),
-                });
-              });
-
-              vscode.postMessage({
-                type: 'update',
-                value: changes,
-              });
-            });
-        }
-      }),
+      updateVSCodeExtension,
     ],
   });
 

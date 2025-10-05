@@ -23,6 +23,7 @@ export interface Change {
 export interface WebviewProcMap {
   update: (changes: Change[]) => void;
   linkClick: (link: string) => void;
+  updateWordCountMsg: (v: { wordCount: number; charCount: number }) => void;
 }
 
 export type WebViewMessage = ProcMapToMessage<
