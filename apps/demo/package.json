@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@prosemark/core": "workspace:*",
-    "@prosemark/render-html": "workspace:*"
+    "@prosemark/render-html": "workspace:*",
+    "@prosemark/paste-rich-text": "workspace:*"
   }
 }

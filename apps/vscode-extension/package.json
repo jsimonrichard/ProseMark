@@ -53,6 +53,7 @@
     "@lezer/markdown": "^1.2.1",
     "@prosemark/core": "workspace:*",
     "@prosemark/render-html": "workspace:*",
+    "@prosemark/paste-rich-text": "workspace:*",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "@types/vscode": "^1.101.0",

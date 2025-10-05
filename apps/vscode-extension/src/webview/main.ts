@@ -8,6 +8,10 @@ import {
   clickLinkHandler,
 } from '@prosemark/core';
 import { htmlBlockExtension } from '@prosemark/render-html';
+import {
+  pastePlainTextExtension,
+  pasteRichTextExtension,
+} from '@prosemark/paste-rich-text';
 import { GFM } from '@lezer/markdown';
 import { EditorState, StateEffect } from '@codemirror/state';
 import type {
@@ -94,6 +98,28 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
         vscode.postMessage({ type: 'linkClick', value: url });
       }),
       htmlBlockExtension,
+      pasteRichTextExtension(
+        (_event, view, _pastedRangeFrom, pastedRangeTo) => {
+          // Because a parent of the CodeMirror scrolls (and not CodeMirror itself)
+          // we'll need to manually scroll the end of the selection into view.
+          const cursorCoords = view.coordsAtPos(pastedRangeTo);
+          if (cursorCoords) {
+            document.body.scrollTo({
+              top: cursorCoords.top - document.body.clientHeight / 2,
+            });
+          }
+        },
+      ),
+      pastePlainTextExtension((view, _pastedRangeFrom, pastedRangeTo) => {
+        // Because a parent of the CodeMirror scrolls (and not CodeMirror itself)
+        // we'll need to manually scroll the end of the selection into view.
+        const cursorCoords = view.coordsAtPos(pastedRangeTo);
+        if (cursorCoords) {
+          document.body.scrollTo({
+            top: cursorCoords.top - document.body.clientHeight / 2,
+          });
+        }
+      }),
       updateVSCodeExtension,
     ],
   });

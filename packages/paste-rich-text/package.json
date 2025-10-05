@@ -1,0 +1,35 @@
+{
+  "name": "@prosemark/paste-rich-text",
+  "version": "0.0.0",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/main.mjs",
+  "module": "./dist/main.mjs",
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "import": "./dist/main.mjs"
+    }
+  },
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint --max-warnings=0",
+    "check-types": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.0",
+    "@types/turndown": "^5.0.5",
+    "turndown": "^7.2.1"
+  },
+  "devDependencies": {
+    "@types/dompurify": "^3.0.5"
+  }
+}
