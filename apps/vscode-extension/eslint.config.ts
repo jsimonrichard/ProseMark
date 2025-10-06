@@ -1,14 +1,10 @@
 import baseConfig from '../../eslint.config-base.ts';
-import typescriptEslint from '@typescript-eslint/eslint-plugin';
-import tseslint from 'typescript-eslint';
+import { defineConfig } from 'eslint/config';
 
-export default tseslint.config([
+export default defineConfig([
   ...baseConfig,
   {
     files: ['**/*.ts'],
-    plugins: {
-      '@typescript-eslint': typescriptEslint,
-    },
     rules: {
       '@typescript-eslint/naming-convention': [
         'warn',
