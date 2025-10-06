@@ -24,5 +24,6 @@
     "noUncheckedSideEffectImports": true,
     "noFallthroughCasesInSwitch": true,
     "noPropertyAccessFromIndexSignature": true
-  }
+  },
+  "exclude": ["./node_modules"]
 }

@@ -1,6 +1,6 @@
 {
-  "name": "@prosemark/render-html",
-  "version": "0.0.1",
+  "name": "@prosemark/paste-rich-text",
+  "version": "0.0.0",
   "type": "module",
   "files": [
     "dist"
@@ -25,9 +25,8 @@
   "dependencies": {
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.0",
-    "@prosemark/core": "workspace:*",
-    "@lezer/common": "^1.2.3",
-    "dompurify": "^3.0.11"
+    "@types/turndown": "^5.0.5",
+    "turndown": "^7.2.1"
   },
   "devDependencies": {
     "@types/dompurify": "^3.0.5"

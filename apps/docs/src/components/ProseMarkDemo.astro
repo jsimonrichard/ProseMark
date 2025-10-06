@@ -17,12 +17,12 @@
     defaultClickLinkHandler,
   } from '@prosemark/core';
   import { htmlBlockExtension } from '@prosemark/render-html';
-  import { GFM } from '@lezer/markdown';
   import {
-    defaultHighlightStyle,
-    syntaxHighlighting,
-    syntaxTree,
-  } from '@codemirror/language';
+    pasteRichTextExtension,
+    pastePlainTextExtension,
+  } from '@prosemark/paste-rich-text';
+  import { GFM } from '@lezer/markdown';
+  import { syntaxTree } from '@codemirror/language';
   import { printTree } from '@lezer-unofficial/printer';
 
   import initDoc from './initDoc.md?raw';
@@ -37,6 +37,8 @@
       prosemarkBaseThemeSetup(),
       defaultClickLinkHandler,
       htmlBlockExtension,
+      pasteRichTextExtension(),
+      pastePlainTextExtension(),
       keymap.of([
         {
           key: 'Alt-p',

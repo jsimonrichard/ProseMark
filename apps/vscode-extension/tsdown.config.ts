@@ -1,19 +1,19 @@
 import { defineConfig } from 'tsdown';
 
-const defaultConfig = defineConfig({
-  outDir: 'dist',
-  sourcemap: true,
-  external: 'vscode',
-});
-
 export default defineConfig([
   {
-    ...defaultConfig,
-    entry: 'src/main.ts',
-    format: 'iife',
+    outDir: 'dist',
+    external: 'vscode',
+    name: 'webview',
+    entry: 'src/webview/main.ts',
+    format: ['iife'],
+    platform: 'browser',
+    target: 'es2020',
   },
   {
-    ...defaultConfig,
+    outDir: 'dist',
+    external: 'vscode',
+    name: 'extension backend',
     entry: 'src/extension.ts',
     platform: 'node',
     format: 'cjs',

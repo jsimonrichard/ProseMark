@@ -49,6 +49,7 @@
     max-width: 800px;
     margin: 0 auto;
     margin-top: 1rem;
+    padding-bottom: calc(50vh - 0.7em);
     /* Inter + tailwindcss font-sans*/
     --font:
         Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',

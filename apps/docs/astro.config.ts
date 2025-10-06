@@ -38,6 +38,10 @@ const renderHtml = buildTypeDocEntry(
   '@prosemark/render-html',
   '../../packages/render-html',
 );
+const pasteRichText = buildTypeDocEntry(
+  '@prosemark/pasteRichText',
+  '../../packages/paste-rich-text',
+);
 
 // https://astro.build/config
 export default defineConfig({
@@ -63,10 +67,14 @@ export default defineConfig({
         },
         {
           label: 'API',
-          items: [core.sidebarGroup, renderHtml.sidebarGroup],
+          items: [
+            core.sidebarGroup,
+            renderHtml.sidebarGroup,
+            pasteRichText.sidebarGroup,
+          ],
         },
       ],
-      plugins: [core.plugin, renderHtml.plugin],
+      plugins: [core.plugin, renderHtml.plugin, pasteRichText.plugin],
 
       editLink: {
         baseUrl:

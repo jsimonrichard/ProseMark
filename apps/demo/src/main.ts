@@ -14,14 +14,14 @@ import * as ProseMark from '@prosemark/core';
 import { htmlBlockExtension } from '@prosemark/render-html';
 import { indentWithTab } from '@codemirror/commands';
 import { GFM } from '@lezer/markdown';
-import {
-  defaultHighlightStyle,
-  syntaxHighlighting,
-  syntaxTree,
-} from '@codemirror/language';
-import { printTree, traverseTree } from '@lezer-unofficial/printer';
+import { syntaxTree } from '@codemirror/language';
+import { printTree } from '@lezer-unofficial/printer';
 import initDoc from './initDoc.md?raw';
 import { traverseTreePlugin } from './traverseTreePlugin';
+import {
+  pastePlainTextExtension,
+  pasteRichTextExtension,
+} from '@prosemark/paste-rich-text';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -40,6 +40,9 @@ const editor = new EditorView({
     prosemarkBasicSetup(),
     prosemarkBaseThemeSetup(),
     defaultClickLinkHandler,
+    htmlBlockExtension,
+    pasteRichTextExtension(),
+    pastePlainTextExtension(),
     keymap.of([
       indentWithTab,
       {
