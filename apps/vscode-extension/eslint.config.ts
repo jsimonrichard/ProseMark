@@ -1,4 +1,4 @@
-import baseConfig from '../../eslint.config.ts';
+import baseConfig from '../../eslint.config-base.ts';
 import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import tseslint from 'typescript-eslint';
 

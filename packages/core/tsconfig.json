@@ -4,5 +4,5 @@
     "sourceRoot": "./lib",
     "outDir": "./dist"
   },
-  "include": ["lib", "eslint.config.ts"]
+  "include": ["lib", "*.config.ts"]
 }
