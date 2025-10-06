@@ -5,17 +5,17 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/main.mjs",
-  "module": "./dist/main.mjs",
+  "main": "./dist/main.js",
+  "module": "./dist/main.js",
   "exports": {
     ".": {
       "types": "./dist/main.d.ts",
-      "import": "./dist/main.mjs"
+      "import": "./dist/main.js"
     }
   },
   "scripts": {
-    "dev": "vite build --watch",
-    "build": "vite build",
+    "dev": "tsdown --watch",
+    "build": "tsdown",
     "preview": "vite preview",
     "lint": "eslint --max-warnings=0",
     "check-types": "tsc"
