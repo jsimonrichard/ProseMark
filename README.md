@@ -1,9 +1,6 @@
-
-![noun-quill](https://github.com/user-attachments/assets/76db64fd-ac1f-4211-9355-0a956c20a248)
+# 🪶 ProseMark
 
 [ProseMark VS Code Extension](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark) | [Demo](https://prosemark.com/demo/)
-
-# ProseMark
 
 **ProseMark** is a modular toolkit for building "What You See Is What You Mean" (WYSIWYM) markdown editors, a type of editor that merges the look of rendered markdown into the editor itself rather than rendering the markdown in a separate window. Two of the most well-known editors of this type are [Obsidian](https://obsidian.md/) and [Typora](https://typora.io/).
 
