@@ -26,3 +26,9 @@ These features are illustrated in our [Demo](/demo).
 - HTML Blocks inside markdown can be rendered. HTML content is sanitized using [DOMPurify](https://github.com/cure53/DOMPurify).
 
 - Inline HTML is not supported yet.
+
+## `@prosemark/paste-rich-text`
+
+- Makes it possible to paste rich text as fully-formatted markdown.
+
+- Provides the `Ctrl/Cmd+Shift+V` command for pasting without formatting.
