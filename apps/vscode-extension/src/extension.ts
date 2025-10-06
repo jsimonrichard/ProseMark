@@ -70,8 +70,6 @@ class ProseMarkEditor {
       (e) => this.handleTextDocumentChange(e.contentChanges),
     );
     this.viewStateSubscription = webviewPanel.onDidChangeViewState((e) => {
-      console.log('view state changed to', webviewPanel.visible);
-
       if (e.webviewPanel.visible) {
         this.postMessageToWebview({ type: 'focus' });
         this.wordCountStatusBarItem.show();

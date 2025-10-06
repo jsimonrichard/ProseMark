@@ -171,7 +171,6 @@ const procs: VSCodeProcMap = {
         const fromLine = view!.state.doc.line(c.fromLine + 1);
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const toLine = view!.state.doc.line(c.toLine + 1);
-        console.log(fromLine, toLine, c);
 
         return {
           from: fromLine.from + c.fromChar,
@@ -186,7 +185,6 @@ const procs: VSCodeProcMap = {
   setDynamicConfig: (dynamicConfig) => {
     const { tabSize = 2, insertSpaces = true } = dynamicConfig;
     const indentUnit_ = insertSpaces ? ' '.repeat(tabSize) : '\t';
-    console.log('Trying to update tab size!');
     if (view) {
       const indentEffect = StateEffect.appendConfig.of([
         EditorState.tabSize.of(tabSize),
