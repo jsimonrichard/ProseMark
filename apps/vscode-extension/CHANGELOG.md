@@ -1,5 +1,12 @@
 # vscode-prosemark
 
+## 0.0.3
+
+### Patch Changes
+
+- c1729f8: Fix a bug causing a single text document update to apply to all open editors
+- cae962e: Fix a bug in diff mode that repeatedly grabbed focus
+
 ## 0.0.2
 
 ### Patch Changes
