@@ -42,6 +42,7 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
 class ProseMarkEditor {
   private documentUri: vscode.Uri;
   private isUpdatingFromWebview = false;
+  private hasFocusedOnWebview = false;
   private wordCountStatusBarItem: vscode.StatusBarItem;
   private changeDocumentSubscription: vscode.Disposable;
   private viewStateSubscription: vscode.Disposable;
@@ -67,14 +68,21 @@ class ProseMarkEditor {
 
     // Set up handlers
     this.changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
-      (e) => this.handleTextDocumentChange(e.contentChanges),
+      async (e) => {
+        if (e.document.uri !== this.documentUri) {
+          return;
+        }
+        await this.handleTextDocumentChange(e.contentChanges);
+      },
     );
     this.viewStateSubscription = webviewPanel.onDidChangeViewState((e) => {
-      if (e.webviewPanel.visible) {
+      if (e.webviewPanel.visible && !this.hasFocusedOnWebview) {
         this.postMessageToWebview({ type: 'focus' });
         this.wordCountStatusBarItem.show();
-      } else {
+        this.hasFocusedOnWebview = true;
+      } else if (!e.webviewPanel.visible) {
         this.wordCountStatusBarItem.hide();
+        this.hasFocusedOnWebview = false;
       }
     });
 

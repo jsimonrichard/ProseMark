@@ -33,6 +33,7 @@
   "scripts": {
     "vscode:prepublish": "bun run compile",
     "package": "vsce package",
+    "publish": "vsce publish",
     "compile": "bun run check-types && bun run lint && tsdown",
     "watch": "tsc --noEmit && concurrently \"tsc -w\" \"tsdown --watch\"",
     "watch:tsup": "tsdown --watch",
