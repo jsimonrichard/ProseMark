@@ -67,7 +67,12 @@ class ProseMarkEditor {
 
     // Set up handlers
     this.changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
-      (e) => this.handleTextDocumentChange(e.contentChanges),
+      async (e) => {
+        if (e.document.uri !== this.documentUri) {
+          return;
+        }
+        await this.handleTextDocumentChange(e.contentChanges);
+      },
     );
     this.viewStateSubscription = webviewPanel.onDidChangeViewState((e) => {
       if (e.webviewPanel.visible) {
@@ -83,6 +88,7 @@ class ProseMarkEditor {
     });
 
     webviewPanel.webview.onDidReceiveMessage((m: WebViewMessage) => {
+      console.log('backend recieved message:', m);
       this.handleWebViewMessage(m);
     });
 

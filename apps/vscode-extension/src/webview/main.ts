@@ -198,6 +198,7 @@ const procs: VSCodeProcMap = {
 
 window.addEventListener('message', (event) => {
   const message = event.data as VSCodeMessage;
+  console.log('frontend received message:', message);
   if ('value' in message) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     procs[message.type](message.value as any);
