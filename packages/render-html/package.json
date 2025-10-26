@@ -17,7 +17,8 @@
     "dev": "tsdown --watch",
     "build": "tsdown",
     "lint": "eslint --max-warnings=0",
-    "check-types": "tsc"
+    "check-types": "tsc",
+    "ci:publish": "bun publish --tolerate-republish"
   },
   "keywords": [],
   "author": "",

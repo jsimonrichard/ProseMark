@@ -18,7 +18,8 @@
     "build": "tsdown",
     "preview": "vite preview",
     "lint": "eslint --max-warnings=0",
-    "check-types": "tsc"
+    "check-types": "tsc",
+    "ci:publish": "bun publish --tolerate-republish"
   },
   "dependencies": {
     "@lezer/common": "^1.2.3",
