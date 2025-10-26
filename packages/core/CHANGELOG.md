@@ -1,5 +1,11 @@
 # @prosemark/core
 
+## 0.0.3
+
+### Patch Changes
+
+- b99496e: Change CI process so that workspace dependencies are correcly resolved during publishing
+
 ## 0.0.2
 
 ### Patch Changes
