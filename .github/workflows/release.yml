@@ -42,6 +42,7 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: bun turbo ci:publish -F '{packages/*}'
+          # ChangeSets splits this into an array of string args, so we don't add quotes to the filter
+          publish: bun turbo ci:publish -F {packages/*}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
