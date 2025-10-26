@@ -28,8 +28,5 @@
     "@codemirror/view": "^6.38.0",
     "@types/turndown": "^5.0.5",
     "turndown": "^7.2.1"
-  },
-  "devDependencies": {
-    "@types/dompurify": "^3.0.5"
   }
 }
