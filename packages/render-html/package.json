@@ -26,7 +26,7 @@
   "dependencies": {
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.0",
-    "@prosemark/core": "^workspace:*",
+    "@prosemark/core": "workspace:^",
     "@lezer/common": "^1.2.3",
     "dompurify": "^3.0.11"
   }
