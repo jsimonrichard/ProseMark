@@ -106,14 +106,27 @@ export const baseTheme = EditorView.theme({
     color: 'var(--pm-muted-color)',
     margin: '0 0.2em',
   },
-  '.cm-blockquote-vertical-line': {
-    display: 'inline-block',
-    width: '4px',
-    marginRight: '4px',
-    marginLeft: '4px',
-    height: '1.4em',
-    verticalAlign: 'bottom',
-    backgroundColor: 'var(--pm-blockquote-vertical-line-background-color)',
+  '.cm-blockquote-line': {
+    position: 'relative',
+    '&:before': {
+      content: '""',
+      display: 'block',
+      borderLeft:
+        'solid 0.3em var(--pm-blockquote-vertical-line-background-color)',
+      position: 'absolute',
+      top: '0px',
+      bottom: '0px',
+      insetInlineStart: '0.3em',
+    },
+  },
+  '.cm-nested-blockquote-border': {
+    display: 'block',
+    borderLeft:
+      'solid 0.3em var(--pm-blockquote-vertical-line-background-color)',
+    position: 'absolute',
+    top: '0px',
+    bottom: '0px',
+    insetInlineStart: 'var(--blockquote-border-offset)',
   },
 });
 

@@ -28,16 +28,16 @@ const buildDecorations = (state: EditorState) => {
     enter: (node) => {
       if (selectionTouchesRange(state.selection.ranges, node)) return;
 
-      for (const spec of specs) {
-        // Generate Path
-        const lineage = [];
-        let node_: SyntaxNodeRef | null = node;
-        while (node_) {
-          lineage.push(node_.name);
-          node_ = node_.node.parent;
-        }
-        const path = lineage.reverse().join('/');
+      // Generate Path
+      const lineage = [];
+      let node_: SyntaxNodeRef | null = node;
+      while (node_) {
+        lineage.push(node_.name);
+        node_ = node_.node.parent;
+      }
+      const path = lineage.reverse().join('/');
 
+      for (const spec of specs) {
         // Check node path
         if (spec.nodePath instanceof Function) {
           if (!spec.nodePath(path)) {

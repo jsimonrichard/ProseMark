@@ -64,6 +64,7 @@ const defaultHidableSpecs: HidableNodeSpec[] = [
   {
     nodeName: 'Blockquote',
     subNodeNameToHide: 'QuoteMark',
+    keepSpace: true,
   },
 ];
 

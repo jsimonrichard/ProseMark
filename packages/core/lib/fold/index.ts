@@ -8,4 +8,4 @@ export { emojiExtension, emojiMarkdownSyntaxExtension } from './emoji';
 export { horizonalRuleExtension } from './horizontalRule';
 export { imageExtension } from './image';
 export { taskExtension } from './task';
-export { blockQuoteExtension } from './blockQuote';
+export { blockQuoteExtension } from '../blockQuote';
