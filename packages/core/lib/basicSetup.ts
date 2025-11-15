@@ -42,6 +42,7 @@ import {
   generalSyntaxHighlights,
   lightTheme,
 } from './syntaxHighlighting';
+import { softIndentExtension } from './softIndentExtension';
 
 export const prosemarkMarkdownSyntaxExtensions = [
   additionalMarkdownSyntaxTags,
@@ -83,6 +84,7 @@ export const prosemarkBasicSetup = (): Extension => [
   defaultHideExtensions,
   defaultFoldableSyntaxExtensions,
   clickLinkExtension,
+  softIndentExtension,
   codeBlockDecorationsExtension,
 ];
 
