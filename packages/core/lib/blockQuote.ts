@@ -43,10 +43,8 @@ const buildDecorations = (state: EditorState) => {
 
       const startLine = state.doc.lineAt(node.from).number;
       const endLine = state.doc.lineAt(node.to).number;
-      console.log('going from', startLine, endLine);
       for (let i = startLine; i <= endLine; i++) {
         const line = state.doc.line(i);
-        console.log('adding quote line', line.from);
         decos.push(
           Decoration.line({
             attributes: {
@@ -66,7 +64,6 @@ const buildDecorations = (state: EditorState) => {
         if (node.from == line.from) {
           return;
         }
-        console.log('adding quotemark', node.from);
         decos.push(
           Decoration.widget({
             widget: new NestedBlockQuoteBorder(node.from - line.from),

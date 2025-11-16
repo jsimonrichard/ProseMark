@@ -14,7 +14,7 @@ const hideTheme = EditorView.theme({
     fontSize: '0px',
   },
   '.cm-transparent-token': {
-    color: 'transparent',
+    opacity: 0,
   },
 });
 
@@ -86,7 +86,6 @@ const buildDecorations = (state: EditorState) => {
           }
 
           const cursor = node.node.cursor();
-          // console.assert(cursor.firstChild(), 'A hide node must have children');
 
           // Manual traversal to ensure all children are processed
           cursor.iterate((node) => {
@@ -101,9 +100,6 @@ const buildDecorations = (state: EditorState) => {
               );
             }
           });
-          // do {
-
-          // } while (cursor.nextSibling());
         }
       }
     },
@@ -111,7 +107,7 @@ const buildDecorations = (state: EditorState) => {
   return Decoration.set(decorations, true);
 };
 
-const hideExtension = StateField.define<DecorationSet>({
+export const hideExtension = StateField.define<DecorationSet>({
   create(state) {
     return buildDecorations(state);
   },

@@ -85,7 +85,7 @@ const buildDecorations = (state: EditorState) => {
   return Decoration.set(decorations, true);
 };
 
-export const foldDecorationExtension = StateField.define<DecorationSet>({
+export const foldExtension = StateField.define<DecorationSet>({
   create(state) {
     return buildDecorations(state);
   },
@@ -98,8 +98,6 @@ export const foldDecorationExtension = StateField.define<DecorationSet>({
   },
   provide: (f) => [EditorView.decorations.from(f)],
 });
-
-export const foldExtension = [foldDecorationExtension];
 
 export interface FoldableSyntaxSpec {
   nodePath: string | string[] | ((nodePath: string) => boolean);
@@ -140,7 +138,7 @@ export const selectAllDecorationsOnSelectExtension = (
           const target = e.target as HTMLElement;
           const pos = view.posAtDOM(target);
 
-          const decorations = view.state.field(foldDecorationExtension);
+          const decorations = view.state.field(foldExtension);
           decorations.between(pos, pos, (from: number, to: number) => {
             setTimeout(() => {
               view.dispatch({
