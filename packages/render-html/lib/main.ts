@@ -64,7 +64,7 @@ const htmlBlockTheme = EditorView.theme({
 export const htmlBlockExtension = [
   foldableSyntaxFacet.of({
     nodePath: 'HTMLBlock',
-    onFold: (state: EditorState, node: SyntaxNodeRef) => {
+    buildDecorations: (state: EditorState, node: SyntaxNodeRef) => {
       return Decoration.replace({
         widget: new HTMLWidget(state.doc.sliceString(node.from, node.to)),
         block: true,

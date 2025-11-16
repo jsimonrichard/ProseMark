@@ -16,7 +16,7 @@ class BulletPoint extends WidgetType {
 
 export const bulletListExtension = foldableSyntaxFacet.of({
   nodePath: 'BulletList/ListItem/ListMark',
-  onFold: (_state, node) => {
+  buildDecorations: (_state, node) => {
     const cursor = node.node.cursor();
     if (cursor.nextSibling() && cursor.name === 'Task') return;
 

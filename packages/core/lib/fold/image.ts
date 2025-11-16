@@ -1,18 +1,22 @@
 import { Decoration, WidgetType } from '@codemirror/view';
-import { foldableSyntaxFacet, selectAllDecorationsOnSelectExtension } from './core';
+import {
+  foldableSyntaxFacet,
+  selectAllDecorationsOnSelectExtension,
+} from './core';
 import { iterChildren } from '../utils';
 
 class ImageWidget extends WidgetType {
-  constructor(public url?: string) {
+  constructor(
+    public url: string,
+    public block?: boolean,
+  ) {
     super();
   }
 
   toDOM() {
-    const span = document.createElement('span');
+    const span = document.createElement(this.block ? 'div' : 'span');
     span.className = 'cm-image';
-    if (this.url) {
-      span.innerHTML = `<img src="${this.url}" />`;
-    }
+    span.innerHTML = `<img src="${this.url}" />`;
     return span;
   }
 
@@ -25,7 +29,8 @@ class ImageWidget extends WidgetType {
 export const imageExtension = [
   foldableSyntaxFacet.of({
     nodePath: 'Image',
-    onFold: (state, node) => {
+    keepDecorationOnUnfold: true,
+    buildDecorations: (state, node, selectionTouchesRange) => {
       let imageUrl: string | undefined;
       iterChildren(node.node.cursor(), (node) => {
         if (node.name === 'URL') {
@@ -36,9 +41,21 @@ export const imageExtension = [
       });
 
       if (imageUrl) {
-        return Decoration.replace({
-          widget: new ImageWidget(imageUrl),
-        }).range(node.from, node.to);
+        const line = state.doc.lineAt(node.from);
+        const block = node.from == line.from && node.to == line.to;
+        const widget = new ImageWidget(imageUrl, block);
+
+        if (selectionTouchesRange) {
+          return Decoration.widget({
+            widget,
+            block,
+          }).range(node.to, node.to);
+        } else {
+          return Decoration.replace({
+            widget,
+            block,
+          }).range(node.from, node.to);
+        }
       }
     },
   }),

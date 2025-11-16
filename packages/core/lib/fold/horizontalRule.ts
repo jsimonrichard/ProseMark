@@ -1,5 +1,8 @@
 import { Decoration, EditorView, WidgetType } from '@codemirror/view';
-import { foldableSyntaxFacet, selectAllDecorationsOnSelectExtension } from './core';
+import {
+  foldableSyntaxFacet,
+  selectAllDecorationsOnSelectExtension,
+} from './core';
 
 class HorizontalRuleWidget extends WidgetType {
   toDOM() {
@@ -26,13 +29,13 @@ const horizontalRuleTheme = EditorView.theme({
     display: 'flow-root',
     'align-items': 'center',
     padding: '0 2px 0 6px',
-  }
+  },
 });
 
 export const horizonalRuleExtension = [
   foldableSyntaxFacet.of({
     nodePath: 'HorizontalRule',
-    onFold: (_state, node) => {
+    buildDecorations: (_state, node) => {
       return Decoration.replace({
         widget: new HorizontalRuleWidget(),
         block: true,
