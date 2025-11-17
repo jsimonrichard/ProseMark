@@ -22,15 +22,10 @@ import {
 import { lintKeymap } from '@codemirror/lint';
 import { defaultHideExtensions, escapeMarkdownSyntaxExtension } from './hide';
 import {
-  blockQuoteExtension,
-  emojiExtension,
   emojiMarkdownSyntaxExtension,
-  bulletListExtension,
-  horizonalRuleExtension,
-  imageExtension,
-  taskExtension,
+  defaultFoldableSyntaxExtensions,
 } from './fold';
-import { clickLinkExtension } from './clickLink';
+import { clickLinkExtension, defaultClickLinkHandler } from './clickLink';
 import {
   codeBlockDecorationsExtension,
   codeFenceTheme,
@@ -42,6 +37,8 @@ import {
   generalSyntaxHighlights,
   lightTheme,
 } from './syntaxHighlighting';
+import { softIndentExtension } from './softIndentExtension';
+import { revealBlockOnArrowExtension } from './revealBlockOnArrow';
 
 export const prosemarkMarkdownSyntaxExtensions = [
   additionalMarkdownSyntaxTags,
@@ -49,16 +46,16 @@ export const prosemarkMarkdownSyntaxExtensions = [
   emojiMarkdownSyntaxExtension,
 ];
 
-export const defaultFoldableSyntaxExtensions = [
-  blockQuoteExtension,
-  bulletListExtension,
-  taskExtension,
-  imageExtension,
-  emojiExtension,
-  horizonalRuleExtension,
-];
-
 export const prosemarkBasicSetup = (): Extension => [
+  // ProseMark Setup
+  defaultHideExtensions,
+  defaultFoldableSyntaxExtensions,
+  revealBlockOnArrowExtension,
+  clickLinkExtension,
+  defaultClickLinkHandler,
+  softIndentExtension,
+  codeBlockDecorationsExtension,
+
   // Basic CodeMirror Setup
   history(),
   dropCursor(),
@@ -78,12 +75,6 @@ export const prosemarkBasicSetup = (): Extension => [
   ]),
   foldGutter(),
   EditorView.lineWrapping,
-
-  // ProseMark Setup
-  defaultHideExtensions,
-  defaultFoldableSyntaxExtensions,
-  clickLinkExtension,
-  codeBlockDecorationsExtension,
 ];
 
 export const prosemarkBaseThemeSetup = (): Extension => [
@@ -93,4 +84,7 @@ export const prosemarkBaseThemeSetup = (): Extension => [
   codeFenceTheme,
 ];
 
-export const prosemarkLightThemeSetup = (): Extension => lightTheme;
+export const prosemarkLightThemeSetup = (): Extension => [
+  prosemarkBaseThemeSetup(),
+  lightTheme,
+];

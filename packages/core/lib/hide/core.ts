@@ -13,10 +13,16 @@ const hideTheme = EditorView.theme({
   '.cm-hidden-token': {
     fontSize: '0px',
   },
+  '.cm-transparent-token': {
+    opacity: 0,
+  },
 });
 
 export const hideInlineDecoration = Decoration.mark({
   class: 'cm-hidden-token',
+});
+export const hideInlineKeepSpaceDecoration = Decoration.mark({
+  class: 'cm-transparent-token',
 });
 export const hideBlockDecoration = Decoration.replace({
   block: true,
@@ -25,6 +31,8 @@ export const hideBlockDecoration = Decoration.replace({
 const buildDecorations = (state: EditorState) => {
   const decorations: Range<Decoration>[] = [];
   const specs = state.facet(hidableNodeFacet);
+  specs.map(checkSpec);
+
   syntaxTree(state).iterate({
     enter: (node) => {
       // If the selection overlaps with the node, don't hide it
@@ -78,19 +86,20 @@ const buildDecorations = (state: EditorState) => {
           }
 
           const cursor = node.node.cursor();
-          console.assert(cursor.firstChild(), 'A hide node must have children');
 
           // Manual traversal to ensure all children are processed
-          do {
-            if (names.includes(cursor.type.name)) {
+          cursor.iterate((node) => {
+            if (names.includes(node.type.name)) {
               decorations.push(
-                (spec.block ? hideBlockDecoration : hideInlineDecoration).range(
-                  cursor.from,
-                  cursor.to,
-                ),
+                (spec.block
+                  ? hideBlockDecoration
+                  : spec.keepSpace
+                    ? hideInlineKeepSpaceDecoration
+                    : hideInlineDecoration
+                ).range(node.from, node.to),
               );
             }
-          } while (cursor.nextSibling());
+          });
         }
       }
     },
@@ -98,7 +107,7 @@ const buildDecorations = (state: EditorState) => {
   return Decoration.set(decorations, true);
 };
 
-const hideExtension = StateField.define<DecorationSet>({
+export const hideExtension = StateField.define<DecorationSet>({
   create(state) {
     return buildDecorations(state);
   },
@@ -120,8 +129,18 @@ export interface HidableNodeSpec {
     node: SyntaxNodeRef,
   ) => Range<Decoration> | Range<Decoration>[] | undefined;
   block?: boolean;
+  keepSpace?: boolean;
   unhideZone?: (state: EditorState, node: SyntaxNodeRef) => RangeLike;
 }
+
+const checkSpec = (spec: HidableNodeSpec) => {
+  if (spec.block && spec.keepSpace) {
+    console.warn(
+      'Only inline hide nodes can maintain space currently, but `block` and `keepSpace` are set in:',
+      spec,
+    );
+  }
+};
 
 export const hidableNodeFacet = Facet.define<
   HidableNodeSpec,

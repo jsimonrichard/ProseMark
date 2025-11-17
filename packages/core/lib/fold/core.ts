@@ -26,18 +26,21 @@ const buildDecorations = (state: EditorState) => {
   const specs = state.facet(foldableSyntaxFacet);
   syntaxTree(state).iterate({
     enter: (node) => {
-      if (selectionTouchesRange(state.selection.ranges, node)) return;
+      const selectionTouchesNodeRange = selectionTouchesRange(
+        state.selection.ranges,
+        node,
+      );
+
+      // Generate Path
+      const lineage = [];
+      let node_: SyntaxNodeRef | null = node;
+      while (node_) {
+        lineage.push(node_.name);
+        node_ = node_.node.parent;
+      }
+      const path = lineage.reverse().join('/');
 
       for (const spec of specs) {
-        // Generate Path
-        const lineage = [];
-        let node_: SyntaxNodeRef | null = node;
-        while (node_) {
-          lineage.push(node_.name);
-          node_ = node_.node.parent;
-        }
-        const path = lineage.reverse().join('/');
-
         // Check node path
         if (spec.nodePath instanceof Function) {
           if (!spec.nodePath(path)) {
@@ -52,20 +55,24 @@ const buildDecorations = (state: EditorState) => {
         }
 
         // Check custom unfold zone
-        if (spec.unfoldZone) {
-          if (
-            selectionTouchesRange(
+        const selectionTouchesRange_ = spec.unfoldZone
+          ? selectionTouchesRange(
               state.selection.ranges,
               spec.unfoldZone(state, node),
             )
-          ) {
-            return;
-          }
+          : selectionTouchesNodeRange;
+
+        if (!spec.keepDecorationOnUnfold && selectionTouchesRange_) {
+          return;
         }
 
         // Run folding logic
-        if (spec.onFold) {
-          const res = spec.onFold(state, node);
+        if (spec.buildDecorations) {
+          const res = spec.buildDecorations(
+            state,
+            node,
+            selectionTouchesRange_,
+          );
           if (res instanceof Array) {
             decorations.push(...res);
           } else if (res) {
@@ -78,7 +85,7 @@ const buildDecorations = (state: EditorState) => {
   return Decoration.set(decorations, true);
 };
 
-export const foldDecorationExtension = StateField.define<DecorationSet>({
+export const foldExtension = StateField.define<DecorationSet>({
   create(state) {
     return buildDecorations(state);
   },
@@ -92,16 +99,16 @@ export const foldDecorationExtension = StateField.define<DecorationSet>({
   provide: (f) => [EditorView.decorations.from(f)],
 });
 
-export const foldExtension = [foldDecorationExtension];
-
 export interface FoldableSyntaxSpec {
   nodePath: string | string[] | ((nodePath: string) => boolean);
-  onFold?: (
+  buildDecorations?: (
     state: EditorState,
     node: SyntaxNodeRef,
+    selectionTouchesRange: boolean,
   ) => Range<Decoration> | Range<Decoration>[] | undefined;
   unfoldZone?: (state: EditorState, node: SyntaxNodeRef) => RangeLike;
   eventHandlers?: DOMEventHandlers<void>;
+  keepDecorationOnUnfold?: boolean;
 }
 
 export const foldableSyntaxFacet = Facet.define<
@@ -131,7 +138,7 @@ export const selectAllDecorationsOnSelectExtension = (
           const target = e.target as HTMLElement;
           const pos = view.posAtDOM(target);
 
-          const decorations = view.state.field(foldDecorationExtension);
+          const decorations = view.state.field(foldExtension);
           decorations.between(pos, pos, (from: number, to: number) => {
             setTimeout(() => {
               view.dispatch({

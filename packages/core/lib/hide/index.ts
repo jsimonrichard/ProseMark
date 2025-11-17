@@ -8,6 +8,8 @@ import type { InlineContext, MarkdownConfig } from '@lezer/markdown';
 import { markdownTags } from '../markdownTags';
 import { stateWORDAt } from '../utils';
 
+export { hideExtension } from './core';
+
 const renderedLinkDecoration = Decoration.mark({
   class: 'cm-rendered-link',
 });
@@ -64,6 +66,7 @@ const defaultHidableSpecs: HidableNodeSpec[] = [
   {
     nodeName: 'Blockquote',
     subNodeNameToHide: 'QuoteMark',
+    keepSpace: true,
   },
 ];
 

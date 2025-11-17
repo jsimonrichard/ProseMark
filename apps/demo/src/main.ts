@@ -6,9 +6,8 @@ import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import {
   prosemarkBasicSetup,
-  prosemarkBaseThemeSetup,
+  prosemarkLightThemeSetup,
   prosemarkMarkdownSyntaxExtensions,
-  defaultClickLinkHandler,
 } from '@prosemark/core';
 import * as ProseMark from '@prosemark/core';
 import { htmlBlockExtension } from '@prosemark/render-html';
@@ -31,15 +30,12 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
 const editor = new EditorView({
   extensions: [
-    basicSetup,
     markdown({
       codeLanguages: languages,
       extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
     }),
-    EditorView.lineWrapping,
     prosemarkBasicSetup(),
-    prosemarkBaseThemeSetup(),
-    defaultClickLinkHandler,
+    prosemarkLightThemeSetup(),
     htmlBlockExtension,
     pasteRichTextExtension(),
     pastePlainTextExtension(),
@@ -55,7 +51,7 @@ const editor = new EditorView({
         },
       },
     ]),
-    traverseTreePlugin,
+    // traverseTreePlugin,
   ],
   doc: initDoc,
   parent: document.getElementById('codemirror-container')!,

@@ -52,7 +52,7 @@ class EmojiWidget extends WidgetType {
 
 export const emojiExtension = foldableSyntaxFacet.of({
   nodePath: 'Emoji',
-  onFold: (state, node) => {
+  buildDecorations: (state, node) => {
     const emojiName = state.doc.sliceString(node.from + 1, node.to - 1);
     const emoji_ = emoji.get(emojiName);
     if (!emoji_) {

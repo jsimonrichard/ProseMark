@@ -26,7 +26,7 @@ class Checkbox extends WidgetType {
 export const taskExtension = [
   foldableSyntaxFacet.of({
     nodePath: 'BulletList/ListItem/Task/TaskMarker',
-    onFold: (state, node) => {
+    buildDecorations: (state, node) => {
       const value =
         state.doc.sliceString(node.from + 1, node.to - 1).toLowerCase() === 'x';
       return Decoration.replace({
