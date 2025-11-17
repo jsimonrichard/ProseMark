@@ -128,6 +128,9 @@ export const baseTheme = EditorView.theme({
     bottom: '0px',
     insetInlineStart: 'var(--blockquote-border-offset)',
   },
+  '.cm-image-block': {
+    paddingLeft: '6px',
+  },
 });
 
 export const generalSyntaxHighlights = syntaxHighlighting(
