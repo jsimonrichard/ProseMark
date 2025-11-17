@@ -1,29 +1,23 @@
 import { syntaxTree } from '@codemirror/language';
-import {
-  EditorState,
-  RangeSet,
-  StateField,
-  type Range,
-} from '@codemirror/state';
+import { Annotation, RangeSet, type Range } from '@codemirror/state';
 import {
   Decoration,
   EditorView,
+  ViewPlugin,
+  ViewUpdate,
   WidgetType,
   type DecorationSet,
 } from '@codemirror/view';
 
 class NestedBlockQuoteBorder extends WidgetType {
-  charOffset: number;
-
-  constructor(charOffset: number) {
+  constructor(public offset: number) {
     super();
-    this.charOffset = charOffset;
   }
 
   toDOM() {
     const span = document.createElement('span');
     span.className = 'cm-nested-blockquote-border';
-    span.style = `--blockquote-border-offset: ${this.charOffset.toString()}ch`;
+    span.style = `--blockquote-border-offset: ${this.offset.toString()}px`;
     return span;
   }
 
@@ -32,62 +26,105 @@ class NestedBlockQuoteBorder extends WidgetType {
   }
 }
 
-const buildDecorations = (state: EditorState) => {
-  const decos: Range<Decoration>[] = [];
+interface MeasureData {
+  lineFroms: number[];
+  nestedBorders: { pos: number; offset: number }[];
+}
 
-  syntaxTree(state).iterate({
+const blockQuoteRefresh = Annotation.define<boolean>();
+
+function measureBlockQuotes(view: EditorView): MeasureData {
+  const lineFroms: number[] = [];
+  const nestedBorders: { pos: number; offset: number }[] = [];
+
+  syntaxTree(view.state).iterate({
     enter(node) {
-      if (node.type.name != 'Blockquote') {
-        return;
-      }
+      if (node.type.name != 'Blockquote') return;
 
-      const startLine = state.doc.lineAt(node.from).number;
-      const endLine = state.doc.lineAt(node.to).number;
+      // Add a line decoration for each line in the blockquote
+      const startLine = view.state.doc.lineAt(node.from).number;
+      const endLine = view.state.doc.lineAt(node.to).number;
       for (let i = startLine; i <= endLine; i++) {
-        const line = state.doc.line(i);
-        decos.push(
-          Decoration.line({
-            attributes: {
-              class: 'cm-blockquote-line',
-            },
-          }).range(line.from),
-        );
+        const line = view.state.doc.line(i);
+        lineFroms.push(line.from);
       }
 
-      // Find any nested blockquotes
+      // Find any nested blockquotes and measure their visual offset
       const cursor = node.node.cursor();
-      cursor.iterate((node) => {
-        if (node.type.name !== 'QuoteMark') {
-          return;
-        }
-        const line = state.doc.lineAt(node.from);
-        if (node.from == line.from) {
-          return;
-        }
-        decos.push(
-          Decoration.widget({
-            widget: new NestedBlockQuoteBorder(node.from - line.from),
-          }).range(node.from),
-        );
+      cursor.iterate((child) => {
+        if (child.type.name !== 'QuoteMark') return;
+        const line = view.state.doc.lineAt(child.from);
+        if (child.from == line.from) return;
+        const offset =
+          (view.coordsAtPos(child.from)?.left ?? 0) -
+          (view.coordsAtPos(line.from)?.left ?? 0);
+
+        nestedBorders.push({ pos: child.from, offset });
       });
 
       return false;
     },
   });
 
+  return { lineFroms, nestedBorders };
+}
+
+function buildDecorationsFromMeasure(_view: EditorView, data: MeasureData) {
+  const decos: Range<Decoration>[] = [];
+
+  for (const from of data.lineFroms) {
+    decos.push(
+      Decoration.line({ attributes: { class: 'cm-blockquote-line' } }).range(
+        from,
+      ),
+    );
+  }
+
+  for (const { pos, offset } of data.nestedBorders) {
+    decos.push(
+      Decoration.widget({
+        widget: new NestedBlockQuoteBorder(offset),
+      }).range(pos),
+    );
+  }
+
   return RangeSet.of(decos, true);
-};
+}
 
-export const blockQuoteExtension = StateField.define<DecorationSet>({
-  create(state) {
-    return buildDecorations(state);
-  },
+export const blockQuoteExtension = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet = Decoration.none;
 
-  update(deco, tr) {
-    if (tr.docChanged || tr.selection) {
-      return buildDecorations(tr.state);
+    constructor(view: EditorView) {
+      this.requestMeasure(view);
     }
-    return deco.map(tr.changes);
+
+    update(u: ViewUpdate) {
+      if (u.docChanged || u.viewportChanged) {
+        this.requestMeasure(u.view);
+      }
+
+      // if (u.transactions.some((tr) => tr.annotation(blockQuoteRefresh))) {
+      //   this.requestMeasure(u.view);
+      // }
+    }
+
+    requestMeasure(view: EditorView) {
+      // Measuring (coordsAtPos) must be done through requestMeasure
+      view.requestMeasure({
+        read: (v) => measureBlockQuotes(v),
+        write: (data, v) => {
+          this.applyMeasure(data, v);
+        },
+      });
+    }
+
+    applyMeasure(data: MeasureData, view: EditorView) {
+      const newDecos = buildDecorationsFromMeasure(view, data);
+      this.decorations = newDecos;
+    }
   },
-  provide: (f) => [EditorView.decorations.from(f)],
-});
+  {
+    decorations: (v) => v.decorations,
+  },
+);

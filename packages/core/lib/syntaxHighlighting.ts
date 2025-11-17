@@ -116,7 +116,8 @@ export const baseTheme = EditorView.theme({
       position: 'absolute',
       top: '0px',
       bottom: '0px',
-      insetInlineStart: '0.3em',
+      insetInlineStart: '6px',
+      zIndex: -10,
     },
   },
   '.cm-nested-blockquote-border': {
@@ -126,7 +127,8 @@ export const baseTheme = EditorView.theme({
     position: 'absolute',
     top: '0px',
     bottom: '0px',
-    insetInlineStart: 'var(--blockquote-border-offset)',
+    insetInlineStart: 'calc(6px + var(--blockquote-border-offset))',
+    zIndex: -10,
   },
   '.cm-image-block': {
     paddingLeft: '6px',
