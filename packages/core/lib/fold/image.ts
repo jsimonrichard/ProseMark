@@ -14,13 +14,13 @@ class ImageWidget extends WidgetType {
   }
 
   toDOM() {
-    const elm = document.createElement(this.block ? 'div' : 'span');
-    elm.className = 'cm-image';
+    const elem = document.createElement(this.block ? 'div' : 'span');
+    elem.className = 'cm-image';
     if (this.block) {
-      elm.className += ' cm-image-block';
+      elem.className += ' cm-image-block';
     }
-    elm.innerHTML = `<img src="${this.url}" />`;
-    return elm;
+    elem.innerHTML = `<img src="${this.url}" />`;
+    return elem;
   }
 
   // allows clicks to pass through to the editor
