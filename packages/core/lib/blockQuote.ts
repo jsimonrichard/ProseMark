@@ -1,5 +1,5 @@
 import { syntaxTree } from '@codemirror/language';
-import { Annotation, RangeSet, type Range } from '@codemirror/state';
+import { RangeSet, type Range } from '@codemirror/state';
 import {
   Decoration,
   EditorView,
@@ -30,8 +30,6 @@ interface MeasureData {
   lineFroms: number[];
   nestedBorders: { pos: number; offset: number }[];
 }
-
-const blockQuoteRefresh = Annotation.define<boolean>();
 
 function measureBlockQuotes(view: EditorView): MeasureData {
   const lineFroms: number[] = [];
@@ -103,10 +101,6 @@ export const blockQuoteExtension = ViewPlugin.fromClass(
       if (u.docChanged || u.viewportChanged) {
         this.requestMeasure(u.view);
       }
-
-      // if (u.transactions.some((tr) => tr.annotation(blockQuoteRefresh))) {
-      //   this.requestMeasure(u.view);
-      // }
     }
 
     requestMeasure(view: EditorView) {
