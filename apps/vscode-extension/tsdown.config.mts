@@ -3,6 +3,7 @@ import { defineConfig } from 'tsdown';
 export default defineConfig([
   {
     outDir: 'dist',
+    noExternal: [/^(?!vscode).*/],
     external: 'vscode',
     name: 'webview',
     entry: 'src/webview/main.ts',
@@ -12,6 +13,7 @@ export default defineConfig([
   },
   {
     outDir: 'dist',
+    noExternal: [/^(?!vscode).*/],
     external: 'vscode',
     name: 'extension backend',
     entry: 'src/extension.ts',
