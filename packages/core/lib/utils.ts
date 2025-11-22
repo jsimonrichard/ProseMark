@@ -5,9 +5,12 @@ import {
   type SelectionRange,
   findClusterBreak,
 } from '@codemirror/state';
-import { type DOMEventHandlers, type DOMEventMap } from '@codemirror/view';
+import {
+  type DOMEventHandlers,
+  type DOMEventMap,
+  type EditorView,
+} from '@codemirror/view';
 import type { TreeCursor } from '@lezer/common';
-import { EditorView } from 'codemirror';
 
 /* This is a reference to vim's WORD: a "word" including any non-whitespace character */
 export function stateWORDAt(
@@ -93,12 +96,22 @@ export function eventHandlersWithClass<This>(
                 return el.classList.contains(className);
               })
             ) {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              res.push(handlers[className]?.call(this, ev as any, view));
+              const handler = handlers[
+                className
+              ] as DOMEventHandlers<This>[keyof DOMEventHandlers<This>];
+              if (handler) {
+                res.push(
+                  handler.call(
+                    this,
+                    ev as DOMEventMap[keyof DOMEventMap],
+                    view,
+                  ),
+                );
+              }
             }
           }
           return res.some((res) => !!res);
         },
       ]),
-  );
+  ) as unknown as DOMEventHandlers<This>;
 }
