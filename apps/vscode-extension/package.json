@@ -3,7 +3,7 @@
   "displayName": "ProseMark",
   "description": "A \"What You See Is What You Mean\" editor, like Typora or Obsidian",
   "publisher": "jsimonrichard",
-  "version": "0.0.4",
+  "version": "0.0.3",
   "repository": {
     "type": "GitHub",
     "url": "https://github.com/jsimonrichard/ProseMark"
