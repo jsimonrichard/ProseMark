@@ -50,6 +50,7 @@
     "@codemirror/language": "^6.10.2",
     "@codemirror/language-data": "^6.5.1",
     "@codemirror/view": "^6.28.0",
+    "@codemirror/state": "^6.5.2",
     "@lezer-unofficial/printer": "^1.0.1",
     "@lezer/markdown": "^1.2.1",
     "@prosemark/core": "workspace:*",
@@ -66,6 +67,5 @@
     "eslint": "^9.32.0",
     "tsdown": "^0.14.1",
     "typescript": "^5.9.2"
-  },
-  "dependencies": {}
+  }
 }
