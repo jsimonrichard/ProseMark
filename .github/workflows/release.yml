@@ -29,6 +29,10 @@ jobs:
           node-version: 20.x
           registry-url: 'https://registry.npmjs.org'
 
+      # npm 11.5.1 or later must be installed of OIDC to work
+      - name: Update npm
+        run: npm install -g npm@latest
+
       - name: Install Dependencies
         run: bun install --frozen-lockfile
 
