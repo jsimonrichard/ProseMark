@@ -45,11 +45,6 @@ jobs:
       - name: Lint
         run: bun turbo lint -F "{packages/*}"
 
-      - name: Debug OIDC Claims
-        uses: steve-todorov/oidc-debugger-action@v1
-        with:
-          audience: '${{ github.server_url }}/${{ github.repository }}'
-
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1
