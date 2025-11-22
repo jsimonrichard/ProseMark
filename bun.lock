@@ -70,6 +70,7 @@
         "@codemirror/lang-markdown": "^6.2.5",
         "@codemirror/language": "^6.10.2",
         "@codemirror/language-data": "^6.5.1",
+        "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.28.0",
         "@lezer-unofficial/printer": "^1.0.1",
         "@lezer/markdown": "^1.2.1",
@@ -91,7 +92,7 @@
     },
     "packages/core": {
       "name": "@prosemark/core",
-      "version": "0.0.2",
+      "version": "0.0.3",
       "dependencies": {
         "@lezer/common": "^1.2.3",
         "@lezer/markdown": "^1.4.3",
@@ -133,7 +134,7 @@
     },
     "packages/paste-rich-text": {
       "name": "@prosemark/paste-rich-text",
-      "version": "0.0.1",
+      "version": "0.0.2",
       "dependencies": {
         "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.38.0",
@@ -143,7 +144,7 @@
     },
     "packages/render-html": {
       "name": "@prosemark/render-html",
-      "version": "0.0.2",
+      "version": "0.0.3",
       "dependencies": {
         "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.38.0",
