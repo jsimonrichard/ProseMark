@@ -26,9 +26,12 @@ class HorizontalRuleWidget extends WidgetType {
 const horizontalRuleTheme = EditorView.theme({
   '.cm-horizontal-rule-container': {
     height: '1.4em',
-    display: 'flow-root',
+    display: 'flex',
     'align-items': 'center',
     padding: '0 2px 0 6px',
+  },
+  '.cm-horizontal-rule-container hr': {
+    width: '100%',
   },
 });
 
