@@ -18,7 +18,7 @@
     "build": "tsdown",
     "lint": "eslint --max-warnings=0",
     "check-types": "tsc",
-    "ci:publish": "bun pm pack --filename prosemark-paste-rich-text.tgz && npm publish prosemark-paste-rich-text.tgz"
+    "ci:publish": "bash ../../scripts/ci-publish.sh"
   },
   "keywords": [],
   "author": "",
