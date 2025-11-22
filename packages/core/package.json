@@ -1,6 +1,15 @@
 {
   "name": "@prosemark/core",
   "version": "0.0.3",
+  "repository": {
+    "url": "https://github.com/jsimonrichard/ProseMark",
+    "type": "github"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "J. Simon Richard",
+    "url": "https://jsimonrichard.com"
+  },
   "type": "module",
   "files": [
     "dist"

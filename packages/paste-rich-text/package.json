@@ -1,6 +1,15 @@
 {
   "name": "@prosemark/paste-rich-text",
   "version": "0.0.2",
+  "repository": {
+    "url": "https://github.com/jsimonrichard/ProseMark",
+    "type": "github"
+  },
+  "author": {
+    "name": "J. Simon Richard",
+    "url": "https://jsimonrichard.com"
+  },
+  "license": "MIT",
   "type": "module",
   "files": [
     "dist"
@@ -21,8 +30,6 @@
     "ci:publish": "bash ../../scripts/ci-publish.sh"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.0",
