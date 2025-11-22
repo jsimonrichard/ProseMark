@@ -8,6 +8,10 @@
     "type": "GitHub",
     "url": "https://github.com/jsimonrichard/ProseMark"
   },
+  "author": {
+    "name": "J. Simon Richard",
+    "url": "https://jsimonrichard.com"
+  },
   "license": "MIT",
   "engines": {
     "vscode": "^1.90.0"
