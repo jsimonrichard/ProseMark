@@ -1,16 +1,5 @@
 # @prosemark/core
 
-## 0.0.4
-
-### Patch Changes
-
-- Set up soft indentation for paragraphs, lists, tasks, and blockquotes
-- d9b1e14: Support em- and en-dashes
-- 4d92407: Fix horizontal rule styling
-- 0a9b113: Make it possible to arrow down/up into hidden content
-- 1dc298e: Make it possible to view images while editing the image link (and support block-layout images)
-- f4ddb0c: Improved the formatting of and the syntax hiding for blockquotes
-
 ## 0.0.3
 
 ### Patch Changes
