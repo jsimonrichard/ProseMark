@@ -1,19 +1,5 @@
 # vscode-prosemark
 
-## 0.0.4
-
-### Patch Changes
-
-- e370f7e: Fix horizontal rule styling
-- Updated dependencies [e370f7e]
-- Updated dependencies [e370f7e]
-- Updated dependencies [e370f7e]
-- Updated dependencies [e370f7e]
-- Updated dependencies [e370f7e]
-- Updated dependencies [e370f7e]
-  - @prosemark/core@0.0.4
-  - @prosemark/render-html@0.0.4
-
 ## 0.0.3
 
 ### Patch Changes
