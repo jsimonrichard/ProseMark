@@ -24,6 +24,7 @@ import { defaultHideExtensions, escapeMarkdownSyntaxExtension } from './hide';
 import {
   emojiMarkdownSyntaxExtension,
   defaultFoldableSyntaxExtensions,
+  dashMarkdownSyntaxExtension,
 } from './fold';
 import { clickLinkExtension, defaultClickLinkHandler } from './clickLink';
 import {
@@ -44,6 +45,7 @@ export const prosemarkMarkdownSyntaxExtensions = [
   additionalMarkdownSyntaxTags,
   escapeMarkdownSyntaxExtension,
   emojiMarkdownSyntaxExtension,
+  dashMarkdownSyntaxExtension
 ];
 
 export const prosemarkBasicSetup = (): Extension => [

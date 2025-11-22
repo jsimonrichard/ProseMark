@@ -9,4 +9,5 @@ export const markdownTags = {
   emoji: Tag.define(),
   emojiMark: Tag.define(),
   listMark: Tag.define(),
+  dash: Tag.define(),
 };
