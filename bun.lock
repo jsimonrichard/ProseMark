@@ -147,7 +147,7 @@
     },
     "packages/render-html": {
       "name": "@prosemark/render-html",
-      "version": "0.0.4",
+      "version": "0.0.5",
       "dependencies": {
         "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.38.0",

@@ -1,6 +1,6 @@
 # @prosemark/render-html
 
-## 0.0.4
+## 0.0.5
 
 ### Patch Changes
 
@@ -13,6 +13,10 @@
 - Updated dependencies [07b95ec]
 - Updated dependencies [07b95ec]
   - @prosemark/core@0.0.4
+
+# 0.0.4
+
+Skipped (publishing error)
 
 ## 0.0.3
 
