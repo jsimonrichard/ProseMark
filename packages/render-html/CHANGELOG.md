@@ -1,5 +1,19 @@
 # @prosemark/render-html
 
+## 0.0.4
+
+### Patch Changes
+
+- 97e9b3a: Make it possible to arrow down/up into hidden content
+- 97e9b3a: Make it possible to view images while editing the image link (and support block-layout images)
+- Updated dependencies [97e9b3a]
+- Updated dependencies [97e9b3a]
+- Updated dependencies [97e9b3a]
+- Updated dependencies [97e9b3a]
+- Updated dependencies [97e9b3a]
+- Updated dependencies [97e9b3a]
+  - @prosemark/core@0.0.4
+
 ## 0.0.3
 
 ### Patch Changes
