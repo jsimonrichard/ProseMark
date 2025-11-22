@@ -66,13 +66,11 @@
     "apps/vscode-extension": {
       "name": "vscode-prosemark",
       "version": "0.0.3",
-      "dependencies": {
-        "@codemirror/state": "^6.5.2",
-      },
       "devDependencies": {
         "@codemirror/lang-markdown": "^6.2.5",
         "@codemirror/language": "^6.10.2",
         "@codemirror/language-data": "^6.5.1",
+        "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.28.0",
         "@lezer-unofficial/printer": "^1.0.1",
         "@lezer/markdown": "^1.2.1",
@@ -151,7 +149,7 @@
         "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.38.0",
         "@lezer/common": "^1.2.3",
-        "@prosemark/core": "workspace:^",
+        "@prosemark/core": "workspace:*",
         "dompurify": "^3.0.11",
       },
     },
