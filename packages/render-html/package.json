@@ -18,7 +18,7 @@
     "build": "tsdown",
     "lint": "eslint --max-warnings=0",
     "check-types": "tsc",
-    "ci:publish": "bun pm pack --filename prosemark-render-html.tgz && bunx npm publish prosemark-render-html.tgz --provenance --tolerate-republish"
+    "ci:publish": "bun pm pack --filename prosemark-render-html.tgz && npm publish prosemark-render-html.tgz"
   },
   "keywords": [],
   "author": "",

@@ -41,11 +41,17 @@ jobs:
       - name: Lint
         run: bun turbo lint -F "{packages/*}"
 
+      - name: Debug OIDC Claims
+        uses: steve-todorov/oidc-debugger-action@v1
+        with:
+          audience: '${{ github.server_url }}/${{ github.repository }}'
+
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1
         with:
           # ChangeSets splits this into an array of string args, so we don't add quotes to the filter
-          publish: bun turbo ci:publish -F {packages/*}
+          # --env-mode=loose makes sure that the OIDC vars are passed to the publish scripts
+          publish: bun turbo ci:publish -F {packages/*} --env-mode=loose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
