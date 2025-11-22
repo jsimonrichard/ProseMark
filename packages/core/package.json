@@ -19,7 +19,7 @@
     "preview": "vite preview",
     "lint": "eslint --max-warnings=0",
     "check-types": "tsc",
-    "ci:publish": "bun pm pack --filename prosemark-core.tgz && bunx npm publish prosemark-core.tgz --provenance --tolerate-republish"
+    "ci:publish": "bun pm pack --filename prosemark-core.tgz && npm publish prosemark-core.tgz"
   },
   "dependencies": {
     "@lezer/common": "^1.2.3",
