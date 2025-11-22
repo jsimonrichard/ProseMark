@@ -54,6 +54,8 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
+          # Add the patch lock script so that the lockfile uses the updated package versions
+          version: bun changeset version && bun script/patch-lock.ts
           # ChangeSets splits this into an array of string args, so we don't add quotes to the filter
           # --env-mode=loose makes sure that the OIDC vars are passed to the publish scripts
           publish: bun turbo ci:publish -F {packages/*} --env-mode=loose
