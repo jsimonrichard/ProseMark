@@ -9,6 +9,15 @@ if npm view "${NAME}" versions --json | grep -q "\"${VERSION}\""; then
     echo "Package ${NAME}@${VERSION} already published, skipping."
 else
     echo "Publishing ${NAME}@${VERSION}..."
-    bun pm pack --filename prosemark-package.tgz
-    npm publish prosemark-package.tgz
+
+    # convert @scope/name → scope-name
+    SAFE_NAME=${NAME//@/}
+    SAFE_NAME=${SAFE_NAME//\//-}
+
+    TMPDIR=${TMPDIR:-/tmp}
+    PKG_FILE="${SAFE_NAME}-${VERSION}.tgz"
+    PKG_PATH="${TMPDIR}/${PKG_FILE}"
+
+    bun pm pack --filename $PKG_PATH
+    npm publish $PKG_PATH
 fi
