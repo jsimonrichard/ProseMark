@@ -39,7 +39,6 @@ const editor = new EditorView({
     pasteRichTextExtension(),
     pastePlainTextExtension(),
     keymap.of([
-      indentWithTab,
       {
         key: 'Alt-p',
         run: (view) => {
