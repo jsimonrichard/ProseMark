@@ -39,7 +39,7 @@ const renderHtml = buildTypeDocEntry(
   '../../packages/render-html',
 );
 const pasteRichText = buildTypeDocEntry(
-  '@prosemark/pasteRichText',
+  '@prosemark/paste-rich-text',
   '../../packages/paste-rich-text',
 );
 

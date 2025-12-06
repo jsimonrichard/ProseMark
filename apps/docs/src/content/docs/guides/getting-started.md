@@ -14,6 +14,7 @@ ProseMark is a set of extensions for, not a replacement of, [CodeMirror](https:/
 The main npm package for ProseMark is `@prosemark/core`; install that using your package manager of choice. You may also be interested in installing these optional ProseMark packages:
 
 - `@prosemark/render-html`: renders HTML tags within the markdown content. Supports most standard attributes; sanitized using [DOMPurify](https://github.com/cure53/DOMPurify).
+- `@prosemark/paste-rich-text`: allows pasting rich text as markdown.
 
 You will also need to install some standard CodeMirror packages:
 
