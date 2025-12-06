@@ -21,6 +21,9 @@
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
+  "extensionDependencies": [
+    "streetsidesoftware.code-spell-checker"
+  ],
   "contributes": {
     "customEditors": [
       {
@@ -53,13 +56,15 @@
     "@codemirror/lang-markdown": "^6.2.5",
     "@codemirror/language": "^6.10.2",
     "@codemirror/language-data": "^6.5.1",
-    "@codemirror/view": "^6.28.0",
     "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.28.0",
+    "@cspell/cspell-types": "^9.4.0",
     "@lezer-unofficial/printer": "^1.0.1",
     "@lezer/markdown": "^1.2.1",
     "@prosemark/core": "workspace:*",
     "@prosemark/paste-rich-text": "workspace:*",
-    "@prosemark/render-html": "workspace:*"
+    "@prosemark/render-html": "workspace:*",
+    "@prosemark/spellcheck-frontend": "workspace:*"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

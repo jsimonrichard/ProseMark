@@ -41,6 +41,7 @@
     );
     --pm-syntax-comment: var(--vscode-editor-inactiveSelectionBackground);
     --pm-syntax-invalid: var(--vscode-errorForeground);
+    --pm-spellcheck-issue-underline-color: var(--vscode-editorInfo-foreground);
     --pm-cursor-color: var(--vscode-editorCursor-foreground);
 }
 
