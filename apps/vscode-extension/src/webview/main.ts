@@ -9,6 +9,11 @@ import {
 } from '@prosemark/core';
 import { htmlBlockExtension } from '@prosemark/render-html';
 import {
+  setSpellCheckIssues,
+  spellCheckExtension,
+  SpellCheckIssue,
+} from '@prosemark/spellcheck-frontend';
+import {
   pastePlainTextExtension,
   pasteRichTextExtension,
 } from '@prosemark/paste-rich-text';
@@ -16,16 +21,16 @@ import { GFM } from '@lezer/markdown';
 import { EditorState, StateEffect } from '@codemirror/state';
 import type {
   Change,
-  VSCodeMessage,
-  VSCodeProcMap,
-  WebViewMessage,
+  VSCodeExtMessage,
+  WebviewProcMap,
+  WebviewMessage,
 } from '../common';
 import './style.css';
 import { indentUnit } from '@codemirror/language';
 // import { vim } from '@replit/codemirror-vim';
 
 interface VSCodeAPI {
-  postMessage: (m: WebViewMessage) => void;
+  postMessage: (m: WebviewMessage) => void;
 }
 
 declare const acquireVsCodeApi: () => VSCodeAPI;
@@ -120,6 +125,7 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
           });
         }
       }),
+      spellCheckExtension,
       updateVSCodeExtension,
     ],
   });
@@ -143,7 +149,7 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
   return view_;
 };
 
-const procs: VSCodeProcMap = {
+const procs: WebviewProcMap = {
   init: ({ text, vimModeEnabled, ...dynamicConfig }) => {
     view = buildEditor(text, vimModeEnabled);
     procs.setDynamicConfig(dynamicConfig);
@@ -194,10 +200,47 @@ const procs: VSCodeProcMap = {
     }
     return;
   },
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  cSpellDoneAddingWord: () => {},
+  cSpellUpdateInfo: ({ issues }) => {
+    if (!issues || issues.length === 0) {
+      return;
+    }
+
+    const issue_ranges = issues.map((is) => {
+      if (!view) {
+        throw new Error('View should have been initialized');
+      }
+
+      const from =
+        view.state.doc.line(is.range.start.line + 1).from +
+        is.range.start.character;
+      const to =
+        view.state.doc.line(is.range.end.line + 1).from +
+        is.range.end.character;
+      return new SpellCheckIssue(is.text).range(from, to);
+    });
+    view?.dispatch({ effects: setSpellCheckIssues(issue_ranges) });
+  },
+  cSpellProvideSpellCheckSuggestions: ({ word, suggestions }) => {
+    console.log('Spell check suggestions', word, suggestions);
+    // const suggestions_ = suggestions.map((s) => ({
+    //   label: s.word,
+    //   kind: vscode.CompletionItemKind.Text,
+    //   insertText: s.word,
+    // }));
+    // vscode.postMessage({
+    //   type: 'cSpellProvideSpellCheckSuggestions',
+    //   value: {
+    //     word,
+    //     suggestions: suggestions_,
+    //   },
+    // });
+  },
 };
 
 window.addEventListener('message', (event) => {
-  const message = event.data as VSCodeMessage;
+  const message = event.data as VSCodeExtMessage;
   if ('value' in message) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     procs[message.type](message.value as any);

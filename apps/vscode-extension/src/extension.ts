@@ -1,17 +1,24 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import {
-  exhaustiveMatchingGuard,
   type Change,
-  type VSCodeMessage,
-  type WebViewMessage,
+  type VSCodeExtensionProcMap,
+  type VSCodeExtMessage,
+  type WebviewMessage,
 } from './common';
 
+import type * as CSpell from './cspell-types.d.ts';
+
 export function activate(context: vscode.ExtensionContext): void {
+  const cSpellExtension = vscode.extensions.getExtension<CSpell.ExtensionApi>(
+    'streetsidesoftware.code-spell-checker',
+  );
+  const cSpellApi = cSpellExtension?.exports;
+
   context.subscriptions.push(
     vscode.window.registerCustomEditorProvider(
       'prosemark.editor',
-      new ProseMarkEditorProvider(context),
+      new ProseMarkEditorProvider(context, cSpellApi),
       {
         webviewOptions: {
           retainContextWhenHidden: true,
@@ -24,7 +31,10 @@ export function activate(context: vscode.ExtensionContext): void {
 class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
   public static readonly viewType = 'prosemark.editor';
 
-  constructor(private readonly context: vscode.ExtensionContext) {}
+  constructor(
+    private readonly context: vscode.ExtensionContext,
+    private readonly cSpellApi: CSpell.ExtensionApi | undefined,
+  ) {}
 
   public resolveCustomTextEditor(
     document: vscode.TextDocument,
@@ -35,6 +45,7 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
       this.context.extensionUri,
       document,
       webviewPanel,
+      this.cSpellApi,
     );
   }
 }
@@ -46,11 +57,13 @@ class ProseMarkEditor {
   private wordCountStatusBarItem: vscode.StatusBarItem;
   private changeDocumentSubscription: vscode.Disposable;
   private viewStateSubscription: vscode.Disposable;
+  private cSpellCheckTimer: NodeJS.Timeout | undefined;
 
   constructor(
     private extensionUri: vscode.Uri,
     document: vscode.TextDocument,
     private webviewPanel: vscode.WebviewPanel,
+    private cSpellApi: CSpell.ExtensionApi | undefined,
   ) {
     this.documentUri = document.uri;
 
@@ -90,7 +103,7 @@ class ProseMarkEditor {
       this.dispose();
     });
 
-    webviewPanel.webview.onDidReceiveMessage((m: WebViewMessage) => {
+    webviewPanel.webview.onDidReceiveMessage((m: WebviewMessage) => {
       this.handleWebViewMessage(m);
     });
 
@@ -104,6 +117,7 @@ class ProseMarkEditor {
         ...initConfig,
       },
     });
+    this.spellCheck();
   }
 
   private getHtmlForWebview(): string {
@@ -139,38 +153,86 @@ class ProseMarkEditor {
     this.wordCountStatusBarItem.dispose();
   }
 
-  private postMessageToWebview(msg: VSCodeMessage) {
+  private postMessageToWebview(msg: VSCodeExtMessage) {
     return this.webviewPanel.webview.postMessage(msg);
   }
 
-  private handleWebViewMessage(msg: WebViewMessage) {
-    switch (msg.type) {
-      case 'update':
-        this.isUpdatingFromWebview = true;
-        this.updateTextDocument(msg.value)
-          .catch((e: unknown) => {
-            console.error(
-              'Encountered an error while trying to update the document:',
-              e,
-            );
-          })
-          .finally(() => {
-            this.isUpdatingFromWebview = false;
+  private procMap: VSCodeExtensionProcMap = {
+    update: (changes) => {
+      this.isUpdatingFromWebview = true;
+      this.updateTextDocument(changes)
+        .catch((e: unknown) => {
+          console.error(
+            'Encountered an error while trying to update the document:',
+            e,
+          );
+        })
+        .finally(() => {
+          this.isUpdatingFromWebview = false;
+        });
+    },
+    linkClick: (link) => {
+      void this.followLink(link, this.documentUri);
+    },
+    updateWordCountMsg: ({ wordCount, charCount }) => {
+      this.updateWordCount(wordCount, charCount);
+    },
+    cSpellAddWordToUserDictionary: (word) => {
+      this.cSpellApi
+        ?.addWordToUserDictionary(word)
+        .then(() =>
+          this.postMessageToWebview({
+            type: 'cSpellDoneAddingWord',
+            value: word,
+          }),
+        )
+        .catch((e: unknown) => {
+          console.error(e);
+        });
+    },
+    cSpellAddWordToWorkspaceDictionary: (word) => {
+      this.cSpellApi
+        ?.addWordToWorkspaceDictionary(word, this.documentUri)
+        .then(() =>
+          this.postMessageToWebview({
+            type: 'cSpellDoneAddingWord',
+            value: word,
+          }),
+        )
+        .catch((e: unknown) => {
+          console.error(e);
+        });
+    },
+    cSpellRequestSpellCheckSuggestions: (word) => {
+      const doc = { uri: this.documentUri.toString() };
+      this.cSpellApi
+        ?.cSpellClient()
+        .serverApi.spellingSuggestions(word, doc)
+        .then((suggestions: CSpell.Suggestion[]) => {
+          this.postMessageToWebview({
+            type: 'cSpellProvideSpellCheckSuggestions',
+            value: {
+              word,
+              suggestions,
+            },
           });
-        return;
-      case 'linkClick':
-        void this.followLink(msg.value, this.documentUri);
-        return;
-      case 'updateWordCountMsg':
-        this.updateWordCount(msg.value.wordCount, msg.value.charCount);
-        return;
-    }
-    return exhaustiveMatchingGuard(msg);
+        })
+        .catch((e: unknown) => {
+          console.error(e);
+        });
+    },
+  };
+
+  private handleWebViewMessage(msg: WebviewMessage) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    this.procMap[msg.type](msg.value as any);
   }
 
   private async handleTextDocumentChange(
     contentChanges: readonly vscode.TextDocumentContentChangeEvent[],
   ) {
+    this.debouncedSpellCheck();
+
     // If this change came from outside the webview, update the webview
     if (!this.isUpdatingFromWebview && contentChanges.length) {
       await this.postMessageToWebview({
@@ -202,6 +264,33 @@ class ProseMarkEditor {
     }
     const result = await vscode.workspace.applyEdit(edit);
     return result;
+  }
+
+  private debouncedSpellCheck() {
+    if (this.cSpellCheckTimer) {
+      clearTimeout(this.cSpellCheckTimer);
+    }
+
+    this.cSpellCheckTimer = setTimeout(() => {
+      this.cSpellCheckTimer = undefined;
+      this.spellCheck();
+    });
+  }
+
+  private spellCheck() {
+    this.cSpellApi
+      ?.checkDocument({
+        uri: this.documentUri.toString(),
+      })
+      .then((res) => {
+        this.postMessageToWebview({
+          type: 'cSpellUpdateInfo',
+          value: res,
+        });
+      })
+      .catch((e: unknown) => {
+        console.error(e);
+      });
   }
 
   private initWordCountStatusBar() {

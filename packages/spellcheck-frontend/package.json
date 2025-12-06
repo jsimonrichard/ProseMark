@@ -1,0 +1,38 @@
+{
+  "name": "@prosemark/spellcheck-frontend",
+  "version": "0.0.1",
+  "repository": {
+    "url": "https://github.com/jsimonrichard/ProseMark",
+    "type": "github"
+  },
+  "author": {
+    "name": "J. Simon Richard",
+    "url": "https://jsimonrichard.com"
+  },
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/main.js",
+  "module": "./dist/main.js",
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "import": "./dist/main.js"
+    }
+  },
+  "scripts": {
+    "dev": "tsdown --watch",
+    "build": "tsdown",
+    "lint": "eslint --max-warnings=0",
+    "check-types": "tsc",
+    "ci:publish": "bash ../../scripts/ci-publish.sh"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.0",
+    "@prosemark/core": "workspace:*"
+  }
+}
