@@ -89,12 +89,12 @@ class ProseMarkEditor {
     webviewPanel.webview.options = {
       enableScripts: true,
     };
-    webviewPanel.webview.html = this.getHtmlForWebview();
+    webviewPanel.webview.html = this.#getHtmlForWebview();
 
     // Set up word count status bar
-    this.#wordCountStatusBarItem = this.initWordCountStatusBar();
-    const { wordCount, charCount } = this.getInitWordAndCharCount(document);
-    this.updateWordCount(wordCount, charCount);
+    this.#wordCountStatusBarItem = this.#initWordCountStatusBar();
+    const { wordCount, charCount } = this.#getInitWordAndCharCount(document);
+    this.#updateWordCount(wordCount, charCount);
     this.#wordCountStatusBarItem.show();
 
     // Set up handlers
@@ -103,12 +103,12 @@ class ProseMarkEditor {
         if (e.document.uri !== this.#documentUri) {
           return;
         }
-        await this.handleTextDocumentChange(e.contentChanges);
+        await this.#handleTextDocumentChange(e.contentChanges);
       },
     );
     this.#viewStateSubscription = webviewPanel.onDidChangeViewState((e) => {
       if (e.webviewPanel.visible && !this.#hasFocusedOnWebview) {
-        this.postMessageToWebview({ type: 'focus' });
+        this.#postMessageToWebview({ type: 'focus' });
         this.#wordCountStatusBarItem.show();
         this.#hasFocusedOnWebview = true;
       } else if (!e.webviewPanel.visible) {
@@ -118,27 +118,27 @@ class ProseMarkEditor {
     });
 
     webviewPanel.onDidDispose(() => {
-      this.dispose();
+      this.#dispose();
     });
 
     webviewPanel.webview.onDidReceiveMessage((m: WebviewMessage) => {
-      this.handleWebViewMessage(m);
+      this.#handleWebViewMessage(m);
     });
 
     // Send VS Code editor settings to the webview
-    const initConfig = this.getInitConfig();
+    const initConfig = this.#getInitConfig();
 
-    this.postMessageToWebview({
+    this.#postMessageToWebview({
       type: 'init',
       value: {
         text: document.getText(),
         ...initConfig,
       },
     });
-    this.spellCheck();
+    this.#spellCheck();
   }
 
-  private getHtmlForWebview(): string {
+  #getHtmlForWebview(): string {
     const scriptUri = this.#webviewPanel.webview
       .asWebviewUri(
         vscode.Uri.joinPath(this.#extensionUri, 'dist', 'main.iife.js'),
@@ -165,20 +165,20 @@ class ProseMarkEditor {
     `;
   }
 
-  private dispose() {
+  #dispose() {
     this.#changeDocumentSubscription.dispose();
     this.#viewStateSubscription.dispose();
     this.#wordCountStatusBarItem.dispose();
   }
 
-  private postMessageToWebview(msg: VSCodeExtMessage) {
+  #postMessageToWebview(msg: VSCodeExtMessage) {
     return this.#webviewPanel.webview.postMessage(msg);
   }
 
-  private procMap: VSCodeExtensionProcMap = {
+  #procMap: VSCodeExtensionProcMap = {
     update: (changes) => {
       this.#isUpdatingFromWebview = true;
-      this.updateTextDocument(changes)
+      this.#updateTextDocument(changes)
         .catch((e: unknown) => {
           console.error(
             'Encountered an error while trying to update the document:',
@@ -190,16 +190,16 @@ class ProseMarkEditor {
         });
     },
     linkClick: (link) => {
-      void this.followLink(link, this.#documentUri);
+      void this.#followLink(link, this.#documentUri);
     },
     updateWordCountMsg: ({ wordCount, charCount }) => {
-      this.updateWordCount(wordCount, charCount);
+      this.#updateWordCount(wordCount, charCount);
     },
     cSpellAddWordToUserDictionary: (word) => {
       this.#cSpellApi
         ?.addWordToUserDictionary(word)
         .then(() =>
-          this.postMessageToWebview({
+          this.#postMessageToWebview({
             type: 'cSpellDoneAddingWord',
             value: word,
           }),
@@ -212,7 +212,7 @@ class ProseMarkEditor {
       this.#cSpellApi
         ?.addWordToWorkspaceDictionary(word, this.#documentUri)
         .then(() =>
-          this.postMessageToWebview({
+          this.#postMessageToWebview({
             type: 'cSpellDoneAddingWord',
             value: word,
           }),
@@ -227,7 +227,7 @@ class ProseMarkEditor {
         ?.cSpellClient()
         .serverApi.spellingSuggestions(word, doc)
         .then((suggestions: CSpell.Suggestion[]) => {
-          this.postMessageToWebview({
+          this.#postMessageToWebview({
             type: 'cSpellProvideSpellCheckSuggestions',
             value: {
               word,
@@ -241,19 +241,19 @@ class ProseMarkEditor {
     },
   };
 
-  private handleWebViewMessage(msg: WebviewMessage) {
+  #handleWebViewMessage(msg: WebviewMessage) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    this.procMap[msg.type](msg.value as any);
+    this.#procMap[msg.type](msg.value as any);
   }
 
-  private async handleTextDocumentChange(
+  async #handleTextDocumentChange(
     contentChanges: readonly vscode.TextDocumentContentChangeEvent[],
   ) {
-    this.debouncedSpellCheck();
+    this.#debouncedSpellCheck();
 
     // If this change came from outside the webview, update the webview
     if (!this.#isUpdatingFromWebview && contentChanges.length) {
-      await this.postMessageToWebview({
+      await this.#postMessageToWebview({
         type: 'update',
         value: contentChanges.map((c) => ({
           fromLine: c.range.start.line,
@@ -266,7 +266,7 @@ class ProseMarkEditor {
     }
   }
 
-  private async updateTextDocument(changes: Change[]) {
+  async #updateTextDocument(changes: Change[]) {
     const edit = new vscode.WorkspaceEdit();
     for (const change of changes) {
       edit.replace(
@@ -284,24 +284,24 @@ class ProseMarkEditor {
     return result;
   }
 
-  private debouncedSpellCheck() {
+  #debouncedSpellCheck() {
     if (this.#cSpellCheckTimer) {
       clearTimeout(this.#cSpellCheckTimer);
     }
 
     this.#cSpellCheckTimer = setTimeout(() => {
       this.#cSpellCheckTimer = undefined;
-      this.spellCheck();
+      this.#spellCheck();
     });
   }
 
-  private spellCheck() {
+  #spellCheck() {
     this.#cSpellApi
       ?.checkDocument({
         uri: this.#documentUri.toString(),
       })
       .then((res) => {
-        this.postMessageToWebview({
+        this.#postMessageToWebview({
           type: 'cSpellUpdateInfo',
           value: res,
         });
@@ -311,7 +311,7 @@ class ProseMarkEditor {
       });
   }
 
-  private initWordCountStatusBar() {
+  #initWordCountStatusBar() {
     const wordCountStatusBarItem = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Right,
       100,
@@ -320,11 +320,11 @@ class ProseMarkEditor {
     return wordCountStatusBarItem;
   }
 
-  private updateWordCount(wordCount: number, charCount: number) {
+  #updateWordCount(wordCount: number, charCount: number) {
     this.#wordCountStatusBarItem.text = `Word Count: ${wordCount.toString()}, Char Count: ${charCount.toString()}`;
   }
 
-  private getInitWordAndCharCount(document: vscode.TextDocument) {
+  #getInitWordAndCharCount(document: vscode.TextDocument) {
     const text = document.getText();
     const textTrimmed = text.trim();
     const wordCount = textTrimmed.length ? textTrimmed.split(/\s+/).length : 0;
@@ -335,7 +335,7 @@ class ProseMarkEditor {
     };
   }
 
-  private getInitConfig() {
+  #getInitConfig() {
     const editorConfig = vscode.workspace.getConfiguration('editor');
     const tabSize = editorConfig.get<number>('tabSize', 2);
     const insertSpaces = editorConfig.get<boolean>('insertSpaces', true);
@@ -351,7 +351,7 @@ class ProseMarkEditor {
   }
 
   /// Follow a link within the markdown document, relative to the current document
-  private async followLink(link: string, currentDocumentUri: vscode.Uri) {
+  async #followLink(link: string, currentDocumentUri: vscode.Uri) {
     const uri = vscode.Uri.parse(link);
 
     if (uri.scheme === 'file') {
