@@ -1,18 +1,4 @@
-import type * as CSpell from './cspell-types.d.ts';
-
-type ProcMapToMessage<
-  KS extends string,
-  P extends Record<KS, (arg?: any) => any>,
-> = {
-  [K in keyof P]: P[K] extends (arg: unknown) => any
-    ? { type: K }
-    : P[K] extends (arg: infer A) => any
-      ? {
-          type: K;
-          value: A;
-        }
-      : { type: K };
-}[keyof P];
+import type { MessageFromProcMap } from '@prosemark/vscode-extension-integrator/types';
 
 export interface Change {
   fromLine: number;
@@ -22,28 +8,19 @@ export interface Change {
   insert: string;
 }
 
-export interface VSCodeExtensionProcMap {
-  update: (changes: Change[]) => void;
-  linkClick: (link: string) => void;
-  updateWordCountMsg: (v: { wordCount: number; charCount: number }) => void;
-
-  // Code Spell Check methods
-  cSpellAddWordToUserDictionary: (word: string) => void;
-  cSpellAddWordToWorkspaceDictionary: (word: string) => void;
-  cSpellRequestSpellCheckSuggestions: (word: string) => void;
+export interface VSCodeExtensionProcMap extends Record<string, any> {
+  update: (changes: Change[]) => undefined;
+  linkClick: (link: string) => undefined;
 }
 
-export type WebviewMessage = ProcMapToMessage<
-  keyof VSCodeExtensionProcMap,
-  VSCodeExtensionProcMap
->;
+export type WebviewMessage = MessageFromProcMap<'core', VSCodeExtensionProcMap>;
 
 export interface DynamicConfig {
   tabSize?: number;
   insertSpaces?: boolean;
 }
 
-export interface WebviewProcMap {
+export interface WebviewProcMap extends Record<string, any> {
   init: (
     v: {
       text: string;
@@ -54,20 +31,9 @@ export interface WebviewProcMap {
   update: (changes: Change[]) => void;
   focus: () => void;
   setDynamicConfig: (dynamicConfig: DynamicConfig) => void;
-
-  // Code Spell Check methods
-  cSpellDoneAddingWord: (word: string) => void;
-  cSpellUpdateInfo: (res: CSpell.CheckDocumentResult) => void;
-  cSpellProvideSpellCheckSuggestions: (v: {
-    word: string;
-    suggestions: CSpell.Suggestion[];
-  }) => void;
 }
 
-export type VSCodeExtMessage = ProcMapToMessage<
-  keyof WebviewProcMap,
-  WebviewProcMap
->;
+export type VSCodeExtMessage = MessageFromProcMap<'core', WebviewProcMap>;
 
 export const exhaustiveMatchingGuard = (_: never): never => {
   throw new Error('Should not have reached here!');

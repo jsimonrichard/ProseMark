@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/**",
+    "packages/**"
   ],
   "devDependencies": {
     "@changesets/cli": "^2.29.5",

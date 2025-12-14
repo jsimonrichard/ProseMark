@@ -51,10 +51,8 @@
     "@cspell/cspell-types": "^9.4.0",
     "@lezer-unofficial/printer": "^1.0.1",
     "@lezer/markdown": "^1.2.1",
-    "@prosemark/core": "workspace:*",
-    "@prosemark/paste-rich-text": "workspace:*",
-    "@prosemark/render-html": "workspace:*",
-    "@prosemark/spellcheck-frontend": "workspace:*"
+    "@prosemark/spellcheck-frontend": "workspace:*",
+    "@prosemark/vscode-extension-integrator": "workspace:*"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

@@ -21,9 +21,6 @@
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
-  "extensionDependencies": [
-    "streetsidesoftware.code-spell-checker"
-  ],
   "contributes": {
     "customEditors": [
       {
@@ -64,7 +61,7 @@
     "@prosemark/core": "workspace:*",
     "@prosemark/paste-rich-text": "workspace:*",
     "@prosemark/render-html": "workspace:*",
-    "@prosemark/spellcheck-frontend": "workspace:*"
+    "@prosemark/vscode-extension-integrator": "workspace:*"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

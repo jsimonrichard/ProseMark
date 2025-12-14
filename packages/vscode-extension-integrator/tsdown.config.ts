@@ -8,4 +8,5 @@ export default defineConfig([
     dts: true,
   },
   { entry: 'lib/webview.ts', dts: true },
+  { entry: 'lib/types.ts', dts: { emitDtsOnly: true } },
 ]);

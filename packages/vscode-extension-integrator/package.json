@@ -26,7 +26,7 @@
       "import": "./dist/webview.js"
     },
     "./types": {
-      "types": "./lib/types.d.ts"
+      "types": "./dist/types.d.ts"
     }
   },
   "scripts": {

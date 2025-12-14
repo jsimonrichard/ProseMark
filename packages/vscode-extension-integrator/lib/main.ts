@@ -5,22 +5,35 @@ import type {
   AnyCallProcWithReturnValue,
   AnyMessageOrCallback,
   AnySubExtension,
+  AnySubExtensionCallback,
+  CallProcPromiseInner,
+  Change,
   ProcMap,
-  SubExtensionCallback,
 } from './types';
 
 export class SubExtensionCallbackManager {
-  #subExtensionCallbacks: Record<string, SubExtensionCallback> = {};
+  #subExtensionCallbacks: Record<string, AnySubExtensionCallback> = {};
 
   registerSubExtension(
     extId: string,
-    subExtensionCallback: SubExtensionCallback,
+    subExtensionCallback: AnySubExtensionCallback,
   ): void {
+    if (extId.includes(':')) {
+      throw new Error('Extension ID cannot contain a colon');
+    }
+
     this.#subExtensionCallbacks[extId] = subExtensionCallback;
   }
 
-  buildExtensionManager(webview: vscode.Webview): SubExtensionManager {
-    return new SubExtensionManager(this.#subExtensionCallbacks, webview);
+  buildExtensionManager(
+    webview: vscode.Webview,
+    document: vscode.TextDocument,
+  ): SubExtensionManager {
+    return new SubExtensionManager(
+      this.#subExtensionCallbacks,
+      webview,
+      document,
+    );
   }
 }
 
@@ -30,14 +43,16 @@ export class SubExtensionManager {
   #callbackMap = new Map<string, (value: unknown) => void>();
 
   constructor(
-    subExtensionCallbacks: Record<string, SubExtensionCallback>,
+    subExtensionCallbacks: Record<string, AnySubExtensionCallback>,
     webview: vscode.Webview,
+    document: vscode.TextDocument,
   ) {
     this.#webview = webview;
 
     const extensions: Record<string, AnySubExtension> = {};
     for (const [key, callback] of Object.entries(subExtensionCallbacks)) {
       extensions[key] = callback(
+        document,
         this.#callProcAndForget(key),
         this.#callProcWithReturnValue(key),
       );
@@ -47,23 +62,47 @@ export class SubExtensionManager {
   }
 
   getExtensionScriptTags(): string {
-    const html = Object.entries(this.#subExtensions)
+    let scriptTags = '';
+
+    // Add core script tag first
+    if ('core' in this.#subExtensions) {
+      if (this.#subExtensions['core'].getWebviewScriptUri) {
+        scriptTags += scriptTagFromUri(
+          this.#webview,
+          this.#subExtensions['core'].getWebviewScriptUri(),
+        );
+      }
+    }
+
+    scriptTags += Object.entries(this.#subExtensions)
+      .filter(([key, _ext]) => key !== 'core')
       .map(([_key, ext]) => {
         if (!ext.getWebviewScriptUri) {
           return null;
         }
-        const scriptUri = this.#webview
-          .asWebviewUri(ext.getWebviewScriptUri())
-          .toString();
-        return `<script src="${scriptUri}"></script>`;
+        return scriptTagFromUri(this.#webview, ext.getWebviewScriptUri());
       })
       .filter((s) => !!s)
       .join('\n');
-    return html;
+
+    return scriptTags;
   }
 
   getExtensionStyleTags(): string {
-    const html = Object.entries(this.#subExtensions)
+    let styleTags = '';
+
+    // Add core style tag first (not a big deal, but why not)
+    if ('core' in this.#subExtensions) {
+      if (this.#subExtensions['core'].getWebviewStyleUri) {
+        styleTags += styleTagFromUri(
+          this.#webview,
+          this.#subExtensions['core'].getWebviewStyleUri(),
+        );
+      }
+    }
+
+    styleTags += Object.entries(this.#subExtensions)
+      .filter(([key, _ext]) => key !== 'core')
       .map(([_key, ext]) => {
         if (!ext.getWebviewStyleUri) {
           return null;
@@ -75,10 +114,33 @@ export class SubExtensionManager {
       })
       .filter((s) => !!s)
       .join('\n');
-    return html;
+
+    return styleTags;
   }
 
-  handleWebviewMessage(message: AnyMessageOrCallback): void {
+  onReady(): void {
+    for (const extension of Object.values(this.#subExtensions)) {
+      extension.onReady?.();
+    }
+  }
+
+  onTextDocumentChange(
+    contentChanges: readonly vscode.TextDocumentContentChangeEvent[],
+  ): void {
+    const changes: Change[] = contentChanges.map((c) => ({
+      fromLine: c.range.start.line,
+      fromChar: c.range.start.character,
+      toLine: c.range.end.line,
+      toChar: c.range.end.character,
+      insert: c.text,
+    }));
+
+    for (const extension of Object.values(this.#subExtensions)) {
+      extension.onTextDocumentChange?.(changes);
+    }
+  }
+
+  onWebviewMessage(message: AnyMessageOrCallback): void {
     const parts = message.type.split(':');
     if (parts.length === 2) {
       const [extId, methodName] = parts as [string, string];
@@ -139,7 +201,7 @@ export class SubExtensionManager {
     return (procName, ...args) => {
       this.#webview.postMessage({
         type: `${extId}:${procName}`,
-        value: args.length > 0 ? (args[0] as unknown) : undefined,
+        value: args.length > 0 ? (args as unknown[]) : undefined,
       });
     };
   }
@@ -147,28 +209,54 @@ export class SubExtensionManager {
   #callProcWithReturnValue(extId: string): AnyCallProcWithReturnValue {
     return (procName, ...args) => {
       const callbackId = Math.random().toString(36).slice(2);
-      const promise = new Promise<
-        ProcMap<string>[typeof procName] extends (arg: unknown) => infer R
-          ? R
-          : never
-      >((resolve, reject) => {
-        if (!window.vscodeExtensionIntegrator?.callbackMap) {
-          return;
-        }
-        this.#callbackMap.set(
-          `${callbackId}:success`,
-          resolve as (value: unknown) => void,
-        );
-        this.#callbackMap.set(`${callbackId}:error`, reject);
-      });
+      const promise = new Promise<CallProcPromiseInner<ProcMap, string>>(
+        (resolve, reject) => {
+          if (!window.proseMark?.callbackMap) {
+            return;
+          }
+          this.#callbackMap.set(
+            `${callbackId}:success`,
+            resolve as (value: unknown) => void,
+          );
+          this.#callbackMap.set(`${callbackId}:error`, reject);
+        },
+      );
 
       this.#webview.postMessage({
         type: `${extId}:${procName}`,
         callbackId,
-        value: args.length > 0 ? (args[0] as unknown) : undefined,
+        value: args.length > 0 ? (args as unknown[]) : undefined,
       });
 
       return promise;
     };
   }
+
+  dispose(): void {
+    for (const extension of Object.values(this.#subExtensions)) {
+      extension.dispose?.();
+    }
+  }
+
+  onEditorShown(): void {
+    for (const extension of Object.values(this.#subExtensions)) {
+      extension.onEditorShown?.();
+    }
+  }
+
+  onEditorHidden(): void {
+    for (const extension of Object.values(this.#subExtensions)) {
+      extension.onEditorHidden?.();
+    }
+  }
 }
+
+const scriptTagFromUri = (webview: vscode.Webview, uri: vscode.Uri): string => {
+  const scriptUri = webview.asWebviewUri(uri);
+  return `<script src="${scriptUri.toString()}"></script>`;
+};
+
+const styleTagFromUri = (webview: vscode.Webview, uri: vscode.Uri): string => {
+  const scriptUri = webview.asWebviewUri(uri);
+  return `<link rel="stylesheet" href="${scriptUri.toString()}">`;
+};
