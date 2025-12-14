@@ -1,0 +1,72 @@
+{
+  "name": "vscode-prosemark-cspell-integration",
+  "displayName": "ProseMark - Code Spell Checker (cSpell) Integration",
+  "description": "A \"What You See Is What You Mean\" editor, like Typora or Obsidian",
+  "publisher": "jsimonrichard",
+  "version": "0.0.0",
+  "repository": {
+    "type": "GitHub",
+    "url": "https://github.com/jsimonrichard/ProseMark"
+  },
+  "author": {
+    "name": "J. Simon Richard",
+    "url": "https://jsimonrichard.com"
+  },
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./dist/extension.js",
+  "extensionDependencies": [
+    "jsimonrichard.prosemark",
+    "streetsidesoftware.code-spell-checker"
+  ],
+  "scripts": {
+    "vscode:prepublish": "bun run compile",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "compile": "bun run check-types && bun run lint && tsdown",
+    "watch": "tsc --noEmit && concurrently \"tsc -w\" \"tsdown --watch\"",
+    "watch:tsup": "tsdown --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "bun run compile-tests && bun run compile && bun run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "dependencies": {
+    "@codemirror/lang-markdown": "^6.2.5",
+    "@codemirror/language": "^6.10.2",
+    "@codemirror/language-data": "^6.5.1",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.28.0",
+    "@cspell/cspell-types": "^9.4.0",
+    "@lezer-unofficial/printer": "^1.0.1",
+    "@lezer/markdown": "^1.2.1",
+    "@prosemark/core": "workspace:*",
+    "@prosemark/paste-rich-text": "workspace:*",
+    "@prosemark/render-html": "workspace:*",
+    "@prosemark/spellcheck-frontend": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.3.0",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/parser": "^8.39.0",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.6.0",
+    "concurrently": "^9.2.0",
+    "eslint": "^9.32.0",
+    "tsdown": "^0.14.1",
+    "typescript": "^5.9.2"
+  }
+}
