@@ -8,6 +8,7 @@ import type {
   AnySubExtensionCallback,
   CallProcPromiseInner,
   Change,
+  MessageFromProcMap,
   ProcMap,
 } from './types';
 
@@ -118,6 +119,12 @@ export class SubExtensionManager {
     return styleTags;
   }
 
+  getLocalResourceRoots(): vscode.Uri[] {
+    return Object.values(this.#subExtensions).flatMap(
+      (ext) => ext.getLocalResourceRoots?.() ?? [],
+    );
+  }
+
   onReady(): void {
     for (const extension of Object.values(this.#subExtensions)) {
       extension.onReady?.();
@@ -140,9 +147,11 @@ export class SubExtensionManager {
     }
   }
 
-  onWebviewMessage(message: AnyMessageOrCallback): void {
-    const parts = message.type.split(':');
+  onWebviewMessage(message_: AnyMessageOrCallback): void {
+    const parts = message_.type.split(':');
     if (parts.length === 2) {
+      const message = message_ as MessageFromProcMap<string, ProcMap>;
+
       const [extId, methodName] = parts as [string, string];
       const subExtension = this.#subExtensions[extId];
       if (!subExtension) {
@@ -151,7 +160,8 @@ export class SubExtensionManager {
       if (methodName in subExtension.procMap) {
         const proc = subExtension.procMap[methodName];
         if (proc instanceof Function) {
-          const res = proc(message.value);
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          const res = proc(...message.value);
 
           if (res instanceof Promise && 'callbackId' in message) {
             res
@@ -177,6 +187,7 @@ export class SubExtensionManager {
         );
       }
     } else if (parts.length === 3) {
+      const message = message_ as AnyCallbackMessage;
       const [extId, _methodName, callbackId] = parts as [
         string,
         string,

@@ -22,8 +22,8 @@ export interface DynamicConfig {
 
 export interface WebviewProcMap extends Record<string, any> {
   init: (
-    v: {
-      text: string;
+    text: string,
+    initConfig: {
       vimModeEnabled?: boolean;
     } & DynamicConfig,
   ) => void;
@@ -32,6 +32,11 @@ export interface WebviewProcMap extends Record<string, any> {
   focus: () => void;
   setDynamicConfig: (dynamicConfig: DynamicConfig) => void;
 }
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type WordCountWebviewProcs = {
+  updateWordCount: (wordCount: number, charCount: number) => undefined;
+};
 
 export type VSCodeExtMessage = MessageFromProcMap<'core', WebviewProcMap>;
 

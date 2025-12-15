@@ -24,7 +24,7 @@
   ],
   "main": "./dist/extension.js",
   "extensionDependencies": [
-    "jsimonrichard.prosemark",
+    "jsimonrichard.vscode-prosemark",
     "streetsidesoftware.code-spell-checker"
   ],
   "scripts": {

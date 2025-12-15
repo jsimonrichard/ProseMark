@@ -3,17 +3,13 @@ import {
   type SubExtensionCallback,
 } from '@prosemark/vscode-extension-integrator/types';
 import * as vscode from 'vscode';
-import { registerSubExtension } from '../extension';
+import { registerSubExtension } from '../sub-extension-manager';
+import type { WordCountWebviewProcs } from '../common';
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type WordCountProcs = {
-  updateWordCount: (wordCount: number, charCount: number) => undefined;
-};
-
-const extId = 'word-count-status-bar-item';
+const extId = 'core.word-count';
 
 class WordCountStatusBarItem
-  implements SubExtension<typeof extId, WordCountProcs>
+  implements SubExtension<typeof extId, WordCountWebviewProcs>
 {
   #statusBarItem: vscode.StatusBarItem;
 
@@ -47,7 +43,7 @@ class WordCountStatusBarItem
     return extId;
   }
 
-  procMap: WordCountProcs = {
+  procMap: WordCountWebviewProcs = {
     updateWordCount: (wordCount, charCount) => {
       this.#updateWordCount(wordCount, charCount);
     },
@@ -69,9 +65,11 @@ class WordCountStatusBarItem
 export const createWordCountStatusBarItem: SubExtensionCallback<
   typeof extId,
   Record<string, never>,
-  WordCountProcs
+  WordCountWebviewProcs
 > = (document) => {
   return new WordCountStatusBarItem(document);
 };
 
-registerSubExtension(extId, createWordCountStatusBarItem);
+export const registerWordCountStatusBarItem = (): void => {
+  registerSubExtension(extId, createWordCountStatusBarItem);
+};

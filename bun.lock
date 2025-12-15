@@ -64,9 +64,9 @@
         "typedoc-plugin-markdown": "^4.7.0",
       },
     },
-    "apps/extensions/cspell-integration": {
-      "name": "vscode-prosemark-cspell-integration",
-      "version": "0.0.0",
+    "apps/vscode-extensions/core": {
+      "name": "vscode-prosemark",
+      "version": "0.0.4",
       "dependencies": {
         "@codemirror/lang-markdown": "^6.2.5",
         "@codemirror/language": "^6.10.2",
@@ -79,7 +79,6 @@
         "@prosemark/core": "workspace:*",
         "@prosemark/paste-rich-text": "workspace:*",
         "@prosemark/render-html": "workspace:*",
-        "@prosemark/spellcheck-frontend": "workspace:*",
         "@prosemark/vscode-extension-integrator": "workspace:*",
       },
       "devDependencies": {
@@ -96,9 +95,9 @@
         "typescript": "^5.9.2",
       },
     },
-    "apps/vscode-extension": {
-      "name": "vscode-prosemark",
-      "version": "0.0.4",
+    "apps/vscode-extensions/cspell-integration": {
+      "name": "vscode-prosemark-cspell-integration",
+      "version": "0.0.0",
       "dependencies": {
         "@codemirror/lang-markdown": "^6.2.5",
         "@codemirror/language": "^6.10.2",
@@ -108,9 +107,6 @@
         "@cspell/cspell-types": "^9.4.0",
         "@lezer-unofficial/printer": "^1.0.1",
         "@lezer/markdown": "^1.2.1",
-        "@prosemark/core": "workspace:*",
-        "@prosemark/paste-rich-text": "workspace:*",
-        "@prosemark/render-html": "workspace:*",
         "@prosemark/spellcheck-frontend": "workspace:*",
         "@prosemark/vscode-extension-integrator": "workspace:*",
       },
@@ -204,6 +200,7 @@
       "name": "@prosemark/vscode-extension-integrator",
       "version": "0.0.1",
       "dependencies": {
+        "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.38.0",
         "@types/vscode": "^1.107.0",
       },
@@ -2210,9 +2207,9 @@
 
     "vitefu": ["vitefu@1.1.1", "", { "peerDependencies": { "vite": "^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0-beta.0" }, "optionalPeers": ["vite"] }, "sha512-B/Fegf3i8zh0yFbpzZ21amWzHmuNlLlmJT6n7bu5e+pCHUKQIfXSYokrqOBGEMMe9UG2sostKQF9mml/vYaWJQ=="],
 
-    "vscode-prosemark": ["vscode-prosemark@workspace:apps/vscode-extension"],
+    "vscode-prosemark": ["vscode-prosemark@workspace:apps/vscode-extensions/core"],
 
-    "vscode-prosemark-cspell-integration": ["vscode-prosemark-cspell-integration@workspace:apps/extensions/cspell-integration"],
+    "vscode-prosemark-cspell-integration": ["vscode-prosemark-cspell-integration@workspace:apps/vscode-extensions/cspell-integration"],
 
     "w3c-keyname": ["w3c-keyname@2.2.8", "", {}, "sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ=="],
 
@@ -2317,6 +2314,8 @@
     "@octokit/request/@octokit/types": ["@octokit/types@13.10.0", "", { "dependencies": { "@octokit/openapi-types": "^24.2.0" } }, "sha512-ifLaO34EbbPj0Xgro4G5lP5asESjwHracYJvVaPIyXMuiuXLlhic3S47cBdTb+jfODkTE5YtGCLt3Ay3+J97sA=="],
 
     "@octokit/request-error/@octokit/types": ["@octokit/types@13.10.0", "", { "dependencies": { "@octokit/openapi-types": "^24.2.0" } }, "sha512-ifLaO34EbbPj0Xgro4G5lP5asESjwHracYJvVaPIyXMuiuXLlhic3S47cBdTb+jfODkTE5YtGCLt3Ay3+J97sA=="],
+
+    "@prosemark/vscode-extension-integrator/@codemirror/view": ["@codemirror/view@6.39.4", "", { "dependencies": { "@codemirror/state": "^6.5.0", "crelt": "^1.0.6", "style-mod": "^4.1.0", "w3c-keyname": "^2.2.4" } }, "sha512-xMF6OfEAUVY5Waega4juo1QGACfNkNF+aJLqpd8oUJz96ms2zbfQ9Gh35/tI3y8akEV31FruKfj7hBnIU/nkqA=="],
 
     "@rollup/pluginutils/estree-walker": ["estree-walker@2.0.2", "", {}, "sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w=="],
 

@@ -128,6 +128,7 @@ export interface SubExtension<ExtId extends string, VSCodePM extends ProcMap> {
   getExtensionId(): ExtId;
   getWebviewScriptUri?(): vscode.Uri;
   getWebviewStyleUri?(): vscode.Uri;
+  getLocalResourceRoots?(): vscode.Uri[];
   procMap: VSCodePM;
   onReady?(): void;
   onEditorShown?(): void;

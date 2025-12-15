@@ -1,4 +1,4 @@
-import { EditorView } from '@codemirror/view';
+import { EditorView, keymap } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import {
@@ -13,8 +13,8 @@ import {
   pasteRichTextExtension,
 } from '@prosemark/paste-rich-text';
 import { GFM } from '@lezer/markdown';
-import { EditorState, StateEffect } from '@codemirror/state';
-import type { Change, WebviewProcMap } from '../common';
+import { Compartment, EditorState, StateEffect } from '@codemirror/state';
+import type { Change, WebviewProcMap, WordCountWebviewProcs } from '../common';
 import './style.css';
 import { indentUnit } from '@codemirror/language';
 import {
@@ -23,11 +23,26 @@ import {
 } from '@prosemark/vscode-extension-integrator/webview';
 
 declare const acquireVsCodeApi: () => unknown;
-const vscode = acquireVsCodeApi();
+
+window.proseMark ??= {};
+window.proseMark.vscode = acquireVsCodeApi();
+window.proseMark.extraCodeMirrorExtensions = new Compartment();
 
 const { callProcAndForget, callProcWithReturnValue: _callProcWithReturnValue } =
+  registerWebviewMessagePoster<'core', WebviewProcMap>(
+    'core',
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    window.proseMark.vscode as any,
+  );
+
+const { callProcAndForget: callWordCountProc } = registerWebviewMessagePoster<
+  'core.word-count',
+  WordCountWebviewProcs
+>(
+  'core.word-count',
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  registerWebviewMessagePoster('core', vscode as any);
+  window.proseMark.vscode as any,
+);
 
 // Send updates to VS Code about text changes and word count
 const updateVSCodeExtension = EditorView.updateListener.of((update) => {
@@ -42,7 +57,7 @@ const updateVSCodeExtension = EditorView.updateListener.of((update) => {
         ? 0
         : textToAnalyze.trim().split(/\s+/).length;
     const charCount = textToAnalyze.length;
-    callProcAndForget('updateWordCountMsg', wordCount, charCount);
+    callWordCountProc('updateWordCount', wordCount, charCount);
   }
 
   if (update.docChanged && window.proseMark?.view) {
@@ -108,6 +123,7 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
         }
       }),
       updateVSCodeExtension,
+      window.proseMark?.extraCodeMirrorExtensions?.of([]) ?? [],
     ],
   });
 
@@ -131,7 +147,7 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
 };
 
 const procs: WebviewProcMap = {
-  init: ({ text, vimModeEnabled, ...dynamicConfig }) => {
+  init: (text, { vimModeEnabled, ...dynamicConfig }) => {
     window.proseMark ??= {};
     window.proseMark.view = buildEditor(text, vimModeEnabled);
     procs.setDynamicConfig(dynamicConfig);
@@ -189,4 +205,4 @@ const procs: WebviewProcMap = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-registerWebviewMessageHandler('core', procs, vscode as any);
+registerWebviewMessageHandler('core', procs, window.proseMark.vscode as any);

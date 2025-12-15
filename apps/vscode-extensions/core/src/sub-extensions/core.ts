@@ -33,20 +33,21 @@ export class Core
   }
 
   getWebviewScriptUri(): vscode.Uri {
-    return this.#extensionUri.with({ path: path.join('dist', 'main.iife.js') });
+    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'main.iife.js');
   }
 
   getWebviewStyleUri(): vscode.Uri {
-    return this.#extensionUri.with({ path: path.join('dist', 'main.css') });
+    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'main.css');
+  }
+
+  getLocalResourceRoots(): vscode.Uri[] {
+    return [this.#extensionUri];
   }
 
   onReady(): void {
     const initConfig = this.#getInitConfig();
 
-    this.#callProcAndForget('init', {
-      text: this.#document.getText(),
-      ...initConfig,
-    });
+    this.#callProcAndForget('init', this.#document.getText(), initConfig);
   }
 
   #getInitConfig() {

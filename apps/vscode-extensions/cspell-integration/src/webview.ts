@@ -6,14 +6,25 @@ import {
   spellCheckExtension,
 } from '@prosemark/spellcheck-frontend';
 import { StateEffect } from '@codemirror/state';
-
-declare const acquireVsCodeApi: () => unknown;
-const vscode = acquireVsCodeApi();
+import { keymap } from '@codemirror/view';
 
 const procs: WebviewProcMap = {
   setup: () => {
+    console.warn('spellcheck setup with view', window.proseMark?.view);
     window.proseMark?.view?.dispatch({
-      effects: StateEffect.appendConfig.of(spellCheckExtension),
+      effects:
+        window.proseMark.extraCodeMirrorExtensions?.reconfigure([
+          keymap.of([
+            {
+              key: 'Alt-p',
+              run: () => {
+                console.log("hello from webview's keymap");
+                return true;
+              },
+            },
+          ]),
+          spellCheckExtension,
+        ]) ?? [],
     });
   },
 
@@ -41,4 +52,9 @@ const procs: WebviewProcMap = {
   },
 };
 
-registerWebviewMessageHandler('core', procs, vscode as any);
+registerWebviewMessageHandler(
+  'cspell-integration',
+  procs,
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  window.proseMark?.vscode as any,
+);

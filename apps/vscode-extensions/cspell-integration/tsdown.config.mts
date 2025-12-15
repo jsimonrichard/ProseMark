@@ -6,7 +6,7 @@ export default defineConfig([
     noExternal: [/^(?!vscode).*/],
     external: 'vscode',
     name: 'webview',
-    entry: 'src/webview/main.ts',
+    entry: 'src/webview.ts',
     format: ['iife'],
     platform: 'browser',
     target: 'es2020',

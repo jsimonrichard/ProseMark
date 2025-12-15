@@ -8,7 +8,7 @@ export function activate(context: vscode.ExtensionContext): void {
   // Get ProseMark API
   const proseMarkExtension =
     vscode.extensions.getExtension<ProseMarkExtensionApi>(
-      'jsimonrichard.prosemark',
+      'jsimonrichard.vscode-prosemark',
     );
   if (!proseMarkExtension) {
     throw new Error('ProseMark extension not found');
@@ -25,7 +25,10 @@ export function activate(context: vscode.ExtensionContext): void {
   const cSpellApi = cSpellExtension.exports;
 
   // Register CSpell integration
-  const createCSpellIntegration_ = createCSpellIntegration(cSpellApi);
+  const createCSpellIntegration_ = createCSpellIntegration(
+    context.extensionUri,
+    cSpellApi,
+  );
   proseMarkApi.registerSubExtension(extId, createCSpellIntegration_);
 }
 

@@ -14,19 +14,20 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/main.js",
-  "module": "./dist/main.js",
   "exports": {
     ".": {
       "types": "./dist/main.d.ts",
-      "import": "./dist/main.js"
+      "import": "./dist/main.js",
+      "default": "./dist/main.js"
     },
     "./webview": {
       "types": "./dist/webview.d.ts",
-      "import": "./dist/webview.js"
+      "import": "./dist/webview.js",
+      "default": "./dist/webview.js"
     },
     "./types": {
-      "types": "./dist/types.d.ts"
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.d.ts"
     }
   },
   "scripts": {
@@ -38,6 +39,7 @@
   },
   "keywords": [],
   "dependencies": {
+    "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.0",
     "@types/vscode": "^1.107.0"
   }

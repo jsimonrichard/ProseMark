@@ -6,7 +6,8 @@ export default defineConfig([
     noExternal: [/^(?!vscode).*/],
     external: 'vscode',
     dts: true,
+    sourcemap: true,
   },
-  { entry: 'lib/webview.ts', dts: true },
-  { entry: 'lib/types.ts', dts: { emitDtsOnly: true } },
+  { entry: 'lib/webview.ts', dts: true, sourcemap: true },
+  { entry: 'lib/types.ts', dts: { emitDtsOnly: true }, sourcemap: true },
 ]);

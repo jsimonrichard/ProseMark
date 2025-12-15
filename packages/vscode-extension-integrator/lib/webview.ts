@@ -1,4 +1,5 @@
 import type { EditorView } from '@codemirror/view';
+import type { Compartment } from '@codemirror/state';
 import type {
   CallbackFromProcMap,
   CallProc,
@@ -40,8 +41,7 @@ export const registerWebviewMessageHandler = <
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
     let res: Promise<unknown> | void;
     if ('value' in message) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      res = procMap[methodName]?.(message.value as any);
+      res = procMap[methodName]?.(...message.value);
     } else {
       res = procMap[methodName]?.();
     }
@@ -69,6 +69,8 @@ export const registerWebviewMessageHandler = <
 export interface ProseMarkGlobals {
   callbackMap?: Map<string, (value: unknown) => void>;
   view?: EditorView;
+  vscode?: unknown;
+  extraCodeMirrorExtensions?: Compartment;
 }
 
 declare global {

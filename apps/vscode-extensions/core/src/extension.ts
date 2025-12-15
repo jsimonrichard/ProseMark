@@ -1,25 +1,25 @@
 import * as vscode from 'vscode';
-import {
-  SubExtensionCallbackManager,
-  SubExtensionManager,
-} from '@prosemark/vscode-extension-integrator';
+import { SubExtensionManager } from '@prosemark/vscode-extension-integrator';
 
-import type { AnyMessageOrCallback } from '@prosemark/vscode-extension-integrator/types';
-
-const subExtensionCallbackManager = new SubExtensionCallbackManager();
-
-// Where sub extensions hook into the ProseMark editor
-export const registerSubExtension =
-  subExtensionCallbackManager.registerSubExtension.bind(
-    subExtensionCallbackManager,
-  );
-
+import type {
+  AnyMessageOrCallback,
+  ProseMarkExtensionApi,
+} from '@prosemark/vscode-extension-integrator/types';
 import './sub-extensions/word-count-status-bar-item.js';
 import { createCore } from './sub-extensions/core.js';
+import {
+  registerSubExtension,
+  subExtensionCallbackManager,
+} from './sub-extension-manager';
+import { registerWordCountStatusBarItem } from './sub-extensions/word-count-status-bar-item';
 
-export function activate(context: vscode.ExtensionContext): void {
+export function activate(
+  context: vscode.ExtensionContext,
+): ProseMarkExtensionApi {
   const createCore_ = createCore(context.extensionUri);
+
   registerSubExtension('core', createCore_);
+  registerWordCountStatusBarItem();
 
   context.subscriptions.push(
     vscode.window.registerCustomEditorProvider(
@@ -32,6 +32,10 @@ export function activate(context: vscode.ExtensionContext): void {
       },
     ),
   );
+
+  return {
+    registerSubExtension,
+  };
 }
 
 class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
@@ -71,6 +75,7 @@ class ProseMarkEditor {
     // Set up webview
     webviewPanel.webview.options = {
       enableScripts: true,
+      localResourceRoots: this.#subExtensionsManager.getLocalResourceRoots(),
     };
     webviewPanel.webview.html = this.#getHtmlForWebview();
 
