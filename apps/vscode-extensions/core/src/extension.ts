@@ -14,8 +14,8 @@ export const registerSubExtension =
     subExtensionCallbackManager,
   );
 
-import './sub-extensions/word-count-status-bar-item.ts';
-import { createCore } from './sub-extensions/core.ts';
+import './sub-extensions/word-count-status-bar-item.js';
+import { createCore } from './sub-extensions/core.js';
 
 export function activate(context: vscode.ExtensionContext): void {
   const createCore_ = createCore(context.extensionUri);
