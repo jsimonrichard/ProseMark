@@ -32,8 +32,8 @@
   "keywords": [],
   "dependencies": {
     "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.38.0",
-    "@types/turndown": "^5.0.5",
-    "turndown": "^7.2.1"
+    "@codemirror/view": "^6.39.4",
+    "@types/turndown": "^5.0.6",
+    "turndown": "^7.2.2"
   }
 }
