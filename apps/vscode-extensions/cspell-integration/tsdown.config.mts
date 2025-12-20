@@ -1,10 +1,12 @@
 import { defineConfig } from 'tsdown';
+import proseMarkVSCodeExtensionIntegratorPlugin from '@prosemark/vscode-extension-integrator/rolldown-plugin';
 
 export default defineConfig([
   {
     outDir: 'dist',
-    noExternal: [/^(?!vscode).*/],
+    plugins: [proseMarkVSCodeExtensionIntegratorPlugin()],
     external: 'vscode',
+    noExternal: [/^(?!vscode).*/],
     name: 'webview',
     entry: 'src/webview.ts',
     format: ['iife'],

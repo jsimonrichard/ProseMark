@@ -1,4 +1,4 @@
-import { EditorView, keymap } from '@codemirror/view';
+import { EditorView } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import {
@@ -21,12 +21,19 @@ import {
   registerWebviewMessageHandler,
   registerWebviewMessagePoster,
 } from '@prosemark/vscode-extension-integrator/webview';
+import * as CodeMirrorState from '@codemirror/state';
+import * as CodeMirrorView from '@codemirror/view';
 
 declare const acquireVsCodeApi: () => unknown;
 
 window.proseMark ??= {};
 window.proseMark.vscode = acquireVsCodeApi();
 window.proseMark.extraCodeMirrorExtensions = new Compartment();
+// Register external modules to be available to other scripts in the webview
+window.proseMark.externalModules = {
+  '@codemirror/view': CodeMirrorView,
+  '@codemirror/state': CodeMirrorState,
+};
 
 const { callProcAndForget, callProcWithReturnValue: _callProcWithReturnValue } =
   registerWebviewMessagePoster<'core', WebviewProcMap>(

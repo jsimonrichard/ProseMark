@@ -8,6 +8,21 @@ import type {
   ProcMap,
   WebviewVSCodeApiWithPostMessage,
 } from './types';
+import type { EXTERNAL_MODULES } from './rolldown-plugin';
+
+export interface ProseMarkGlobals {
+  callbackMap?: Map<string, (value: unknown) => void>;
+  view?: EditorView;
+  vscode?: unknown;
+  extraCodeMirrorExtensions?: Compartment;
+  externalModules?: Record<(typeof EXTERNAL_MODULES)[number], unknown>;
+}
+
+declare global {
+  export interface Window {
+    proseMark?: ProseMarkGlobals;
+  }
+}
 
 export const registerWebviewMessageHandler = <
   ExtId extends string,
@@ -65,19 +80,6 @@ export const registerWebviewMessageHandler = <
     }
   });
 };
-
-export interface ProseMarkGlobals {
-  callbackMap?: Map<string, (value: unknown) => void>;
-  view?: EditorView;
-  vscode?: unknown;
-  extraCodeMirrorExtensions?: Compartment;
-}
-
-declare global {
-  export interface Window {
-    proseMark?: ProseMarkGlobals;
-  }
-}
 
 export const registerWebviewMessagePoster = <
   ExtId extends string,

@@ -5,7 +5,6 @@ import {
   SpellCheckIssue,
   spellCheckExtension,
 } from '@prosemark/spellcheck-frontend';
-import { StateEffect } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
 
 const procs: WebviewProcMap = {

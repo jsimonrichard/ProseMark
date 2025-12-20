@@ -28,6 +28,11 @@
     "./types": {
       "types": "./dist/types.d.ts",
       "default": "./dist/types.d.ts"
+    },
+    "./rolldown-plugin": {
+      "types": "./dist/rolldown-plugin.d.ts",
+      "import": "./dist/rolldown-plugin.js",
+      "default": "./dist/rolldown-plugin.js"
     }
   },
   "scripts": {
@@ -40,7 +45,10 @@
   "keywords": [],
   "dependencies": {
     "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.38.0",
-    "@types/vscode": "^1.107.0"
+    "@codemirror/view": "^6.39.4"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.107.0",
+    "rolldown": "^1.0.0-beta.55"
   }
 }
