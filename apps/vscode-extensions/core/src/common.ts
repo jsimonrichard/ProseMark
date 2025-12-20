@@ -8,11 +8,10 @@ export interface Change {
   insert: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type VSCodeExtensionProcMap = {
-  update: (changes: Change[]) => undefined;
-  linkClick: (link: string) => undefined;
-};
+export interface VSCodeExtensionProcMap {
+  update: (changes: Change[]) => void;
+  linkClick: (link: string) => void;
+}
 
 export type WebviewMessage = MessageFromProcMap<'core', VSCodeExtensionProcMap>;
 
@@ -28,16 +27,16 @@ export type WebviewProcMap = {
     initConfig: {
       vimModeEnabled?: boolean;
     } & DynamicConfig,
-  ) => undefined;
-  set: (text: string) => undefined;
-  update: (changes: Change[]) => undefined;
-  focus: () => undefined;
-  setDynamicConfig: (dynamicConfig: DynamicConfig) => undefined;
+  ) => void;
+  set: (text: string) => void;
+  update: (changes: Change[]) => void;
+  focus: () => void;
+  setDynamicConfig: (dynamicConfig: DynamicConfig) => void;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type WordCountVSCodeProcs = {
-  updateWordCount: (wordCount: number, charCount: number) => undefined;
+  updateWordCount: (wordCount: number, charCount: number) => void;
 };
 
 export type VSCodeExtMessage = MessageFromProcMap<'core', WebviewProcMap>;

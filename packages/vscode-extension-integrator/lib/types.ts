@@ -6,10 +6,77 @@ export type Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
 
-export type ProcMap = Record<
+export type AnyProcMap = Record<
   string,
-  (...args: any[]) => undefined | Promise<any>
+  | ((...args: any[]) => void)
+  | ((...args: any[]) => Promise<void>)
+  | ((...args: any[]) => Promise<any>)
 >;
+
+// type ExtractVoid<T> = T extends (...args: any[]) => infer R
+//   ? // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+//     R extends void
+//     ? T
+//     : never
+//   : never;
+
+// type ExtractPromiseVoid<T> = T extends (...args: any[]) => Promise<infer R>
+//   ? // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+//     R extends void
+//     ? T
+//     : never
+//   : never;
+
+type IsOnlyVoid<T> = (
+  T extends (...args: any[]) => infer R
+    ? // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+      R extends void
+      ? 'void'
+      : 'not void'
+    : 'not a function'
+) extends 'void'
+  ? true
+  : false;
+
+type IsOnlyPromiseVoid<T> = (
+  T extends (...args: any[]) => Promise<infer R>
+    ? // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+      R extends void
+      ? 'void'
+      : 'not void'
+    : 'not a promise function'
+) extends 'void'
+  ? true
+  : false;
+
+type IsOnlyPromise<T> = (
+  T extends (...args: any[]) => Promise<any>
+    ? 'promise'
+    : 'not a promise function'
+) extends 'promise'
+  ? true
+  : false;
+
+type ChooseFromReturnValue<M, V, PV, P, Default = never> =
+  IsOnlyVoid<M> extends true
+    ? V
+    : IsOnlyPromiseVoid<M> extends true
+      ? PV
+      : IsOnlyPromise<M> extends true
+        ? P
+        : M extends AnyProcMap[string]
+          ? Prettify<V | PV | P>
+          : Default;
+
+type GetArgs<M, Default = never> = M extends (...args: infer A) => any
+  ? A
+  : Default;
+
+type GetPromiseReturnType<M, Default = never> = M extends (
+  ...args: any[]
+) => Promise<infer R>
+  ? R
+  : Default;
 
 type AddValueFromArray<A extends unknown[]> = A extends []
   ? object
@@ -17,25 +84,28 @@ type AddValueFromArray<A extends unknown[]> = A extends []
 
 type NoColon<T extends string> = T extends `${string}:${string}` ? never : T;
 
-export type MessageFromProcMap<ExtId extends string, P extends ProcMap> = {
-  [K in Extract<keyof P, string>]: P[K] extends (...args: infer A) => undefined
-    ? Prettify<{ type: `${NoColon<ExtId>}:${K}` } & AddValueFromArray<A>>
-    : P[K] extends (...args: infer A) => Promise<any>
-      ? Prettify<
-          {
-            type: `${NoColon<ExtId>}:${K}`;
-            callbackId: string;
-          } & AddValueFromArray<A>
-        >
-      : // when ProcMap<string> is passed, this is chosen
-        P[K] extends (...args: infer A) => Promise<any> | undefined
-        ? Prettify<
-            {
-              type: `${NoColon<ExtId>}:${K}`;
-              callbackId?: string;
-            } & AddValueFromArray<A>
-          >
-        : never;
+export type MessageFromProcMap<ExtId extends string, P = AnyProcMap> = {
+  [K in Extract<keyof P, string>]: ChooseFromReturnValue<
+    P[K],
+    // return void
+    Prettify<
+      { type: `${NoColon<ExtId>}:${K}` } & AddValueFromArray<GetArgs<P[K]>>
+    >,
+    // return Promise<void>
+    Prettify<
+      {
+        type: `${NoColon<ExtId>}:${K}`;
+        callbackId: string;
+      } & AddValueFromArray<GetArgs<P[K]>>
+    >,
+    // return Promise<any>
+    Prettify<
+      {
+        type: `${NoColon<ExtId>}:${K}`;
+        callbackId: string;
+      } & AddValueFromArray<GetArgs<P[K]>>
+    >
+  >;
 }[Extract<keyof P, string>];
 
 export type CallbackResponse<ExtId extends string, KS extends string, R> =
@@ -50,28 +120,26 @@ export type CallbackResponse<ExtId extends string, KS extends string, R> =
       value: string;
     };
 
-export type CallbackFromProcMap<ExtId extends string, P extends ProcMap> = {
-  [K in Extract<keyof P, string>]: P[K] extends (
-    ...args: any[]
-  ) => Promise<infer R>
-    ? CallbackResponse<ExtId, K, R>
-    : // when ProcMap<string> is passed, this is chosen. It's the same as the above (for now)
-      P[K] extends (...args: any[]) => Promise<infer R> | undefined
-      ? CallbackResponse<ExtId, K, R>
-      : never;
+export type CallbackFromProcMap<ExtId extends string, P = AnyProcMap> = {
+  [K in Extract<keyof P, string>]: ChooseFromReturnValue<
+    P[K],
+    never,
+    CallbackResponse<ExtId, K, GetPromiseReturnType<P[K]>>,
+    CallbackResponse<ExtId, K, GetPromiseReturnType<P[K]>>
+  >;
 }[Extract<keyof P, string>];
 
-export type AnyCallbackMessage = CallbackFromProcMap<string, ProcMap>;
+export type AnyCallbackMessage = CallbackFromProcMap<string>;
 
 export type AnyMessageOrCallback =
-  | MessageFromProcMap<string, ProcMap>
-  | CallbackFromProcMap<string, ProcMap>;
+  | MessageFromProcMap<string>
+  | CallbackFromProcMap<string>;
 
 export interface WebviewVSCodeApiWithPostMessage<MsgType> {
   postMessage: (msg: MsgType) => void;
 }
 
-export type ProcNamesWithoutReturnValue<PM extends ProcMap> = {
+export type ProcNamesWithoutReturnValue<PM> = {
   [K in Extract<keyof PM, string>]: PM[K] extends (...args: any[]) => undefined
     ? K
     : PM[K] extends (...args: any[]) => Promise<any>
@@ -79,7 +147,7 @@ export type ProcNamesWithoutReturnValue<PM extends ProcMap> = {
       : K;
 }[Extract<keyof PM, string>];
 
-export type ProcNamesWithReturnValue<PM extends ProcMap> = {
+export type ProcNamesWithReturnValue<PM> = {
   [K in Extract<keyof PM, string>]: PM[K] extends (
     ...args: any[]
   ) => Promise<any>
@@ -89,17 +157,17 @@ export type ProcNamesWithReturnValue<PM extends ProcMap> = {
       : K;
 }[Extract<keyof PM, string>];
 
-export type CallProc<PM extends ProcMap> = <
+export type CallProc<PM = AnyProcMap> = <
   ProcName extends ProcNamesWithoutReturnValue<PM>,
 >(
   procName: ProcName & string,
   ...args: PM[ProcName] extends (...args: infer A) => unknown ? A : []
 ) => void;
 
-export type AnyCallProc = CallProc<ProcMap>;
+export type AnyCallProc = CallProc;
 
 export type CallProcPromiseInner<
-  PM extends ProcMap,
+  PM,
   ProcName extends ProcNamesWithReturnValue<PM>,
 > = PM[ProcName] extends (...args: any[]) => Promise<infer R>
   ? R
@@ -107,14 +175,14 @@ export type CallProcPromiseInner<
     ? never
     : any;
 
-export type CallProcWithReturnValue<PM extends ProcMap> = <
+export type CallProcWithReturnValue<PM = AnyProcMap> = <
   ProcName extends ProcNamesWithReturnValue<PM>,
 >(
   procName: ProcName & string,
   ...args: PM[ProcName] extends (...args: infer A) => unknown ? A : []
 ) => Promise<CallProcPromiseInner<PM, ProcName>>;
 
-export type AnyCallProcWithReturnValue = CallProcWithReturnValue<ProcMap>;
+export type AnyCallProcWithReturnValue = CallProcWithReturnValue;
 
 export interface Change {
   fromLine: number;
@@ -124,7 +192,7 @@ export interface Change {
   insert: string;
 }
 
-export interface SubExtension<ExtId extends string, VSCodePM extends ProcMap> {
+export interface SubExtension<ExtId extends string, VSCodePM = AnyProcMap> {
   getExtensionId(): ExtId;
   getWebviewScriptUri?(): vscode.Uri;
   getWebviewStyleUri?(): vscode.Uri;
@@ -137,23 +205,19 @@ export interface SubExtension<ExtId extends string, VSCodePM extends ProcMap> {
   dispose?(): void;
 }
 
-export type AnySubExtension = SubExtension<string, ProcMap>;
+export type AnySubExtension = SubExtension<string>;
 
 export type SubExtensionCallback<
   ExtId extends string,
-  WebviewPM extends ProcMap,
-  VSCodePM extends ProcMap,
+  WebviewPM = AnyProcMap,
+  VSCodePM = AnyProcMap,
 > = (
   document: vscode.TextDocument,
   callProcAndForget: CallProc<WebviewPM>,
   callProcWithReturnValue: CallProcWithReturnValue<WebviewPM>,
 ) => SubExtension<ExtId, VSCodePM>;
 
-export type AnySubExtensionCallback = SubExtensionCallback<
-  string,
-  ProcMap,
-  ProcMap
->;
+export type AnySubExtensionCallback = SubExtensionCallback<string>;
 
 export interface ProseMarkExtensionApi {
   registerSubExtension: (
