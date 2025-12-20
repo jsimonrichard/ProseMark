@@ -41,7 +41,13 @@ export class SubExtensionCallbackManager {
 export class SubExtensionManager {
   #subExtensions: Record<string, AnySubExtension>;
   #webview: vscode.Webview;
-  #callbackMap = new Map<string, (value: unknown) => void>();
+  #callbackMap = new Map<
+    string,
+    {
+      success: (value: unknown) => void;
+      error: (value: unknown) => void;
+    }
+  >();
 
   constructor(
     subExtensionCallbacks: Record<string, AnySubExtensionCallback>,
@@ -167,14 +173,14 @@ export class SubExtensionManager {
             res
               .then((r) => {
                 this.#webview.postMessage({
-                  type: `${extId}:${methodName}:callback`,
+                  type: `${extId}:${methodName}-callback:success`,
                   callbackId: message.callbackId,
                   value: r as unknown,
                 } as AnyCallbackMessage);
               })
               .catch((e: unknown) => {
                 this.#webview.postMessage({
-                  type: `${extId}:${methodName}:callbackError`,
+                  type: `${extId}:${methodName}-callback:error`,
                   callbackId: message.callbackId,
                   value: typeof e === 'string' ? e : JSON.stringify(e),
                 } as AnyCallbackMessage);
@@ -188,22 +194,23 @@ export class SubExtensionManager {
       }
     } else if (parts.length === 3) {
       const message = message_ as AnyCallbackMessage;
-      const [extId, _methodName, callbackId] = parts as [
+      const [extId, _methodName, callbackStatus] = parts as [
         string,
         string,
-        string,
+        'success' | 'error',
       ];
-      const subExtension = this.#subExtensions[extId];
-      if (!subExtension) {
+      if (!(extId in this.#subExtensions)) {
         return;
       }
 
-      if (callbackId in this.#callbackMap) {
-        const callback = this.#callbackMap.get(callbackId);
-        if (callback) {
-          callback(message.value);
-          this.#callbackMap.delete(callbackId);
-        }
+      const callbacks = this.#callbackMap.get(message.callbackId);
+      if (callbacks) {
+        callbacks[callbackStatus](message.value);
+        this.#callbackMap.delete(message.callbackId);
+      } else {
+        console.warn(
+          `Sub extension ${extId} does not have a callback named ${message.callbackId}`,
+        );
       }
     }
   }
@@ -222,14 +229,10 @@ export class SubExtensionManager {
       const callbackId = Math.random().toString(36).slice(2);
       const promise = new Promise<CallProcPromiseInner<ProcMap, string>>(
         (resolve, reject) => {
-          if (!window.proseMark?.callbackMap) {
-            return;
-          }
-          this.#callbackMap.set(
-            `${callbackId}:success`,
-            resolve as (value: unknown) => void,
-          );
-          this.#callbackMap.set(`${callbackId}:error`, reject);
+          this.#callbackMap.set(callbackId, {
+            success: resolve as (value: unknown) => void,
+            error: reject,
+          });
         },
       );
 

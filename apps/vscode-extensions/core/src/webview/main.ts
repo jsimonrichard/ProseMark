@@ -14,7 +14,12 @@ import {
 } from '@prosemark/paste-rich-text';
 import { GFM } from '@lezer/markdown';
 import { Compartment, EditorState, StateEffect } from '@codemirror/state';
-import type { Change, WebviewProcMap, WordCountWebviewProcs } from '../common';
+import type {
+  Change,
+  VSCodeExtensionProcMap,
+  WebviewProcMap,
+  WordCountVSCodeProcs,
+} from '../common';
 import './style.css';
 import { indentUnit } from '@codemirror/language';
 import {
@@ -36,7 +41,7 @@ window.proseMark.externalModules = {
 };
 
 const { callProcAndForget, callProcWithReturnValue: _callProcWithReturnValue } =
-  registerWebviewMessagePoster<'core', WebviewProcMap>(
+  registerWebviewMessagePoster<'core', VSCodeExtensionProcMap>(
     'core',
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     window.proseMark.vscode as any,
@@ -44,7 +49,7 @@ const { callProcAndForget, callProcWithReturnValue: _callProcWithReturnValue } =
 
 const { callProcAndForget: callWordCountProc } = registerWebviewMessagePoster<
   'core.word-count',
-  WordCountWebviewProcs
+  WordCountVSCodeProcs
 >(
   'core.word-count',
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -196,7 +201,9 @@ const procs: WebviewProcMap = {
       userEvent: 'updateFromVSCode',
     });
   },
-  focus: () => window.proseMark?.view?.focus(),
+  focus: () => {
+    window.proseMark?.view?.focus();
+  },
   setDynamicConfig: (dynamicConfig) => {
     const { tabSize = 2, insertSpaces = true } = dynamicConfig;
     const indentUnit_ = insertSpaces ? ' '.repeat(tabSize) : '\t';

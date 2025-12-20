@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import type {
   CallProc,
+  CallProcWithReturnValue,
   SubExtension,
   SubExtensionCallback,
 } from '@prosemark/vscode-extension-integrator/types';
@@ -16,6 +17,7 @@ export class CSpellIntegration
   #documentUri: vscode.Uri;
   #cSpellApi: CSpell.ExtensionApi;
   #callProcAndForget: CallProc<WebviewProcMap>;
+  #callProcWithReturnValue: CallProcWithReturnValue<WebviewProcMap>;
   #cSpellCheckTimer: NodeJS.Timeout | undefined;
 
   constructor(
@@ -23,11 +25,13 @@ export class CSpellIntegration
     cSpellApi: CSpell.ExtensionApi,
     document: vscode.TextDocument,
     callProcAndForget: CallProc<WebviewProcMap>,
+    callProcWithReturnValue: CallProcWithReturnValue<WebviewProcMap>,
   ) {
     this.#extensionUri = extensionUri;
     this.#cSpellApi = cSpellApi;
     this.#documentUri = document.uri;
     this.#callProcAndForget = callProcAndForget;
+    this.#callProcWithReturnValue = callProcWithReturnValue;
   }
 
   getExtensionId(): typeof extId {
@@ -43,9 +47,13 @@ export class CSpellIntegration
   }
 
   onReady(): void {
-    console.warn('cspell onReady');
-    this.#callProcAndForget('setup');
-    this.#spellCheck().catch((e: unknown) => {
+    const onReady = async () => {
+      console.warn('onReady');
+      await this.#callProcWithReturnValue('setup');
+      console.warn('setup completed');
+      await this.#spellCheck();
+    };
+    onReady().catch((e: unknown) => {
       console.error(e);
     });
   }
@@ -54,7 +62,8 @@ export class CSpellIntegration
     const res = await this.#cSpellApi.checkDocument({
       uri: this.#documentUri.toString(),
     });
-    this.#callProcAndForget('cSpellUpdateInfo', res);
+    console.warn('cspell spellCheck with response', res);
+    this.#callProcAndForget('updateInfo', res);
   }
 
   #debouncedSpellCheck() {
@@ -67,7 +76,7 @@ export class CSpellIntegration
       this.#spellCheck().catch((e: unknown) => {
         console.error(e);
       });
-    });
+    }, 500);
   }
 
   onTextDocumentChange(): void {
@@ -99,12 +108,13 @@ export function createCSpellIntegration(
   extensionUri: vscode.Uri,
   cSpellApi: CSpell.ExtensionApi,
 ): SubExtensionCallback<typeof extId, WebviewProcMap, VSCodeExtensionProcMap> {
-  return (document, callProcAndForget) => {
+  return (document, callProcAndForget, callProcWithReturnValue) => {
     return new CSpellIntegration(
       extensionUri,
       cSpellApi,
       document,
       callProcAndForget,
+      callProcWithReturnValue,
     );
   };
 }

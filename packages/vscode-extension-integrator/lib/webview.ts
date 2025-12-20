@@ -11,7 +11,13 @@ import type {
 import type { EXTERNAL_MODULES } from './rolldown-plugin';
 
 export interface ProseMarkGlobals {
-  callbackMap?: Map<string, (value: unknown) => void>;
+  callbackMap?: Map<
+    string,
+    {
+      success: (value: unknown) => void;
+      error: (value: unknown) => void;
+    }
+  >;
   view?: EditorView;
   vscode?: unknown;
   extraCodeMirrorExtensions?: Compartment;
@@ -50,6 +56,7 @@ export const registerWebviewMessageHandler = <
     // This could be a proc call or a callback
     const methodName = message.type.slice(`${extId}:`.length);
     if (!(methodName in procMap)) {
+      // this also catches callbacks
       return;
     }
 
@@ -65,14 +72,14 @@ export const registerWebviewMessageHandler = <
       res
         .then((r) => {
           vscode.postMessage({
-            type: `${extId}:${methodName}:callback`,
+            type: `${extId}:${methodName}-callback:success`,
             callbackId: message.callbackId,
             value: r,
           } as CallbackFromProcMap<ExtId, WebviewProcMap>);
         })
         .catch((e: unknown) => {
           vscode.postMessage({
-            type: `${extId}:${methodName}:callbackError`,
+            type: `${extId}:${methodName}-callback:error`,
             callbackId: message.callbackId,
             value: typeof e === 'string' ? e : JSON.stringify(e),
           } as CallbackFromProcMap<ExtId, WebviewProcMap>);
@@ -108,21 +115,20 @@ export const registerWebviewMessagePoster = <
     }
 
     const message = message_ as CallbackFromProcMap<ExtId, VSCodeProcMap>;
+    const [_extId, methodName, callbackStatus] = message.type.split(':') as [
+      string,
+      string,
+      'success' | 'error',
+    ];
 
-    if (message.type.endsWith(':callback')) {
-      const callbackId = `${message.callbackId}:success`;
-      const callback = window.proseMark?.callbackMap?.get(callbackId);
-      if (callback) {
-        callback(message.value);
-        window.proseMark?.callbackMap?.delete(callbackId);
-      }
-    } else if (message.type.endsWith(':callbackError')) {
-      const callbackId = `${message.callbackId}:error`;
-      const callback = window.proseMark?.callbackMap?.get(callbackId);
-      if (callback) {
-        callback(message.value);
-        window.proseMark?.callbackMap?.delete(callbackId);
-      }
+    if (!methodName.endsWith('-callback')) {
+      return;
+    }
+
+    const callbacks = window.proseMark?.callbackMap?.get(message.callbackId);
+    if (callbacks) {
+      callbacks[callbackStatus](message.value);
+      window.proseMark?.callbackMap?.delete(message.callbackId);
     }
   });
 
@@ -149,11 +155,10 @@ export const registerWebviewMessagePoster = <
       if (!window.proseMark?.callbackMap) {
         return;
       }
-      window.proseMark.callbackMap.set(
-        `${callbackId}:success`,
-        resolve as (value: unknown) => void,
-      );
-      window.proseMark.callbackMap.set(`${callbackId}:error`, reject);
+      window.proseMark.callbackMap.set(callbackId, {
+        success: resolve as (value: unknown) => void,
+        error: reject,
+      });
     });
     vscode.postMessage({
       type: `${extId}:${procName}`,

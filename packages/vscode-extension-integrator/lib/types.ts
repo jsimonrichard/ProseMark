@@ -40,12 +40,12 @@ export type MessageFromProcMap<ExtId extends string, P extends ProcMap> = {
 
 export type CallbackResponse<ExtId extends string, KS extends string, R> =
   | {
-      type: `${NoColon<ExtId>}:${KS}:callback`;
+      type: `${NoColon<ExtId>}:${KS}-callback:success`;
       callbackId: string;
       value: R;
     }
   | {
-      type: `${NoColon<ExtId>}:${KS}:callbackError`;
+      type: `${NoColon<ExtId>}:${KS}-callback:error`;
       callbackId: string;
       value: string;
     };

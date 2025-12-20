@@ -5,29 +5,22 @@ import {
   SpellCheckIssue,
   spellCheckExtension,
 } from '@prosemark/spellcheck-frontend';
-import { keymap } from '@codemirror/view';
 
 const procs: WebviewProcMap = {
-  setup: () => {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  setup: async () => {
     console.warn('spellcheck setup with view', window.proseMark?.view);
     window.proseMark?.view?.dispatch({
       effects:
         window.proseMark.extraCodeMirrorExtensions?.reconfigure([
-          keymap.of([
-            {
-              key: 'Alt-p',
-              run: () => {
-                console.log("hello from webview's keymap");
-                return true;
-              },
-            },
-          ]),
           spellCheckExtension,
         ]) ?? [],
     });
   },
 
   updateInfo: ({ issues }) => {
+    console.warn('updateInfo with issues', issues);
+
     if (!issues || issues.length === 0) {
       return;
     }
