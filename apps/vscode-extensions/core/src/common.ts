@@ -20,8 +20,7 @@ export interface DynamicConfig {
   insertSpaces?: boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type WebviewProcMap = {
+export interface WebviewProcMap {
   init: (
     text: string,
     initConfig: {
@@ -32,12 +31,11 @@ export type WebviewProcMap = {
   update: (changes: Change[]) => void;
   focus: () => void;
   setDynamicConfig: (dynamicConfig: DynamicConfig) => void;
-};
+}
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type WordCountVSCodeProcs = {
+export interface WordCountVSCodeProcs {
   updateWordCount: (wordCount: number, charCount: number) => void;
-};
+}
 
 export type VSCodeExtMessage = MessageFromProcMap<'core', WebviewProcMap>;
 

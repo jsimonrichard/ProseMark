@@ -103,8 +103,7 @@ export interface ConfigTargetWithOptionalResource {
   configScope?: ConfigurationScope;
 }
 
-export interface ConfigTargetWithResource
-  extends ConfigTargetWithOptionalResource {
+export interface ConfigTargetWithResource extends ConfigTargetWithOptionalResource {
   uri: Uri;
 }
 
