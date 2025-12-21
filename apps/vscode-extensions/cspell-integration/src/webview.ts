@@ -5,6 +5,10 @@ import {
   SpellCheckIssue,
   spellCheckExtension,
 } from '@prosemark/spellcheck-frontend';
+import type {
+  CallbackFromProcMap,
+  WebviewVSCodeApiWithPostMessage,
+} from '@prosemark/vscode-extension-integrator/types';
 
 const procs: WebviewProcMap = {
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -47,6 +51,7 @@ const procs: WebviewProcMap = {
 registerWebviewMessageHandler(
   'cspell-integration',
   procs,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  window.proseMark?.vscode as any,
+  window.proseMark?.vscode as WebviewVSCodeApiWithPostMessage<
+    CallbackFromProcMap<'cspell-integration', WebviewProcMap>
+  >,
 );
