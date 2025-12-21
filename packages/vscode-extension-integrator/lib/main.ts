@@ -4,20 +4,28 @@ import type {
   AnyCallProc,
   AnyCallProcWithReturnValue,
   AnyMessageOrCallback,
-  AnyProcMap,
-  AnySubExtension,
-  AnySubExtensionCallback,
   CallProcPromiseInner,
   Change,
   MessageFromProcMap,
+  SubExtensionCallback,
+  CompleteProcMap,
+  UnknownSubExtension,
 } from './types';
 
 export class SubExtensionCallbackManager {
-  #subExtensionCallbacks: Record<string, AnySubExtensionCallback> = {};
+  #subExtensionCallbacks: Record<
+    string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    any
+  > = {};
 
-  registerSubExtension(
+  registerSubExtension<VSCodeProcMap, WebviewProcMap>(
     extId: string,
-    subExtensionCallback: AnySubExtensionCallback,
+    subExtensionCallback: SubExtensionCallback<
+      string,
+      WebviewProcMap,
+      VSCodeProcMap
+    >,
   ): void {
     if (extId.includes(':')) {
       throw new Error('Extension ID cannot contain a colon');
@@ -39,7 +47,7 @@ export class SubExtensionCallbackManager {
 }
 
 export class SubExtensionManager {
-  #subExtensions: Record<string, AnySubExtension>;
+  #subExtensions: Record<string, UnknownSubExtension>;
   #webview: vscode.Webview;
   #callbackMap = new Map<
     string,
@@ -50,13 +58,16 @@ export class SubExtensionManager {
   >();
 
   constructor(
-    subExtensionCallbacks: Record<string, AnySubExtensionCallback>,
+    subExtensionCallbacks: Record<
+      string,
+      SubExtensionCallback<string, unknown, unknown>
+    >,
     webview: vscode.Webview,
     document: vscode.TextDocument,
   ) {
     this.#webview = webview;
 
-    const extensions: Record<string, AnySubExtension> = {};
+    const extensions: Record<string, UnknownSubExtension> = {};
     for (const [key, callback] of Object.entries(subExtensionCallbacks)) {
       extensions[key] = callback(
         document,
@@ -163,8 +174,9 @@ export class SubExtensionManager {
       if (!subExtension) {
         return;
       }
-      if (methodName in subExtension.procMap) {
-        const proc = subExtension.procMap[methodName];
+      const procMap = subExtension.procMap as CompleteProcMap;
+      if (methodName in procMap) {
+        const proc = procMap[methodName];
         if (proc instanceof Function) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const res = proc(...message.value);
@@ -227,14 +239,14 @@ export class SubExtensionManager {
   #callProcWithReturnValue(extId: string): AnyCallProcWithReturnValue {
     return (procName, ...args) => {
       const callbackId = Math.random().toString(36).slice(2);
-      const promise = new Promise<CallProcPromiseInner<AnyProcMap, string>>(
-        (resolve, reject) => {
-          this.#callbackMap.set(callbackId, {
-            success: resolve as (value: unknown) => void,
-            error: reject,
-          });
-        },
-      );
+      const promise = new Promise<
+        CallProcPromiseInner<CompleteProcMap, string>
+      >((resolve, reject) => {
+        this.#callbackMap.set(callbackId, {
+          success: resolve as (value: unknown) => void,
+          error: reject,
+        });
+      });
 
       this.#webview.postMessage({
         type: `${extId}:${procName}`,

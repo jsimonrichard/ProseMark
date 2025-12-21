@@ -8,9 +8,10 @@ import type { WordCountVSCodeProcs } from '../common';
 
 const extId = 'core.word-count';
 
-class WordCountStatusBarItem
-  implements SubExtension<typeof extId, WordCountVSCodeProcs>
-{
+class WordCountStatusBarItem implements SubExtension<
+  typeof extId,
+  WordCountVSCodeProcs
+> {
   #statusBarItem: vscode.StatusBarItem;
 
   constructor(document: vscode.TextDocument) {
@@ -71,5 +72,12 @@ export const createWordCountStatusBarItem: SubExtensionCallback<
 };
 
 export const registerWordCountStatusBarItem = (): void => {
-  registerSubExtension(extId, createWordCountStatusBarItem);
+  registerSubExtension(
+    extId,
+    createWordCountStatusBarItem as SubExtensionCallback<
+      typeof extId,
+      unknown,
+      unknown
+    >,
+  );
 };

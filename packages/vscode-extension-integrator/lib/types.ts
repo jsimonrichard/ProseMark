@@ -6,12 +6,16 @@ export type Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
 
-export type AnyProcMap = Record<
-  string,
+// 2.  The union of every legal procedure shape.
+export type AnyProc =
   | ((...args: any[]) => void)
   | ((...args: any[]) => Promise<void>)
-  | ((...args: any[]) => Promise<any>)
->;
+  | ((...args: any[]) => Promise<any>);
+
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+export type AnyProcMap = object;
+
+export type CompleteProcMap = Record<string, AnyProc>;
 
 // type ExtractVoid<T> = T extends (...args: any[]) => infer R
 //   ? // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
@@ -64,7 +68,7 @@ type ChooseFromReturnValue<M, V, PV, P, Default = never> =
       ? PV
       : IsOnlyPromise<M> extends true
         ? P
-        : M extends AnyProcMap[string]
+        : M extends AnyProc
           ? Prettify<V | PV | P>
           : Default;
 
@@ -84,7 +88,7 @@ type AddValueFromArray<A extends unknown[]> = A extends []
 
 type NoColon<T extends string> = T extends `${string}:${string}` ? never : T;
 
-export type MessageFromProcMap<ExtId extends string, P = AnyProcMap> = {
+export type MessageFromProcMap<ExtId extends string, P = CompleteProcMap> = {
   [K in Extract<keyof P, string>]: ChooseFromReturnValue<
     P[K],
     // return void
@@ -120,7 +124,7 @@ export type CallbackResponse<ExtId extends string, KS extends string, R> =
       value: string;
     };
 
-export type CallbackFromProcMap<ExtId extends string, P = AnyProcMap> = {
+export type CallbackFromProcMap<ExtId extends string, P = CompleteProcMap> = {
   [K in Extract<keyof P, string>]: ChooseFromReturnValue<
     P[K],
     never,
@@ -157,7 +161,7 @@ export type ProcNamesWithReturnValue<PM> = {
       : K;
 }[Extract<keyof PM, string>];
 
-export type CallProc<PM = AnyProcMap> = <
+export type CallProc<PM = CompleteProcMap> = <
   ProcName extends ProcNamesWithoutReturnValue<PM>,
 >(
   procName: ProcName & string,
@@ -175,7 +179,7 @@ export type CallProcPromiseInner<
     ? never
     : any;
 
-export type CallProcWithReturnValue<PM = AnyProcMap> = <
+export type CallProcWithReturnValue<PM = CompleteProcMap> = <
   ProcName extends ProcNamesWithReturnValue<PM>,
 >(
   procName: ProcName & string,
@@ -192,7 +196,7 @@ export interface Change {
   insert: string;
 }
 
-export interface SubExtension<ExtId extends string, VSCodePM = AnyProcMap> {
+export interface SubExtension<ExtId extends string, VSCodePM> {
   getExtensionId(): ExtId;
   getWebviewScriptUri?(): vscode.Uri;
   getWebviewStyleUri?(): vscode.Uri;
@@ -205,23 +209,17 @@ export interface SubExtension<ExtId extends string, VSCodePM = AnyProcMap> {
   dispose?(): void;
 }
 
-export type AnySubExtension = SubExtension<string>;
+export type UnknownSubExtension = SubExtension<string, unknown>;
 
-export type SubExtensionCallback<
-  ExtId extends string,
-  WebviewPM = AnyProcMap,
-  VSCodePM = AnyProcMap,
-> = (
+export type SubExtensionCallback<ExtId extends string, WebviewPM, VSCodePM> = (
   document: vscode.TextDocument,
   callProcAndForget: CallProc<WebviewPM>,
   callProcWithReturnValue: CallProcWithReturnValue<WebviewPM>,
 ) => SubExtension<ExtId, VSCodePM>;
 
-export type AnySubExtensionCallback = SubExtensionCallback<string>;
-
 export interface ProseMarkExtensionApi {
-  registerSubExtension: (
+  registerSubExtension<VSCodePM, WebviewPM>(
     extId: string,
-    subExtensionCallback: AnySubExtensionCallback,
-  ) => void;
+    subExtensionCallback: SubExtensionCallback<string, WebviewPM, VSCodePM>,
+  ): void;
 }

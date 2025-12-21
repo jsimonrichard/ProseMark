@@ -10,9 +10,10 @@ import path from 'path';
 
 const extId = 'core';
 
-export class Core
-  implements SubExtension<typeof extId, VSCodeExtensionProcMap>
-{
+export class Core implements SubExtension<
+  typeof extId,
+  VSCodeExtensionProcMap
+> {
   #extensionUri: vscode.Uri;
   #document: vscode.TextDocument;
   #callProcAndForget: CallProc<WebviewProcMap>;
@@ -139,7 +140,7 @@ export class Core
 
 export function createCore(
   extensionUri: vscode.Uri,
-): SubExtensionCallback<typeof extId, WebviewProcMap, VSCodeExtensionProcMap> {
+): SubExtensionCallback<typeof extId, unknown, unknown> {
   return (document, callProcAndForget, _callProcWithReturnValue) => {
     return new Core(extensionUri, document, callProcAndForget);
   };

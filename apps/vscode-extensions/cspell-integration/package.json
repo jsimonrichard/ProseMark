@@ -28,16 +28,13 @@
     "streetsidesoftware.code-spell-checker"
   ],
   "scripts": {
-    "vscode:prepublish": "bun run compile",
+    "vscode:prepublish": "bun run build",
     "package": "vsce package",
     "publish": "vsce publish",
-    "compile": "bun run check-types && bun run lint && tsdown",
-    "watch": "tsc --noEmit && concurrently \"tsc -w\" \"tsdown --watch\"",
-    "watch:tsup": "tsdown --watch",
-    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "bun run compile-tests && bun run compile && bun run lint",
+    "build": "bun run check-types && bun run lint && tsdown",
+    "dev": "tsc --noEmit && concurrently \"tsc -w\" \"tsdown --watch\"",
+    "dev-tests": "tsc -p . -w --outDir out",
+    "pretest": "bun run build-tests && bun run build && bun run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vscode-test"
