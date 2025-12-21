@@ -146,21 +146,4 @@ export interface ExtensionApi {
     doc: TextDocumentInfo,
     options?: CheckDocumentOptions,
   ): Promise<CheckDocumentResult>;
-
-  /**
-   * @deprecated use {@link ExtensionApi.enableLocale}
-   */
-  enableLocal(isGlobal: boolean, locale: string): Promise<void>;
-  /**
-   * @deprecated use {@link ExtensionApi.disableLocale}
-   */
-  disableLocal(isGlobal: boolean, locale: string): Promise<void>;
-  /**
-   * @deprecated use {@link ExtensionApi.enableCurrentFileType}
-   */
-  enableCurrentLanguage(): Promise<void>;
-  /**
-   * @deprecated use {@link ExtensionApi.disableCurrentFileType}
-   */
-  disableCurrentLanguage(): Promise<void>;
 }
