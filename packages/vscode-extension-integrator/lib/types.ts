@@ -124,7 +124,7 @@ export type CallbackFromProcMap<ExtId extends string, P = AnyProcMap> = {
   [K in Extract<keyof P, string>]: ChooseFromReturnValue<
     P[K],
     never,
-    CallbackResponse<ExtId, K, GetPromiseReturnType<P[K]>>,
+    CallbackResponse<ExtId, K, undefined>,
     CallbackResponse<ExtId, K, GetPromiseReturnType<P[K]>>
   >;
 }[Extract<keyof P, string>];

@@ -4,12 +4,12 @@ import type {
   AnyCallProc,
   AnyCallProcWithReturnValue,
   AnyMessageOrCallback,
+  AnyProcMap,
   AnySubExtension,
   AnySubExtensionCallback,
   CallProcPromiseInner,
   Change,
   MessageFromProcMap,
-  ProcMap,
 } from './types';
 
 export class SubExtensionCallbackManager {
@@ -156,7 +156,7 @@ export class SubExtensionManager {
   onWebviewMessage(message_: AnyMessageOrCallback): void {
     const parts = message_.type.split(':');
     if (parts.length === 2) {
-      const message = message_ as MessageFromProcMap<string, ProcMap>;
+      const message = message_ as MessageFromProcMap<string>;
 
       const [extId, methodName] = parts as [string, string];
       const subExtension = this.#subExtensions[extId];
@@ -227,7 +227,7 @@ export class SubExtensionManager {
   #callProcWithReturnValue(extId: string): AnyCallProcWithReturnValue {
     return (procName, ...args) => {
       const callbackId = Math.random().toString(36).slice(2);
-      const promise = new Promise<CallProcPromiseInner<ProcMap, string>>(
+      const promise = new Promise<CallProcPromiseInner<AnyProcMap, string>>(
         (resolve, reject) => {
           this.#callbackMap.set(callbackId, {
             success: resolve as (value: unknown) => void,

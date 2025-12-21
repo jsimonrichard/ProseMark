@@ -1,11 +1,11 @@
 import type { EditorView } from '@codemirror/view';
 import type { Compartment } from '@codemirror/state';
 import type {
+  AnyProcMap,
   CallbackFromProcMap,
   CallProc,
   CallProcWithReturnValue,
   MessageFromProcMap,
-  ProcMap,
   WebviewVSCodeApiWithPostMessage,
 } from './types';
 import type { EXTERNAL_MODULES } from './rolldown-plugin';
@@ -32,7 +32,7 @@ declare global {
 
 export const registerWebviewMessageHandler = <
   ExtId extends string,
-  WebviewProcMap extends ProcMap,
+  WebviewProcMap extends object = AnyProcMap,
 >(
   extId: ExtId,
   procMap: WebviewProcMap,
@@ -63,9 +63,11 @@ export const registerWebviewMessageHandler = <
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
     let res: Promise<unknown> | void;
     if ('value' in message) {
-      res = procMap[methodName]?.(...message.value);
+      res = (procMap as AnyProcMap)[methodName]?.(
+        ...(message.value as unknown[]),
+      );
     } else {
-      res = procMap[methodName]?.();
+      res = (procMap as AnyProcMap)[methodName]?.();
     }
 
     if (res instanceof Promise && 'callbackId' in message) {
@@ -73,14 +75,14 @@ export const registerWebviewMessageHandler = <
         .then((r) => {
           vscode.postMessage({
             type: `${extId}:${methodName}-callback:success`,
-            callbackId: message.callbackId,
+            callbackId: message.callbackId as string,
             value: r,
           } as CallbackFromProcMap<ExtId, WebviewProcMap>);
         })
         .catch((e: unknown) => {
           vscode.postMessage({
             type: `${extId}:${methodName}-callback:error`,
-            callbackId: message.callbackId,
+            callbackId: message.callbackId as string,
             value: typeof e === 'string' ? e : JSON.stringify(e),
           } as CallbackFromProcMap<ExtId, WebviewProcMap>);
         });
@@ -90,7 +92,7 @@ export const registerWebviewMessageHandler = <
 
 export const registerWebviewMessagePoster = <
   ExtId extends string,
-  VSCodeProcMap extends ProcMap,
+  VSCodeProcMap = AnyProcMap,
 >(
   extId: ExtId,
   vscode: WebviewVSCodeApiWithPostMessage<
@@ -135,8 +137,8 @@ export const registerWebviewMessagePoster = <
   const callProcAndForget: CallProc<VSCodeProcMap> = (procName, ...args) => {
     vscode.postMessage({
       type: `${extId}:${procName}`,
-      value: args.length > 0 ? args : undefined,
-    } as MessageFromProcMap<ExtId, VSCodeProcMap>);
+      value: args,
+    } as unknown as MessageFromProcMap<ExtId, VSCodeProcMap>);
   };
 
   const callProcWithReturnValue: CallProcWithReturnValue<VSCodeProcMap> = (
@@ -163,8 +165,8 @@ export const registerWebviewMessagePoster = <
     vscode.postMessage({
       type: `${extId}:${procName}`,
       callbackId,
-      value: args.length > 0 ? args : undefined,
-    } as MessageFromProcMap<ExtId, VSCodeProcMap>);
+      value: args,
+    } as unknown as MessageFromProcMap<ExtId, VSCodeProcMap>);
 
     return promise;
   };
