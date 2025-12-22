@@ -1,0 +1,10 @@
+.vscode/**
+.vscode-test/**
+.gitignore
+vsc-extension-quickstart.md
+../**
+../../**
+../../../**
+.turbo/**
+**/turbo.json
+node_modules/
