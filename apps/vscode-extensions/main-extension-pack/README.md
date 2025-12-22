@@ -1,16 +1,30 @@
-# vscode-prosemark-extension-pack README
+# ProseMark for VS Code - Extension Pack
 
-## Working with Markdown
+A "What You See Is What You Mean" Markdown editor for Visual Studio Code, inspired by editors like Typora and Obsidian. ProseMark provides a seamless writing experience where you can focus on your content without being distracted by Markdown syntax.
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+The extension can be downloaded on either of these marketplaces:
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+- The Official VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark
+- Open VSX: https://open-vsx.org/extension/jsimonrichard/vscode-prosemark
 
-## For more information
+The documentation for the ProseMark libraries can be found at https://prosemark.com.
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+## Features
 
-**Enjoy!**
+- **Live Preview:** Renders your Markdown as you type, giving you a beautiful and clean representation of your document.
+- **Familiar Feel:** If you've used editors like Typora or Obsidian, you'll feel right at home with ProseMark.
+
+## How to Use
+
+1.  Open any file with a `.md` extension.
+2.  ProseMark will automatically open as the editor for that file.
+
+## Extension Settings
+
+This extension does not currently contribute any settings to VS Code.
+
+## Known Issues
+
+No known issues at this time.
+
+Please report any bugs or feature requests on the [GitHub issues page](https://github.com/jsimonrichard/ProseMark/issues).
