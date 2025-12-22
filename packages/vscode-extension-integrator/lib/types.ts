@@ -6,30 +6,14 @@ export type Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
 
-// 2.  The union of every legal procedure shape.
 export type AnyProc =
   | ((...args: any[]) => void)
   | ((...args: any[]) => Promise<void>)
   | ((...args: any[]) => Promise<any>);
 
-// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
 export type AnyProcMap = object;
 
 export type CompleteProcMap = Record<string, AnyProc>;
-
-// type ExtractVoid<T> = T extends (...args: any[]) => infer R
-//   ? // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-//     R extends void
-//     ? T
-//     : never
-//   : never;
-
-// type ExtractPromiseVoid<T> = T extends (...args: any[]) => Promise<infer R>
-//   ? // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-//     R extends void
-//     ? T
-//     : never
-//   : never;
 
 type IsOnlyVoid<T> = (
   T extends (...args: any[]) => infer R

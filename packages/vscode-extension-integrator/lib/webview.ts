@@ -5,6 +5,7 @@ import type {
   CallbackFromProcMap,
   CallProc,
   CallProcWithReturnValue,
+  CompleteProcMap,
   MessageFromProcMap,
   WebviewVSCodeApiWithPostMessage,
 } from './types';
@@ -63,11 +64,11 @@ export const registerWebviewMessageHandler = <
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
     let res: Promise<unknown> | void;
     if ('value' in message) {
-      res = (procMap as AnyProcMap)[methodName]?.(
+      res = (procMap as CompleteProcMap)[methodName]?.(
         ...(message.value as unknown[]),
       );
     } else {
-      res = (procMap as AnyProcMap)[methodName]?.();
+      res = (procMap as CompleteProcMap)[methodName]?.();
     }
 
     if (res instanceof Promise && 'callbackId' in message) {
