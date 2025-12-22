@@ -53,8 +53,9 @@ class ProseMarkEditorProvider implements vscode.CustomTextEditorProvider {
 }
 
 class ProseMarkEditor {
-  #documentUri: vscode.Uri;
+  #document: vscode.TextDocument;
   #subExtensionsManager: SubExtensionManager;
+  #webviewPanel: vscode.WebviewPanel;
   #hasFocusedOnWebview = false;
   #changeDocumentSubscription: vscode.Disposable;
   #viewStateSubscription: vscode.Disposable;
@@ -63,26 +64,30 @@ class ProseMarkEditor {
     document: vscode.TextDocument,
     webviewPanel: vscode.WebviewPanel,
   ) {
-    this.#documentUri = document.uri;
+    this.#document = document;
+    this.#webviewPanel = webviewPanel;
 
-    // Set up sub extensions manager
+    const onSubsequentRegister = (nextExtensionIds: string[]) => {
+      // Reload the editor to apply the new sub-extensions
+      void reloadCustomEditor(this.#document, nextExtensionIds);
+    };
+
     this.#subExtensionsManager =
       subExtensionCallbackManager.buildExtensionManager(
-        webviewPanel.webview,
-        document,
+        this.#webviewPanel.webview,
+        this.#document,
+        onSubsequentRegister,
       );
-
-    // Set up webview
-    webviewPanel.webview.options = {
+    this.#webviewPanel.webview.options = {
       enableScripts: true,
       localResourceRoots: this.#subExtensionsManager.getLocalResourceRoots(),
     };
-    webviewPanel.webview.html = this.#getHtmlForWebview();
+    this.#webviewPanel.webview.html = this.#getHtmlForWebview();
 
     // Set up handlers
     this.#changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
       (e) => {
-        if (e.document.uri !== this.#documentUri) {
+        if (e.document.uri !== this.#document.uri) {
           return;
         }
         this.#subExtensionsManager.onTextDocumentChange(e.contentChanges);
@@ -136,3 +141,55 @@ class ProseMarkEditor {
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 export function deactivate(): void {}
+
+async function reloadCustomEditor(
+  document: vscode.TextDocument,
+  nextExtensionIds: string[],
+) {
+  const tabs = vscode.window.tabGroups.all
+    .flatMap((g) => g.tabs)
+    .filter(
+      (t) =>
+        t.input instanceof vscode.TabInputCustom &&
+        t.input.uri.toString() === document.uri.toString(),
+    );
+
+  if (tabs.length === 0) {
+    return;
+  }
+
+  if (document.isDirty) {
+    const choice = await vscode.window.showInformationMessage(
+      `The file ${document.fileName} has unsaved changes, and needs to be reloaded
+      for the ${nextExtensionIds.join(', ')} ProseMark sub-extension(s) to take effect. Save before reloading?`,
+      { modal: true },
+      'Save',
+      "Don't Save",
+      'Cancel',
+    );
+
+    if (choice === 'Cancel') {
+      return;
+    }
+
+    if (choice === 'Save') {
+      await vscode.commands.executeCommand('workbench.action.files.save');
+    } else {
+      // Don't Save
+      await vscode.commands.executeCommand('workbench.action.files.revert');
+    }
+  }
+
+  const viewColumn = tabs[0]?.group.viewColumn;
+  await vscode.commands.executeCommand('workbench.action.closeActiveEditor'); // close it
+  await vscode.commands.executeCommand(
+    'vscode.openWith',
+    document.uri,
+    'prosemark.editor',
+    viewColumn,
+  );
+  await vscode.window.showInformationMessage(
+    `File ${document.fileName} has been re-opened successfully for
+    the ${nextExtensionIds.join(', ')} ProseMark sub-extension(s).`,
+  );
+}

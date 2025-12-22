@@ -18,6 +18,9 @@ export class SubExtensionCallbackManager {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     any
   > = {};
+  #onSubsequentRegisterCallbacks: ((nextExtensionIds: string[]) => void)[] = [];
+  #debounceTimeout: NodeJS.Timeout | undefined;
+  #pendingExtensionIds: string[] = [];
 
   registerSubExtension<VSCodeProcMap, WebviewProcMap>(
     extId: string,
@@ -32,12 +35,50 @@ export class SubExtensionCallbackManager {
     }
 
     this.#subExtensionCallbacks[extId] = subExtensionCallback;
+    // Only trigger onSubsequentRegister if there are already editor instances
+    // (i.e., callbacks have been registered via buildExtensionManager)
+    if (this.#onSubsequentRegisterCallbacks.length > 0) {
+      this.onSubsequentRegister(extId);
+    }
+  }
+
+  // Debounce these callbacks since they can interrupt the user
+  onSubsequentRegister(nextExtensionId: string): void {
+    this.#pendingExtensionIds.push(nextExtensionId);
+
+    // Clear existing timeout if any
+    if (this.#debounceTimeout) {
+      clearTimeout(this.#debounceTimeout);
+    }
+
+    // Set new timeout for 1 second
+    this.#debounceTimeout = setTimeout(() => {
+      const extensionIds = [...this.#pendingExtensionIds];
+      this.#pendingExtensionIds = [];
+      this.#debounceTimeout = undefined;
+
+      if (extensionIds.length > 0) {
+        console.warn(
+          'onSubsequentRegister',
+          this.#onSubsequentRegisterCallbacks,
+        );
+        for (const onSubsequentRegister of this
+          .#onSubsequentRegisterCallbacks) {
+          onSubsequentRegister(extensionIds);
+        }
+      }
+    }, 500);
   }
 
   buildExtensionManager(
     webview: vscode.Webview,
     document: vscode.TextDocument,
+    onSubsequentRegister?: (nextExtensionIds: string[]) => void,
   ): SubExtensionManager {
+    if (onSubsequentRegister) {
+      this.#onSubsequentRegisterCallbacks.push(onSubsequentRegister);
+    }
+
     return new SubExtensionManager(
       this.#subExtensionCallbacks,
       webview,
