@@ -19,5 +19,8 @@
     "turbo": "^2.5.5",
     "typescript-eslint": "^8.46.2"
   },
-  "packageManager": "bun@1.2.17"
+  "packageManager": "bun@1.2.17",
+  "dependencies": {
+    "tsc": "^2.0.4"
+  }
 }
