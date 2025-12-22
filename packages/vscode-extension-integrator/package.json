@@ -1,6 +1,6 @@
 {
   "name": "@prosemark/vscode-extension-integrator",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "repository": {
     "url": "https://github.com/jsimonrichard/ProseMark",
     "type": "github"
