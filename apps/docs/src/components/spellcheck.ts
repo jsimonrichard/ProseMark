@@ -28,7 +28,7 @@ function extractWords(
   text: string,
 ): Array<{ word: string; from: number; to: number }> {
   const words: Array<{ word: string; from: number; to: number }> = [];
-  const wordRegex = /\b[a-zA-Z]{2,}\b/g;
+  const wordRegex = /\b[a-zA-Z']{2,}\b/g;
   let match;
   while ((match = wordRegex.exec(text)) !== null) {
     words.push({

@@ -42,6 +42,10 @@ const pasteRichText = buildTypeDocEntry(
   '@prosemark/paste-rich-text',
   '../../packages/paste-rich-text',
 );
+const spellcheckFrontend = buildTypeDocEntry(
+  '@prosemark/spellcheck-frontend',
+  '../../packages/spellcheck-frontend',
+);
 
 // https://astro.build/config
 export default defineConfig({
@@ -81,10 +85,16 @@ export default defineConfig({
             core.sidebarGroup,
             renderHtml.sidebarGroup,
             pasteRichText.sidebarGroup,
+            spellcheckFrontend.sidebarGroup,
           ],
         },
       ],
-      plugins: [core.plugin, renderHtml.plugin, pasteRichText.plugin],
+      plugins: [
+        core.plugin,
+        renderHtml.plugin,
+        pasteRichText.plugin,
+        spellcheckFrontend.plugin,
+      ],
 
       editLink: {
         baseUrl:
