@@ -14,3 +14,6 @@ vsc-extension-quickstart.md
 **/.vscode-test.*
 ../**
 ../../**
+../../../**
+.turbo/**
+**/turbo.json
