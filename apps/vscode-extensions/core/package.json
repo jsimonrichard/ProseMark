@@ -17,7 +17,8 @@
     "vscode": "^1.90.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Extension Packs"
   ],
   "activationEvents": [
     "onStartupFinished"
@@ -36,6 +37,11 @@
       }
     ]
   },
+  "extensionPack": [
+    "jsimonrichard.vscode-prosemark",
+    "streetsidesoftware.code-spell-checker",
+    "jsimonrichard.vscode-prosemark-cspell-integration"
+  ],
   "scripts": {
     "vscode:prepublish": "bun run build",
     "package": "vsce package",
