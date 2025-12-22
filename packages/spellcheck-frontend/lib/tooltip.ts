@@ -1,4 +1,4 @@
-import { StateEffect, StateField, Transaction } from '@codemirror/state';
+import { StateEffect, StateField } from '@codemirror/state';
 import {
   EditorView,
   showTooltip,
