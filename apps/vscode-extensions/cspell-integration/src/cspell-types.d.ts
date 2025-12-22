@@ -119,7 +119,9 @@ export interface ServerApi {
   spellingSuggestions(
     word: string,
     doc: TextDocumentInfo,
-  ): Promise<Suggestion[]>;
+  ): Promise<{
+    suggestions: Suggestion[];
+  }>;
 }
 
 export interface CSpellClient {

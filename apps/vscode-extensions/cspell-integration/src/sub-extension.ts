@@ -10,9 +10,10 @@ import type { VSCodeExtensionProcMap, WebviewProcMap } from './common';
 
 export const extId = 'cspell-integration';
 
-export class CSpellIntegration
-  implements SubExtension<typeof extId, VSCodeExtensionProcMap>
-{
+export class CSpellIntegration implements SubExtension<
+  typeof extId,
+  VSCodeExtensionProcMap
+> {
   #extensionUri: vscode.Uri;
   #documentUri: vscode.Uri;
   #cSpellApi: CSpell.ExtensionApi;
@@ -39,7 +40,11 @@ export class CSpellIntegration
   }
 
   getWebviewScriptUri(): vscode.Uri {
-    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'webview.iife.js');
+    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'main.iife.js');
+  }
+
+  getWebviewStyleUri(): vscode.Uri {
+    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'main.css');
   }
 
   getLocalResourceRoots(): vscode.Uri[] {
@@ -48,9 +53,7 @@ export class CSpellIntegration
 
   onReady(): void {
     const onReady = async () => {
-      console.warn('onReady');
       await this.#callProcWithReturnValue('setup');
-      console.warn('setup completed');
       await this.#spellCheck();
     };
     onReady().catch((e: unknown) => {
@@ -62,7 +65,6 @@ export class CSpellIntegration
     const res = await this.#cSpellApi.checkDocument({
       uri: this.#documentUri.toString(),
     });
-    console.warn('cspell spellCheck with response', res);
     this.#callProcAndForget('updateInfo', res);
   }
 
@@ -86,18 +88,32 @@ export class CSpellIntegration
   procMap: VSCodeExtensionProcMap = {
     addWordToUserDictionary: async (word) => {
       await this.#cSpellApi.addWordToUserDictionary(word);
+      // Re-trigger spellcheck to update issues
+      setTimeout(() => {
+        this.#spellCheck().catch((e: unknown) => {
+          console.error(e);
+        });
+      }, 100);
     },
     addWordToWorkspaceDictionary: async (word) => {
       await this.#cSpellApi.addWordToWorkspaceDictionary(
         word,
         this.#documentUri,
       );
+      // Re-trigger spellcheck to update issues
+      setTimeout(() => {
+        this.#spellCheck().catch((e: unknown) => {
+          console.error(e);
+        });
+      }, 100);
     },
     requestSpellCheckSuggestions: async (word) => {
       const doc = { uri: this.#documentUri.toString() };
-      const suggestions = await this.#cSpellApi
-        .cSpellClient()
-        .serverApi.spellingSuggestions(word, doc);
+      const suggestions = (
+        await this.#cSpellApi
+          .cSpellClient()
+          .serverApi.spellingSuggestions(word, doc)
+      ).suggestions;
 
       return suggestions;
     },
