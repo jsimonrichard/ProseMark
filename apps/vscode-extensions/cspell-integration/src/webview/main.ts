@@ -4,12 +4,12 @@ import {
   registerWebviewMessagePoster,
 } from '@prosemark/vscode-extension-integrator/webview';
 import {
-  setSpellCheckIssues,
   SpellCheckIssue,
   spellCheckExtension,
   suggestionFetcher,
   spellCheckActions,
   type SpellCheckActionsConfig,
+  spellCheckIssues,
 } from '@prosemark/spellcheck-frontend';
 import type {
   CallbackFromProcMap,
@@ -17,6 +17,9 @@ import type {
 } from '@prosemark/vscode-extension-integrator/types';
 
 import './style.css';
+import { Compartment, RangeSet } from '@codemirror/state';
+
+const spellcheckIssueCompartment = new Compartment();
 
 // Register message poster to call VSCode extension procedures
 const { callProcWithReturnValue } = registerWebviewMessagePoster<
@@ -84,6 +87,7 @@ const procs: WebviewProcMap = {
     window.proseMark.view.dispatch({
       effects:
         window.proseMark.extraCodeMirrorExtensions?.reconfigure([
+          spellcheckIssueCompartment.of([]),
           spellCheckExtension,
           suggestionFetcher.of(fetchSuggestions),
           spellCheckActions.of(createActions),
@@ -122,7 +126,9 @@ const procs: WebviewProcMap = {
       return new SpellCheckIssue(is.text, suggestions).range(from, to);
     });
     window.proseMark?.view?.dispatch({
-      effects: setSpellCheckIssues(issue_ranges),
+      effects: spellcheckIssueCompartment.reconfigure([
+        spellCheckIssues.of(RangeSet.of(issue_ranges)),
+      ]),
     });
   },
 };

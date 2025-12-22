@@ -35,7 +35,10 @@
         "@prosemark/core": "workspace:*",
         "@prosemark/paste-rich-text": "workspace:*",
         "@prosemark/render-html": "workspace:*",
+        "@prosemark/spellcheck-frontend": "workspace:*",
         "codemirror": "^6.0.2",
+        "dictionary-en": "^3.2.0",
+        "nspell": "^2.1.5",
       },
       "devDependencies": {
         "typescript": "^5.2.2",
@@ -61,7 +64,10 @@
         "@prosemark/core": "workspace:*",
         "@prosemark/paste-rich-text": "workspace:*",
         "@prosemark/render-html": "workspace:*",
+        "@prosemark/spellcheck-frontend": "workspace:*",
         "astro": "^5.6.1",
+        "dictionary-en": "^3.2.0",
+        "nspell": "^2.1.5",
         "sharp": "^0.34.2",
         "starlight-typedoc": "^0.21.3",
         "typedoc": "^0.28.7",
@@ -193,7 +199,7 @@
     },
     "packages/spellcheck-frontend": {
       "name": "@prosemark/spellcheck-frontend",
-      "version": "0.0.1",
+      "version": "0.0.0",
       "dependencies": {
         "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.38.0",
@@ -202,7 +208,7 @@
     },
     "packages/vscode-extension-integrator": {
       "name": "@prosemark/vscode-extension-integrator",
-      "version": "0.0.1",
+      "version": "0.0.0",
       "dependencies": {
         "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.39.4",
@@ -1110,6 +1116,8 @@
 
     "dfa": ["dfa@1.2.0", "", {}, "sha512-ED3jP8saaweFTjeGX8HQPjeC1YYyZs98jGNZx6IiBvxW7JG5v492kamAQB3m2wop07CvU/RQmzcKr6bgcC5D/Q=="],
 
+    "dictionary-en": ["dictionary-en@3.2.0", "", {}, "sha512-oujbJhuplUTlDntmOoultEcNyk8ge7cFI6yXNn7eJvpbBJOhGNhWtK0XjOJsiwl4EfIeyvDKwGB95vJXv1d+lQ=="],
+
     "diff": ["diff@8.0.2", "", {}, "sha512-sSuxWU5j5SR9QQji/o2qMvqRNYRDOcBTgsJ/DeCf4iSN4gW+gNMXM7wFIP+fdXZxoNiAnHUTGjCr+TSWXdRDKg=="],
 
     "dir-glob": ["dir-glob@3.0.1", "", { "dependencies": { "path-type": "^4.0.0" } }, "sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA=="],
@@ -1403,6 +1411,8 @@
     "is-alphanumerical": ["is-alphanumerical@2.0.1", "", { "dependencies": { "is-alphabetical": "^2.0.0", "is-decimal": "^2.0.0" } }, "sha512-hmbYhX/9MUMF5uh7tOXyK/n0ZvWpad5caBA17GsC6vyuCqaWliRG5K1qS9inmUhEMaOBIW7/whAnSwveW/LtZw=="],
 
     "is-binary-path": ["is-binary-path@2.1.0", "", { "dependencies": { "binary-extensions": "^2.0.0" } }, "sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw=="],
+
+    "is-buffer": ["is-buffer@2.0.5", "", {}, "sha512-i2R6zNFDwgEHJyQUtJEk0XFi1i0dPFn/oqjK3/vPCcDeJvW5NQ83V8QbicfF1SupOaB0h8ntgBC2YiE7dfyctQ=="],
 
     "is-decimal": ["is-decimal@2.0.1", "", {}, "sha512-AAB9hiomQs5DXWcRB1rqsxGUstbRroFOPPVAomNk/3XHR5JyEZChOyTWe2oayKnsSsr/kcGqF+z6yuH6HHpN0A=="],
 
@@ -1711,6 +1721,8 @@
     "normalize-package-data": ["normalize-package-data@6.0.2", "", { "dependencies": { "hosted-git-info": "^7.0.0", "semver": "^7.3.5", "validate-npm-package-license": "^3.0.4" } }, "sha512-V6gygoYb/5EmNI+MEGrWkC+e6+Rr7mTmfHrxDbLzxQogBkgzo76rkok0Am6thgSF7Mv2nLOajAJj5vDJZEFn7g=="],
 
     "normalize-path": ["normalize-path@3.0.0", "", {}, "sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA=="],
+
+    "nspell": ["nspell@2.1.5", "", { "dependencies": { "is-buffer": "^2.0.0" } }, "sha512-PSStyugKMiD9mHmqI/CR5xXrSIGejUXPlo88FBRq5Og1kO5QwQ5Ilu8D8O5I/SHpoS+mibpw6uKA8rd3vXd2Sg=="],
 
     "nth-check": ["nth-check@2.1.1", "", { "dependencies": { "boolbase": "^1.0.0" } }, "sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w=="],
 

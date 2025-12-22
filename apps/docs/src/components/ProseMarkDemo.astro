@@ -26,6 +26,7 @@
   import { printTree } from '@lezer-unofficial/printer';
 
   import initDoc from './initDoc.md?raw';
+  import { createSpellCheckExtensions } from './spellcheck';
 
   const editor = new EditorView({
     extensions: [
@@ -39,6 +40,7 @@
       htmlBlockExtension,
       pasteRichTextExtension(),
       pastePlainTextExtension(),
+      ...createSpellCheckExtensions(),
       keymap.of([
         {
           key: 'Alt-p',

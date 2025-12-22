@@ -20,6 +20,7 @@ import {
   pastePlainTextExtension,
   pasteRichTextExtension,
 } from '@prosemark/paste-rich-text';
+import { createSpellCheckExtensions } from './spellcheck';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -38,6 +39,7 @@ const editor = new EditorView({
     htmlBlockExtension,
     pasteRichTextExtension(),
     pastePlainTextExtension(),
+    ...createSpellCheckExtensions(),
     keymap.of([
       {
         key: 'Alt-p',

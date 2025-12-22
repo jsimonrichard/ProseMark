@@ -46,6 +46,16 @@ const pasteRichText = buildTypeDocEntry(
 // https://astro.build/config
 export default defineConfig({
   site: 'https://prosemark.com',
+  vite: {
+    define: {
+      global: 'globalThis',
+    },
+    resolve: {
+      alias: {
+        buffer: 'buffer',
+      },
+    },
+  },
   integrations: [
     starlight({
       title: 'ProseMark Docs',

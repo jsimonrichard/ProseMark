@@ -1,4 +1,4 @@
-import { StateEffect, StateField } from '@codemirror/state';
+import { Facet, StateEffect, StateField } from '@codemirror/state';
 import {
   EditorView,
   showTooltip,
@@ -7,13 +7,37 @@ import {
   keymap,
   type Command,
 } from '@codemirror/view';
-import {
-  SpellCheckIssue,
-  type Suggestion,
-  suggestionFetcher,
-  spellCheckActions,
-  findIssueAtPos,
-} from './main';
+import { SpellCheckIssue, spellCheckIssues, type Suggestion } from './main';
+
+export interface SpellCheckAction {
+  label: string;
+  execute: (word: string, view: EditorView) => void | Promise<void>;
+}
+
+export interface SpellCheckActionsConfig {
+  actions: SpellCheckAction[];
+}
+
+// Facet for providing a callback to fetch suggestions asynchronously
+export const suggestionFetcher =
+  Facet.define<(word: string) => Promise<Suggestion[]>>();
+
+// Facet for providing extra actions to show in the tooltip
+export const spellCheckActions = Facet.define<
+  (word: string) => SpellCheckActionsConfig,
+  (word: string) => SpellCheckActionsConfig
+>({
+  combine(configs) {
+    return (word: string): SpellCheckActionsConfig => {
+      const allActions: SpellCheckAction[] = [];
+      for (const provider of configs) {
+        const config = provider(word);
+        allActions.push(...config.actions);
+      }
+      return { actions: allActions };
+    };
+  },
+});
 
 // Tooltip state management using a StateField
 export const setTooltip = StateEffect.define<Tooltip | null>();
@@ -243,27 +267,38 @@ export const tooltipState = StateField.define<Tooltip | null>({
 
 // Function to show tooltip at a position
 export function showSpellCheckTooltip(view: EditorView, pos: number): boolean {
-  const found = findIssueAtPos(view, pos);
-  if (!found) return false;
+  const issues = view.state.facet(spellCheckIssues);
+  let tooltipShown = false;
 
-  const { issue, from, to } = found;
+  issues.between(pos, pos, (from, to, issue) => {
+    if (pos < from || pos > to) return false;
+    // Get suggestion fetcher from facet if available
+    const fetchers = view.state.facet(suggestionFetcher);
+    const fetchSuggestions = fetchers.length > 0 ? fetchers[0] : undefined;
 
-  // Get suggestion fetcher from facet if available
-  const fetchers = view.state.facet(suggestionFetcher);
-  const fetchSuggestions = fetchers.length > 0 ? fetchers[0] : undefined;
+    // Create tooltip
+    const tooltip: Tooltip = {
+      pos: pos,
+      end: pos,
+      above: false,
+      create(view) {
+        return new SpellCheckTooltipView(
+          issue,
+          from,
+          to,
+          view,
+          fetchSuggestions,
+        );
+      },
+    };
 
-  // Create tooltip
-  const tooltip: Tooltip = {
-    pos: pos,
-    end: pos,
-    above: false,
-    create(view) {
-      return new SpellCheckTooltipView(issue, from, to, view, fetchSuggestions);
-    },
-  };
+    view.dispatch({ effects: setTooltip.of(tooltip) });
 
-  view.dispatch({ effects: setTooltip.of(tooltip) });
-  return true;
+    tooltipShown = true;
+    return false;
+  });
+
+  return tooltipShown;
 }
 
 // Right-click handler
@@ -272,12 +307,12 @@ export const contextMenuHandler = EditorView.domEventHandlers({
     const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
     if (pos == null) return false;
 
-    const found = findIssueAtPos(view, pos);
-    if (found) {
+    const tooltipShown = showSpellCheckTooltip(view, pos);
+    if (tooltipShown) {
       event.preventDefault();
-      showSpellCheckTooltip(view, pos);
       return true;
     }
+
     return false;
   },
 });
@@ -325,4 +360,90 @@ export const closeTooltipHandlers = [
       },
     },
   ]),
+];
+
+export const spellCheckTooltipTheme = EditorView.theme({
+  '.cm-spellcheck-tooltip': {
+    backgroundColor: 'var(--pm-spellcheck-tooltip-background, #fff) !important',
+    border: '1px solid var(--pm-spellcheck-tooltip-border, #ccc) !important',
+    borderRadius: '4px',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+    padding: '2px',
+    maxWidth: '300px',
+    maxHeight: '50vh',
+    overflowY: 'auto',
+    zIndex: '1000',
+    fontSize: 'var(--pm-spellcheck-tooltip-font-size, 0.9rem)',
+  },
+  '.cm-spellcheck-tooltip-empty': {
+    padding: '4px 6px',
+    color: 'var(--pm-spellcheck-tooltip-text, #666)',
+    fontSize: 'inherit',
+  },
+  '.cm-spellcheck-tooltip-loading': {
+    padding: '4px 6px',
+    color: 'var(--pm-spellcheck-tooltip-text, #666)',
+    fontSize: 'inherit',
+    fontStyle: 'italic',
+  },
+  '.cm-spellcheck-tooltip-error': {
+    padding: '4px 6px',
+    color: 'var(--pm-spellcheck-tooltip-error, #d32f2f)',
+    fontSize: 'inherit',
+  },
+  '.cm-spellcheck-tooltip-suggestions-container': {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  '.cm-spellcheck-tooltip-heading': {
+    padding: '4px 6px',
+    color: 'var(--pm-spellcheck-tooltip-text, #666)',
+    fontSize: '0.85em',
+    fontWeight: '600',
+    borderBottom: '1px solid var(--pm-spellcheck-tooltip-border, #ccc)',
+    marginBottom: '2px',
+  },
+  '.cm-spellcheck-tooltip-suggestions': {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1px',
+  },
+  '.cm-spellcheck-tooltip-actions-container': {
+    display: 'flex',
+    flexDirection: 'column',
+    borderBottom:
+      '1px solid var(--pm-spellcheck-tooltip-actions-border, var(--pm-spellcheck-tooltip-border, #ccc))',
+    marginBottom: '4px',
+    paddingBottom: '4px',
+  },
+  '.cm-spellcheck-tooltip-actions': {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1px',
+  },
+  '.cm-spellcheck-tooltip-item': {
+    padding: '3px 6px',
+    textAlign: 'left',
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    fontSize: 'inherit',
+    color: 'var(--pm-spellcheck-tooltip-text, #333)',
+    borderRadius: '2px',
+    transition: 'background-color 0.1s',
+  },
+  '.cm-spellcheck-tooltip-item:hover': {
+    backgroundColor: 'var(--pm-spellcheck-tooltip-hover, #f0f0f0)',
+  },
+  '.cm-spellcheck-tooltip-item-preferred': {
+    fontWeight: '600',
+  },
+});
+
+export const spellCheckTooltipExtension = [
+  tooltipState,
+  contextMenuHandler,
+  spellCheckKeymap,
+  ...closeTooltipHandlers,
+  spellCheckTooltipTheme,
 ];
