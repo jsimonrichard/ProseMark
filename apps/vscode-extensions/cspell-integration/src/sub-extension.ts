@@ -19,7 +19,7 @@ export class CSpellIntegration implements SubExtension<
   #cSpellApi: CSpell.ExtensionApi;
   #callProcAndForget: CallProc<WebviewProcMap>;
   #callProcWithReturnValue: CallProcWithReturnValue<WebviewProcMap>;
-  #cSpellCheckTimer: NodeJS.Timeout | undefined;
+  #cSpellcheckTimer: NodeJS.Timeout | undefined;
 
   constructor(
     extensionUri: vscode.Uri,
@@ -54,35 +54,35 @@ export class CSpellIntegration implements SubExtension<
   onReady(): void {
     const onReady = async () => {
       await this.#callProcWithReturnValue('setup');
-      await this.#spellCheck();
+      await this.#spellcheck();
     };
     onReady().catch((e: unknown) => {
       console.error(e);
     });
   }
 
-  async #spellCheck() {
+  async #spellcheck() {
     const res = await this.#cSpellApi.checkDocument({
       uri: this.#documentUri.toString(),
     });
     this.#callProcAndForget('updateInfo', res);
   }
 
-  #debouncedSpellCheck() {
-    if (this.#cSpellCheckTimer) {
-      clearTimeout(this.#cSpellCheckTimer);
+  #debouncedSpellcheck() {
+    if (this.#cSpellcheckTimer) {
+      clearTimeout(this.#cSpellcheckTimer);
     }
 
-    this.#cSpellCheckTimer = setTimeout(() => {
-      this.#cSpellCheckTimer = undefined;
-      this.#spellCheck().catch((e: unknown) => {
+    this.#cSpellcheckTimer = setTimeout(() => {
+      this.#cSpellcheckTimer = undefined;
+      this.#spellcheck().catch((e: unknown) => {
         console.error(e);
       });
     }, 500);
   }
 
   onTextDocumentChange(): void {
-    this.#debouncedSpellCheck();
+    this.#debouncedSpellcheck();
   }
 
   procMap: VSCodeExtensionProcMap = {
@@ -90,7 +90,7 @@ export class CSpellIntegration implements SubExtension<
       await this.#cSpellApi.addWordToUserDictionary(word);
       // Re-trigger spellcheck to update issues
       setTimeout(() => {
-        this.#spellCheck().catch((e: unknown) => {
+        this.#spellcheck().catch((e: unknown) => {
           console.error(e);
         });
       }, 100);
@@ -102,12 +102,12 @@ export class CSpellIntegration implements SubExtension<
       );
       // Re-trigger spellcheck to update issues
       setTimeout(() => {
-        this.#spellCheck().catch((e: unknown) => {
+        this.#spellcheck().catch((e: unknown) => {
           console.error(e);
         });
       }, 100);
     },
-    requestSpellCheckSuggestions: async (word) => {
+    requestSpellcheckSuggestions: async (word) => {
       const doc = { uri: this.#documentUri.toString() };
       const suggestions = (
         await this.#cSpellApi

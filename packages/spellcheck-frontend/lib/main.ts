@@ -12,14 +12,14 @@ import {
   ViewUpdate,
 } from '@codemirror/view';
 // Import tooltip-related exports
-import { spellCheckTooltipExtension } from './tooltip';
+import { spellcheckTooltipExtension } from './tooltip';
 
 export interface Suggestion {
   word: string;
   isPreferred?: boolean;
 }
 
-export class SpellCheckIssue extends RangeValue {
+export class SpellcheckIssue extends RangeValue {
   constructor(
     public text: string,
     public suggestions?: Suggestion[],
@@ -27,7 +27,7 @@ export class SpellCheckIssue extends RangeValue {
     super();
   }
 
-  eq(other: SpellCheckIssue): boolean {
+  eq(other: SpellcheckIssue): boolean {
     return (
       this.text === other.text &&
       this.startSide === other.startSide &&
@@ -37,9 +37,9 @@ export class SpellCheckIssue extends RangeValue {
   }
 }
 
-export const spellCheckIssues = Facet.define<
-  RangeSet<SpellCheckIssue>,
-  RangeSet<SpellCheckIssue>
+export const spellcheckIssues = Facet.define<
+  RangeSet<SpellcheckIssue>,
+  RangeSet<SpellcheckIssue>
 >({
   combine(issues) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -52,7 +52,7 @@ const underlineMark = Decoration.mark({ class: 'cm-spellcheck-issue' });
 
 function buildDecorations(
   view: EditorView,
-  issues?: RangeSet<SpellCheckIssue>,
+  issues?: RangeSet<SpellcheckIssue>,
 ): DecorationSet {
   if (!issues) return Decoration.none;
   const builder = new RangeSetBuilder<Decoration>();
@@ -62,20 +62,20 @@ function buildDecorations(
   return builder.finish();
 }
 
-const spellCheckDecorations = ViewPlugin.fromClass(
+const spellcheckDecorations = ViewPlugin.fromClass(
   class SpellcheckDecorations {
     decorations;
     constructor(public view: EditorView) {
-      const issues = view.state.facet(spellCheckIssues);
+      const issues = view.state.facet(spellcheckIssues);
       this.decorations = buildDecorations(view, issues);
     }
     update(update: ViewUpdate) {
       // Rebuild decorations when doc changes or when issues are updated
       if (
-        update.startState.facet(spellCheckIssues) !==
-        update.state.facet(spellCheckIssues)
+        update.startState.facet(spellcheckIssues) !==
+        update.state.facet(spellcheckIssues)
       ) {
-        const issues = update.state.facet(spellCheckIssues);
+        const issues = update.state.facet(spellcheckIssues);
         this.decorations = buildDecorations(update.view, issues);
       }
     }
@@ -85,7 +85,7 @@ const spellCheckDecorations = ViewPlugin.fromClass(
   },
 );
 
-const spellCheckTheme = EditorView.baseTheme({
+const spellcheckTheme = EditorView.baseTheme({
   '.cm-spellcheck-issue': {
     textDecoration: 'underline',
     textDecorationColor: 'var(--pm-spellcheck-issue-underline-color, #037bfc)',
@@ -94,24 +94,24 @@ const spellCheckTheme = EditorView.baseTheme({
   },
 });
 
-export const spellCheckExtension = [
-  spellCheckDecorations,
-  spellCheckTheme,
-  spellCheckTooltipExtension,
+export const spellcheckExtension = [
+  spellcheckDecorations,
+  spellcheckTheme,
+  spellcheckTooltipExtension,
 ];
 
 // Re-export tooltip-related exports
 export {
   setTooltip,
   tooltipState,
-  showSpellCheckTooltip,
+  showSpellcheckTooltip,
   contextMenuHandler,
-  spellCheckKeymap,
+  spellcheckKeymap,
   closeTooltipHandlers,
-  type SpellCheckAction,
-  type SpellCheckActionsConfig,
+  type SpellcheckAction,
+  type SpellcheckActionsConfig,
   suggestionFetcher,
-  spellCheckActions,
-  spellCheckTooltipTheme,
-  spellCheckTooltipExtension,
+  spellcheckActions,
+  spellcheckTooltipTheme,
+  spellcheckTooltipExtension,
 } from './tooltip';

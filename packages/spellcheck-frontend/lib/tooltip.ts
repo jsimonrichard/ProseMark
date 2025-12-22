@@ -7,15 +7,15 @@ import {
   keymap,
   type Command,
 } from '@codemirror/view';
-import { SpellCheckIssue, spellCheckIssues, type Suggestion } from './main';
+import { SpellcheckIssue, spellcheckIssues, type Suggestion } from './main';
 
-export interface SpellCheckAction {
+export interface SpellcheckAction {
   label: string;
   execute: (word: string, view: EditorView) => void | Promise<void>;
 }
 
-export interface SpellCheckActionsConfig {
-  actions: SpellCheckAction[];
+export interface SpellcheckActionsConfig {
+  actions: SpellcheckAction[];
 }
 
 // Facet for providing a callback to fetch suggestions asynchronously
@@ -23,13 +23,13 @@ export const suggestionFetcher =
   Facet.define<(word: string) => Promise<Suggestion[]>>();
 
 // Facet for providing extra actions to show in the tooltip
-export const spellCheckActions = Facet.define<
-  (word: string) => SpellCheckActionsConfig,
-  (word: string) => SpellCheckActionsConfig
+export const spellcheckActions = Facet.define<
+  (word: string) => SpellcheckActionsConfig,
+  (word: string) => SpellcheckActionsConfig
 >({
   combine(configs) {
-    return (word: string): SpellCheckActionsConfig => {
-      const allActions: SpellCheckAction[] = [];
+    return (word: string): SpellcheckActionsConfig => {
+      const allActions: SpellcheckAction[] = [];
       for (const provider of configs) {
         const config = provider(word);
         allActions.push(...config.actions);
@@ -43,9 +43,9 @@ export const spellCheckActions = Facet.define<
 export const setTooltip = StateEffect.define<Tooltip | null>();
 
 // Class that implements TooltipView to manage spellcheck tooltip content
-class SpellCheckTooltipView implements TooltipView {
+class SpellcheckTooltipView implements TooltipView {
   public readonly dom: HTMLElement;
-  readonly #issue: SpellCheckIssue;
+  readonly #issue: SpellcheckIssue;
   readonly #from: number;
   readonly #to: number;
   readonly #fetchSuggestions:
@@ -53,7 +53,7 @@ class SpellCheckTooltipView implements TooltipView {
     | undefined;
 
   constructor(
-    issue: SpellCheckIssue,
+    issue: SpellcheckIssue,
     from: number,
     to: number,
     view: EditorView,
@@ -142,7 +142,7 @@ class SpellCheckTooltipView implements TooltipView {
   }
 
   #createActionsSection(view: EditorView): HTMLElement | null {
-    const actionProvider = view.state.facet(spellCheckActions);
+    const actionProvider = view.state.facet(spellcheckActions);
 
     const config = actionProvider(this.#issue.text);
     if (config.actions.length === 0) {
@@ -266,8 +266,8 @@ export const tooltipState = StateField.define<Tooltip | null>({
 });
 
 // Function to show tooltip at a position
-export function showSpellCheckTooltip(view: EditorView, pos: number): boolean {
-  const issues = view.state.facet(spellCheckIssues);
+export function showSpellcheckTooltip(view: EditorView, pos: number): boolean {
+  const issues = view.state.facet(spellcheckIssues);
   let tooltipShown = false;
 
   issues.between(pos, pos, (from, to, issue) => {
@@ -282,7 +282,7 @@ export function showSpellCheckTooltip(view: EditorView, pos: number): boolean {
       end: pos,
       above: false,
       create(view) {
-        return new SpellCheckTooltipView(
+        return new SpellcheckTooltipView(
           issue,
           from,
           to,
@@ -307,7 +307,7 @@ export const contextMenuHandler = EditorView.domEventHandlers({
     const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
     if (pos == null) return false;
 
-    const tooltipShown = showSpellCheckTooltip(view, pos);
+    const tooltipShown = showSpellcheckTooltip(view, pos);
     if (tooltipShown) {
       event.preventDefault();
       return true;
@@ -320,10 +320,10 @@ export const contextMenuHandler = EditorView.domEventHandlers({
 // Ctrl+. keyboard shortcut handler
 const showSuggestionsCommand: Command = (view) => {
   const pos = view.state.selection.main.head;
-  return showSpellCheckTooltip(view, pos);
+  return showSpellcheckTooltip(view, pos);
 };
 
-export const spellCheckKeymap = keymap.of([
+export const spellcheckKeymap = keymap.of([
   {
     key: 'Ctrl-.',
     run: showSuggestionsCommand,
@@ -362,7 +362,7 @@ export const closeTooltipHandlers = [
   ]),
 ];
 
-export const spellCheckTooltipTheme = EditorView.theme({
+export const spellcheckTooltipTheme = EditorView.theme({
   '.cm-spellcheck-tooltip': {
     backgroundColor: 'var(--pm-spellcheck-tooltip-background, #fff) !important',
     border: '1px solid var(--pm-spellcheck-tooltip-border, #ccc) !important',
@@ -440,10 +440,10 @@ export const spellCheckTooltipTheme = EditorView.theme({
   },
 });
 
-export const spellCheckTooltipExtension = [
+export const spellcheckTooltipExtension = [
   tooltipState,
   contextMenuHandler,
-  spellCheckKeymap,
+  spellcheckKeymap,
   ...closeTooltipHandlers,
-  spellCheckTooltipTheme,
+  spellcheckTooltipTheme,
 ];

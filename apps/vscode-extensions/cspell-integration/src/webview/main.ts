@@ -4,12 +4,12 @@ import {
   registerWebviewMessagePoster,
 } from '@prosemark/vscode-extension-integrator/webview';
 import {
-  SpellCheckIssue,
-  spellCheckExtension,
+  SpellcheckIssue,
+  spellcheckExtension,
   suggestionFetcher,
-  spellCheckActions,
-  type SpellCheckActionsConfig,
-  spellCheckIssues,
+  spellcheckActions,
+  type SpellcheckActionsConfig,
+  spellcheckIssues,
 } from '@prosemark/spellcheck-frontend';
 import type {
   CallbackFromProcMap,
@@ -42,7 +42,7 @@ const procs: WebviewProcMap = {
     const fetchSuggestions = async (word: string) => {
       try {
         const suggestions = await callProcWithReturnValue(
-          'requestSpellCheckSuggestions',
+          'requestSpellcheckSuggestions',
           word,
         );
         return suggestions;
@@ -53,7 +53,7 @@ const procs: WebviewProcMap = {
     };
 
     // Create actions for adding words to dictionaries
-    const createActions = (word: string): SpellCheckActionsConfig => ({
+    const createActions = (word: string): SpellcheckActionsConfig => ({
       actions: [
         {
           label: `Add "${word}" to workspace dictionary`,
@@ -88,9 +88,9 @@ const procs: WebviewProcMap = {
       effects:
         window.proseMark.extraCodeMirrorExtensions?.reconfigure([
           spellcheckIssueCompartment.of([]),
-          spellCheckExtension,
+          spellcheckExtension,
           suggestionFetcher.of(fetchSuggestions),
-          spellCheckActions.of(createActions),
+          spellcheckActions.of(createActions),
         ]) ?? [],
     });
   },
@@ -123,11 +123,11 @@ const procs: WebviewProcMap = {
         return result;
       });
 
-      return new SpellCheckIssue(is.text, suggestions).range(from, to);
+      return new SpellcheckIssue(is.text, suggestions).range(from, to);
     });
     window.proseMark?.view?.dispatch({
       effects: spellcheckIssueCompartment.reconfigure([
-        spellCheckIssues.of(RangeSet.of(issue_ranges)),
+        spellcheckIssues.of(RangeSet.of(issue_ranges)),
       ]),
     });
   },

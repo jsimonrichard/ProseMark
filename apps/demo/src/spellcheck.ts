@@ -7,12 +7,12 @@ import {
   StateEffect,
 } from '@codemirror/state';
 import {
-  spellCheckExtension,
-  SpellCheckIssue,
-  spellCheckIssues,
+  spellcheckExtension,
+  SpellcheckIssue,
+  spellcheckIssues,
   suggestionFetcher,
-  spellCheckActions,
-  type SpellCheckActionsConfig,
+  spellcheckActions,
+  type SpellcheckActionsConfig,
 } from '@prosemark/spellcheck-frontend';
 import NSpell from 'nspell';
 import affData from 'dictionary-en/index.aff?raw';
@@ -21,7 +21,7 @@ import dicData from 'dictionary-en/index.dic?raw';
 const nspell = new NSpell(affData, dicData);
 
 // StateEffect to trigger spellcheck refresh after adding a word
-const refreshSpellCheck = StateEffect.define<void>();
+const refreshSpellcheck = StateEffect.define<void>();
 
 // Function to extract words from text (simple word boundary regex)
 function extractWords(
@@ -40,47 +40,47 @@ function extractWords(
   return words;
 }
 
-const getIssues = (state: EditorState): RangeSet<SpellCheckIssue> => {
+const getIssues = (state: EditorState): RangeSet<SpellcheckIssue> => {
   const text = state.doc.toString();
   const words = extractWords(text);
-  const builder = new RangeSetBuilder<SpellCheckIssue>();
+  const builder = new RangeSetBuilder<SpellcheckIssue>();
 
   for (const { word, from, to } of words) {
     if (!nspell.correct(word)) {
       console.log('misspelled word', word);
-      builder.add(from, to, new SpellCheckIssue(word));
+      builder.add(from, to, new SpellcheckIssue(word));
     }
   }
 
   return builder.finish();
 };
 
-// View plugin that computes spell check issues and dispatches them via setSpellCheckIssues
-const nSpellCheckExtension = StateField.define<RangeSet<SpellCheckIssue>>({
+// View plugin that computes spell check issues and dispatches them via setSpellcheckIssues
+const nSpellcheckExtension = StateField.define<RangeSet<SpellcheckIssue>>({
   create(state) {
     return getIssues(state);
   },
 
   update(
-    value: RangeSet<SpellCheckIssue>,
+    value: RangeSet<SpellcheckIssue>,
     tr: Transaction,
-  ): RangeSet<SpellCheckIssue> {
+  ): RangeSet<SpellcheckIssue> {
     if (tr.docChanged) {
       return getIssues(tr.state);
     }
     // Check if refresh effect was dispatched
     for (const effect of tr.effects) {
-      if (effect.is(refreshSpellCheck)) {
+      if (effect.is(refreshSpellcheck)) {
         return getIssues(tr.state);
       }
     }
     return value;
   },
-  provide: (field) => spellCheckIssues.from(field),
+  provide: (field) => spellcheckIssues.from(field),
 });
 
 // Create actions for adding words to dictionary
-const createActions = (word: string): SpellCheckActionsConfig => ({
+const createActions = (word: string): SpellcheckActionsConfig => ({
   actions: [
     {
       label: `Add "${word}" to dictionary`,
@@ -88,7 +88,7 @@ const createActions = (word: string): SpellCheckActionsConfig => ({
         nspell.add(word);
         // Trigger a refresh of spellcheck issues
         view.dispatch({
-          effects: [refreshSpellCheck.of(undefined)],
+          effects: [refreshSpellcheck.of(undefined)],
         });
       },
     },
@@ -96,15 +96,15 @@ const createActions = (word: string): SpellCheckActionsConfig => ({
 });
 
 // Export the extensions needed for spellcheck
-export function createSpellCheckExtensions() {
+export function createSpellcheckExtensions() {
   return [
-    spellCheckExtension,
-    nSpellCheckExtension,
+    spellcheckExtension,
+    nSpellcheckExtension,
     suggestionFetcher.of((word) =>
       Promise.resolve(
         nspell.suggest(word).map((suggestion) => ({ word: suggestion })),
       ),
     ),
-    spellCheckActions.of(createActions),
+    spellcheckActions.of(createActions),
   ];
 }
