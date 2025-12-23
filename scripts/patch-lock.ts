@@ -1,24 +1,3 @@
-// import fs from 'fs';
-// import JSON5 from 'json5';
-
-// const lockPath = 'bun.lock';
-// const lock = JSON5.parse(fs.readFileSync(lockPath, 'utf8'));
-
-// for (const workspacePath in lock.workspaces) {
-//   const pkg = JSON5.parse(
-//     fs.readFileSync(`./${workspacePath}/package.json`, 'utf8'),
-//   );
-
-//   if (lock.workspaces[workspacePath].version !== pkg.version) {
-//     lock.workspaces[workspacePath].version = pkg.version;
-//     console.log(`Updated ${workspacePath} → ${pkg.version}`);
-//   }
-// }
-
-// fs.writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
-// console.log('✔️  bun.lock workspace versions patched');
-
-// scripts/patch-lock.js
 import fs from 'fs';
 import {
   parse,
