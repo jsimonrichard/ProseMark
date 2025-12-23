@@ -134,13 +134,6 @@
         "typescript": "^5.9.2",
       },
     },
-    "apps/vscode-extensions/main-extension-pack": {
-      "name": "vscode-prosemark-extension-pack",
-      "version": "0.0.0",
-      "dependencies": {
-        "@vscode/vsce": "^3.7.1",
-      },
-    },
     "packages/core": {
       "name": "@prosemark/core",
       "version": "0.0.4",
@@ -2234,8 +2227,6 @@
     "vscode-prosemark": ["vscode-prosemark@workspace:apps/vscode-extensions/core"],
 
     "vscode-prosemark-cspell-integration": ["vscode-prosemark-cspell-integration@workspace:apps/vscode-extensions/cspell-integration"],
-
-    "vscode-prosemark-extension-pack": ["vscode-prosemark-extension-pack@workspace:apps/vscode-extensions/main-extension-pack"],
 
     "w3c-keyname": ["w3c-keyname@2.2.8", "", {}, "sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ=="],
 
