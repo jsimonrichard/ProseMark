@@ -1,5 +1,16 @@
 # vscode-prosemark
 
+## 0.0.5
+
+### Patch Changes
+
+- 358c360: Reload editors when a new sub-extension is registered
+- 4ae4baf: Add basic spellcheck abilities
+- 0e7b2b2: Create a sub extension system allowing secondary vscode extensions to provide the main extension with additional functionality
+- Updated dependencies [358c360]
+- Updated dependencies [0e7b2b2]
+  - @prosemark/vscode-extension-integrator@0.0.1
+
 ## 0.0.4
 
 ### Patch Changes
