@@ -22,5 +22,8 @@
   ],
   "dependencies": {
     "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "version": "bun changeset version && bun scripts/patch-lock.ts"
   }
 }
