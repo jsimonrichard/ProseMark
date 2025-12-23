@@ -1,6 +1,6 @@
 {
-  "name": "@prosemark/paste-rich-text",
-  "version": "0.0.2",
+  "name": "@prosemark/spellcheck-frontend",
+  "version": "0.0.0",
   "repository": {
     "url": "https://github.com/jsimonrichard/ProseMark",
     "type": "github"
@@ -32,8 +32,7 @@
   "keywords": [],
   "dependencies": {
     "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.39.4",
-    "@types/turndown": "^5.0.6",
-    "turndown": "^7.2.2"
+    "@codemirror/view": "^6.38.0",
+    "@prosemark/core": "workspace:*"
   }
 }

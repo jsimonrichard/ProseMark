@@ -1,0 +1,84 @@
+{
+  "name": "vscode-prosemark",
+  "displayName": "ProseMark",
+  "description": "A \"What You See Is What You Mean\" editor, like Typora or Obsidian",
+  "publisher": "jsimonrichard",
+  "version": "0.0.4",
+  "repository": {
+    "type": "GitHub",
+    "url": "https://github.com/jsimonrichard/ProseMark"
+  },
+  "author": {
+    "name": "J. Simon Richard",
+    "url": "https://jsimonrichard.com"
+  },
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other",
+    "Extension Packs"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "prosemark.editor",
+        "displayName": "ProseMark",
+        "selector": [
+          {
+            "filenamePattern": "*.md"
+          }
+        ]
+      }
+    ]
+  },
+  "extensionPack": [
+    "streetsidesoftware.code-spell-checker",
+    "jsimonrichard.vscode-prosemark-cspell-integration"
+  ],
+  "scripts": {
+    "vscode:prepublish": "bun run build",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "build": "bun run check-types && bun run lint && tsdown",
+    "dev": "tsc --noEmit && concurrently \"tsc -w\" \"tsdown --watch\"",
+    "build-tests": "tsc -p . --outDir out",
+    "dev-tests": "tsc -p . -w --outDir out",
+    "pretest": "bun run build-tests && bun run build && bun run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "dependencies": {
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@codemirror/language": "^6.11.3",
+    "@codemirror/language-data": "^6.5.2",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.39.4",
+    "@cspell/cspell-types": "^9.5.0",
+    "@lezer-unofficial/printer": "^1.0.1",
+    "@lezer/markdown": "^1.6.1",
+    "@prosemark/core": "workspace:*",
+    "@prosemark/paste-rich-text": "workspace:*",
+    "@prosemark/render-html": "workspace:*",
+    "@prosemark/vscode-extension-integrator": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.10.4",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/parser": "^8.50.0",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.7.1",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.2",
+    "tsdown": "^0.14.2",
+    "typescript": "^5.9.3"
+  }
+}

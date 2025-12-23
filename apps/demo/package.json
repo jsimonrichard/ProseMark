@@ -25,6 +25,9 @@
     "@prosemark/core": "workspace:*",
     "@prosemark/paste-rich-text": "workspace:*",
     "@prosemark/render-html": "workspace:*",
-    "codemirror": "^6.0.2"
+    "@prosemark/spellcheck-frontend": "workspace:*",
+    "codemirror": "^6.0.2",
+    "dictionary-en": "^3.2.0",
+    "nspell": "^2.1.5"
   }
 }

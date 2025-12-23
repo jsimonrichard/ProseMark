@@ -1,11 +1,5 @@
 {
   "name": "prosemark-workspace",
-  "private": true,
-  "type": "module",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "devDependencies": {
     "@changesets/cli": "^2.29.5",
     "@eslint/js": "^9.38.0",
@@ -19,5 +13,14 @@
     "turbo": "^2.5.5",
     "typescript-eslint": "^8.46.2"
   },
-  "packageManager": "bun@1.2.17"
+  "packageManager": "bun@1.2.17",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/**",
+    "packages/**"
+  ],
+  "dependencies": {
+    "typescript": "^5.9.3"
+  }
 }

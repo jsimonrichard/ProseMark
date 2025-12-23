@@ -13,25 +13,48 @@ import {
   pasteRichTextExtension,
 } from '@prosemark/paste-rich-text';
 import { GFM } from '@lezer/markdown';
-import { EditorState, StateEffect } from '@codemirror/state';
+import { Compartment, EditorState, StateEffect } from '@codemirror/state';
 import type {
   Change,
-  VSCodeMessage,
-  VSCodeProcMap,
-  WebViewMessage,
+  VSCodeExtensionProcMap,
+  WebviewProcMap,
+  WordCountVSCodeProcs,
 } from '../common';
 import './style.css';
 import { indentUnit } from '@codemirror/language';
-// import { vim } from '@replit/codemirror-vim';
+import {
+  registerWebviewMessageHandler,
+  registerWebviewMessagePoster,
+} from '@prosemark/vscode-extension-integrator/webview';
+import * as CodeMirrorState from '@codemirror/state';
+import * as CodeMirrorView from '@codemirror/view';
 
-interface VSCodeAPI {
-  postMessage: (m: WebViewMessage) => void;
-}
+declare const acquireVsCodeApi: () => unknown;
 
-declare const acquireVsCodeApi: () => VSCodeAPI;
-const vscode: VSCodeAPI = acquireVsCodeApi();
+window.proseMark ??= {};
+window.proseMark.vscode = acquireVsCodeApi();
+window.proseMark.extraCodeMirrorExtensions = new Compartment();
+// Register external modules to be available to other scripts in the webview
+window.proseMark.externalModules = {
+  '@codemirror/view': CodeMirrorView,
+  '@codemirror/state': CodeMirrorState,
+};
 
-let view: EditorView | undefined;
+const { callProcAndForget, callProcWithReturnValue: _callProcWithReturnValue } =
+  registerWebviewMessagePoster<'core', VSCodeExtensionProcMap>(
+    'core',
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    window.proseMark.vscode as any,
+  );
+
+const { callProcAndForget: callWordCountProc } = registerWebviewMessagePoster<
+  'core.word-count',
+  WordCountVSCodeProcs
+>(
+  'core.word-count',
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  window.proseMark.vscode as any,
+);
 
 // Send updates to VS Code about text changes and word count
 const updateVSCodeExtension = EditorView.updateListener.of((update) => {
@@ -46,16 +69,10 @@ const updateVSCodeExtension = EditorView.updateListener.of((update) => {
         ? 0
         : textToAnalyze.trim().split(/\s+/).length;
     const charCount = textToAnalyze.length;
-    vscode.postMessage({
-      type: 'updateWordCountMsg',
-      value: {
-        wordCount,
-        charCount,
-      },
-    });
+    callWordCountProc('updateWordCount', wordCount, charCount);
   }
 
-  if (update.docChanged && view) {
+  if (update.docChanged && window.proseMark?.view) {
     update.transactions
       .filter((t) => !t.isUserEvent('updateFromVSCode'))
       .map((t) => {
@@ -75,10 +92,7 @@ const updateVSCodeExtension = EditorView.updateListener.of((update) => {
           });
         });
 
-        vscode.postMessage({
-          type: 'update',
-          value: changes,
-        });
+        callProcAndForget('update', changes);
       });
   }
 });
@@ -95,7 +109,7 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
       prosemarkBasicSetup(),
       prosemarkBaseThemeSetup(),
       clickLinkHandler.of((url) => {
-        vscode.postMessage({ type: 'linkClick', value: url });
+        callProcAndForget('linkClick', url);
       }),
       htmlBlockExtension,
       pasteRichTextExtension(
@@ -121,6 +135,7 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
         }
       }),
       updateVSCodeExtension,
+      window.proseMark?.extraCodeMirrorExtensions?.of([]) ?? [],
     ],
   });
 
@@ -143,34 +158,39 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
   return view_;
 };
 
-const procs: VSCodeProcMap = {
-  init: ({ text, vimModeEnabled, ...dynamicConfig }) => {
-    view = buildEditor(text, vimModeEnabled);
+const procs: WebviewProcMap = {
+  init: (text, { vimModeEnabled, ...dynamicConfig }) => {
+    window.proseMark ??= {};
+    window.proseMark.view = buildEditor(text, vimModeEnabled);
     procs.setDynamicConfig(dynamicConfig);
     procs.focus();
   },
   set: (text) => {
-    view?.dispatch({
-      changes: { from: 0, to: view.state.doc.length, insert: text },
+    window.proseMark?.view?.dispatch({
+      changes: {
+        from: 0,
+        to: window.proseMark.view.state.doc.length,
+        insert: text,
+      },
       userEvent: 'updateFromVSCode',
     });
   },
   update: (changes) => {
-    if (!view) {
+    if (!window.proseMark?.view) {
       throw new Error(
-        'ProseMark state and view should have been rebuilt already',
+        'ProseMark state and view should have been built already',
       );
     }
 
-    view.dispatch({
+    window.proseMark.view.dispatch({
       changes: changes.map((c) => {
         // Calculate document position using line and char (col) numbers
         // switch to 1-based line numbers
 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const fromLine = view!.state.doc.line(c.fromLine + 1);
+        const fromLine = window.proseMark!.view!.state.doc.line(c.fromLine + 1);
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const toLine = view!.state.doc.line(c.toLine + 1);
+        const toLine = window.proseMark!.view!.state.doc.line(c.toLine + 1);
 
         return {
           from: fromLine.from + c.fromChar,
@@ -181,27 +201,22 @@ const procs: VSCodeProcMap = {
       userEvent: 'updateFromVSCode',
     });
   },
-  focus: () => view?.focus(),
+  focus: () => {
+    window.proseMark?.view?.focus();
+  },
   setDynamicConfig: (dynamicConfig) => {
     const { tabSize = 2, insertSpaces = true } = dynamicConfig;
     const indentUnit_ = insertSpaces ? ' '.repeat(tabSize) : '\t';
-    if (view) {
+    if (window.proseMark?.view) {
       const indentEffect = StateEffect.appendConfig.of([
         EditorState.tabSize.of(tabSize),
         indentUnit.of(indentUnit_),
       ]);
-      view.dispatch({ effects: indentEffect });
+      window.proseMark.view.dispatch({ effects: indentEffect });
     }
     return;
   },
 };
 
-window.addEventListener('message', (event) => {
-  const message = event.data as VSCodeMessage;
-  if ('value' in message) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    procs[message.type](message.value as any);
-  } else {
-    procs[message.type]();
-  }
-});
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+registerWebviewMessageHandler('core', procs, window.proseMark.vscode as any);

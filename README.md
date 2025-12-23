@@ -24,4 +24,4 @@ This project is structured as a set of extensions for [CodeMirror 6](https://cod
 
 ## Getting Starting
 
-🚧 Under construction 🚧
+https://prosemark.com/guides/getting-started/

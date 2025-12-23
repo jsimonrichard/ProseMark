@@ -1,0 +1,11 @@
+:root {
+    /* Spellcheck tooltip colors reusing existing VSCode theme variables from core */
+    --pm-spellcheck-tooltip-background: var(--vscode-textCodeBlock-background);
+    --pm-spellcheck-tooltip-border: var(
+        --vscode-editor-inactiveSelectionBackground
+    );
+    --pm-spellcheck-tooltip-actions-border: var(--vscode-editorWidget-border);
+    --pm-spellcheck-tooltip-text: var(--vscode-foreground);
+    --pm-spellcheck-tooltip-hover: var(--vscode-button-hoverBackground);
+    --pm-spellcheck-tooltip-error: var(--vscode-errorForeground);
+}

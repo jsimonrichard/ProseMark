@@ -39,13 +39,27 @@ const renderHtml = buildTypeDocEntry(
   '../../packages/render-html',
 );
 const pasteRichText = buildTypeDocEntry(
-  '@prosemark/pasteRichText',
+  '@prosemark/paste-rich-text',
   '../../packages/paste-rich-text',
+);
+const spellcheckFrontend = buildTypeDocEntry(
+  '@prosemark/spellcheck-frontend',
+  '../../packages/spellcheck-frontend',
 );
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://prosemark.com',
+  vite: {
+    define: {
+      global: 'globalThis',
+    },
+    resolve: {
+      alias: {
+        buffer: 'buffer',
+      },
+    },
+  },
   integrations: [
     starlight({
       title: 'ProseMark Docs',
@@ -71,10 +85,16 @@ export default defineConfig({
             core.sidebarGroup,
             renderHtml.sidebarGroup,
             pasteRichText.sidebarGroup,
+            spellcheckFrontend.sidebarGroup,
           ],
         },
       ],
-      plugins: [core.plugin, renderHtml.plugin, pasteRichText.plugin],
+      plugins: [
+        core.plugin,
+        renderHtml.plugin,
+        pasteRichText.plugin,
+        spellcheckFrontend.plugin,
+      ],
 
       editLink: {
         baseUrl:

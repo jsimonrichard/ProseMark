@@ -6,7 +6,8 @@
       "type": "extensionHost",
       "request": "launch",
       "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}/apps/vscode-extension"
+        "--extensionDevelopmentPath=${workspaceFolder}/apps/vscode-extensions/core",
+        "--extensionDevelopmentPath=${workspaceFolder}/apps/vscode-extensions/cspell-integration"
       ],
       "outFiles": ["${workspaceFolder}/apps/vscode-extension/dist/**/*.js"]
     }

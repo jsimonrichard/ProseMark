@@ -32,3 +32,9 @@ These features are illustrated in our [Demo](/demo).
 - Makes it possible to paste rich text as fully-formatted markdown.
 
 - Provides the `Ctrl/Cmd+Shift+V` command for pasting without formatting.
+
+## `@prosemark/spellcheck-frontend`
+
+- Provides tools for managing spellcseck issue tatee inside CodeMirror
+
+- Provides an underline decoration and a spellcheck suggestion tooltip

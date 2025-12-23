@@ -1,0 +1,54 @@
+{
+  "name": "@prosemark/vscode-extension-integrator",
+  "version": "0.0.0",
+  "repository": {
+    "url": "https://github.com/jsimonrichard/ProseMark",
+    "type": "github"
+  },
+  "author": {
+    "name": "J. Simon Richard",
+    "url": "https://jsimonrichard.com"
+  },
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "import": "./dist/main.js",
+      "default": "./dist/main.js"
+    },
+    "./webview": {
+      "types": "./dist/webview.d.ts",
+      "import": "./dist/webview.js",
+      "default": "./dist/webview.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.d.ts"
+    },
+    "./rolldown-plugin": {
+      "types": "./dist/rolldown-plugin.d.ts",
+      "import": "./dist/rolldown-plugin.js",
+      "default": "./dist/rolldown-plugin.js"
+    }
+  },
+  "scripts": {
+    "dev": "tsdown --watch",
+    "build": "tsdown",
+    "lint": "eslint --max-warnings=0",
+    "check-types": "tsc",
+    "ci:publish": "bash ../../scripts/ci-publish.sh"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.39.4"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.107.0",
+    "rolldown": "^1.0.0-beta.55"
+  }
+}

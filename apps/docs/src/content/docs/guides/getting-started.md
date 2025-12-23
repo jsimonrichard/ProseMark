@@ -14,6 +14,8 @@ ProseMark is a set of extensions for, not a replacement of, [CodeMirror](https:/
 The main npm package for ProseMark is `@prosemark/core`; install that using your package manager of choice. You may also be interested in installing these optional ProseMark packages:
 
 - `@prosemark/render-html`: renders HTML tags within the markdown content. Supports most standard attributes; sanitized using [DOMPurify](https://github.com/cure53/DOMPurify).
+- `@prosemark/paste-rich-text`: allows pasting rich text as markdown.
+- `@prosemark/spellcheck-fronted`: adds UI for spellchecking.
 
 You will also need to install some standard CodeMirror packages:
 
@@ -106,6 +108,14 @@ ProseMark can be styled using CSS variables. The following CSS is used in our de
   --pm-syntax-comment: oklch(62.79% 0.022 252.89);
   --pm-syntax-invalid: oklch(64.62% 0.203 29.2);
   --pm-cursor-color: black;
+
+  --pm-spellcheck-tooltip-background: oklch(100% 0 0);
+  --pm-spellcheck-tooltip-border: oklch(82% 0.005 264);
+  --pm-spellcheck-tooltip-text: oklch(30% 0.02 264);
+  --pm-spellcheck-tooltip-error: oklch(55% 0.22 29);
+  --pm-spellcheck-tooltip-hover: oklch(96% 0.005 264);
+  --pm-spellcheck-tooltip-actions-border: oklch(82% 0.005 264);
+  --pm-spellcheck-tooltip-font-size: 0.9rem;
 }
 
 :root[data-theme='dark'] {
@@ -132,6 +142,13 @@ ProseMark can be styled using CSS variables. The following CSS is used in our de
   --pm-syntax-comment: oklch(74.9% 0.02 252.89);
   --pm-syntax-invalid: oklch(75.93% 0.182 28.91);
   --pm-cursor-color: white;
+
+  --pm-spellcheck-tooltip-background: oklch(25% 0.02 264);
+  --pm-spellcheck-tooltip-border: oklch(40% 0.02 264);
+  --pm-spellcheck-tooltip-text: oklch(75% 0.02 264);
+  --pm-spellcheck-tooltip-error: oklch(65% 0.22 29);
+  --pm-spellcheck-tooltip-hover: oklch(35% 0.02 264);
+  --pm-spellcheck-tooltip-actions-border: oklch(40% 0.02 264);
 }
 
 #codemirror-container {
