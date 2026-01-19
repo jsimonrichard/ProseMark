@@ -12,7 +12,7 @@ import * as ProseMark from '@prosemark/core';
 import { htmlBlockExtension } from '@prosemark/render-html';
 import { indentWithTab } from '@codemirror/commands';
 import { GFM } from '@lezer/markdown';
-import { syntaxTree } from '@codemirror/language';
+import { indentUnit, syntaxTree } from '@codemirror/language';
 import { printTree } from '@lezer-unofficial/printer';
 import initDoc from './initDoc.md?raw';
 import { traverseTreePlugin } from './traverseTreePlugin';
@@ -51,9 +51,10 @@ const editor = new EditorView({
         },
       },
     ]),
+    indentUnit.of('\t'),
     // traverseTreePlugin,
   ],
-  doc: initDoc,
+  doc: "- Howdy",// initDoc,
   parent: document.getElementById('codemirror-container')!,
 });
 
