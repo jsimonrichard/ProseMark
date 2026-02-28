@@ -65,7 +65,11 @@ const buildDecorations = (state: EditorState) => {
           }
         }
 
-        if (selectionTouchesNodeRange && !spec.keepOnSelection) {
+        if (spec.nodeDecoration) {
+          decorations.push(spec.nodeDecoration.range(node.from, node.to));
+        }
+
+        if (selectionTouchesNodeRange) {
           continue;
         }
 
@@ -124,6 +128,7 @@ export const hideExtension = StateField.define<DecorationSet>({
 
 export interface HidableNodeSpec {
   nodeName: string | string[] | ((nodeName: string) => boolean);
+  nodeDecoration?: Decoration;
   subNodeNameToHide?: string | string[];
   onHide?: (
     state: EditorState,
@@ -131,7 +136,6 @@ export interface HidableNodeSpec {
   ) => Range<Decoration> | Range<Decoration>[] | undefined;
   block?: boolean;
   keepSpace?: boolean;
-  keepOnSelection?: boolean;
   unhideZone?: (state: EditorState, node: SyntaxNodeRef) => RangeLike;
 }
 
