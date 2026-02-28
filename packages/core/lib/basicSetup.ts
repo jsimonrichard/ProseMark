@@ -40,9 +40,11 @@ import {
 } from './syntaxHighlighting';
 import { softIndentExtension } from './softIndentExtension';
 import { revealBlockOnArrowExtension } from './revealBlockOnArrow';
+import { nestedLinkTextMarkdownSyntaxExtension } from './nestedLinkText';
 
 export const prosemarkMarkdownSyntaxExtensions = [
   additionalMarkdownSyntaxTags,
+  nestedLinkTextMarkdownSyntaxExtension,
   escapeMarkdownSyntaxExtension,
   emojiMarkdownSyntaxExtension,
   dashMarkdownSyntaxExtension
