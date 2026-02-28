@@ -114,9 +114,23 @@ export const hideExtension = StateField.define<DecorationSet>({
   },
 
   update(deco, tr) {
-    if (tr.docChanged || tr.selection) {
+    if (tr.docChanged) {
       return buildDecorations(tr.state);
     }
+
+    if (tr.selection) {
+      const hasRangeSelection = tr.state.selection.ranges.some(
+        (range) => !range.empty,
+      );
+
+      // Rebuilding hide decorations on every mouse-move selection tick can
+      // destabilize line tiles in complex blocks (like fenced code). Only
+      // rebuild eagerly for cursor/caret movement, not active range drags.
+      if (!hasRangeSelection) {
+        return buildDecorations(tr.state);
+      }
+    }
+
     return deco.map(tr.changes);
   },
   provide: (f) => [EditorView.decorations.from(f), hideTheme],

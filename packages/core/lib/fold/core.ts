@@ -91,9 +91,19 @@ export const foldExtension = StateField.define<DecorationSet>({
   },
 
   update(deco, tr) {
-    if (tr.docChanged || tr.selection) {
+    if (tr.docChanged) {
       return buildDecorations(tr.state);
     }
+
+    if (tr.selection) {
+      const hasRangeSelection = tr.state.selection.ranges.some(
+        (range) => !range.empty,
+      );
+      if (!hasRangeSelection) {
+        return buildDecorations(tr.state);
+      }
+    }
+
     return deco.map(tr.changes);
   },
   provide: (f) => [EditorView.decorations.from(f)],
