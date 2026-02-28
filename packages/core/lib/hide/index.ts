@@ -42,7 +42,21 @@ const defaultHidableSpecs: HidableNodeSpec[] = [
     nodeName: 'InlineCode',
     subNodeNameToHide: 'CodeMark',
     onHide: (_state, node) => {
-      return inlineCodeDecoration.range(node.from, node.to);
+      const startMark = node.node.firstChild;
+      const endMark = node.node.lastChild;
+      if (
+        !startMark ||
+        !endMark ||
+        startMark.type.name !== 'CodeMark' ||
+        endMark.type.name !== 'CodeMark'
+      ) {
+        return;
+      }
+
+      const from = startMark.to;
+      const to = endMark.from;
+      if (from >= to) return;
+      return inlineCodeDecoration.range(from, to);
     },
   },
   {
