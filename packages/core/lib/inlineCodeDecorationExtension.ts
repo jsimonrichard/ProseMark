@@ -31,8 +31,8 @@ const buildDecorations = (state: EditorState): DecorationSet => {
         return;
       }
 
-      const from = startMark.to;
-      const to = endMark.from;
+      const from = startMark.from;
+      const to = endMark.to;
       if (from >= to) return;
       builder.add(from, to, inlineCodeDecoration);
     },
