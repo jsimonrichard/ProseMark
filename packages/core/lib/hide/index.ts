@@ -13,6 +13,9 @@ export { hideExtension } from './core';
 const renderedLinkDecoration = Decoration.mark({
   class: 'cm-rendered-link',
 });
+const inlineCodeDecoration = Decoration.mark({
+  class: 'cm-inline-code',
+});
 
 const defaultHidableSpecs: HidableNodeSpec[] = [
   {
@@ -38,6 +41,23 @@ const defaultHidableSpecs: HidableNodeSpec[] = [
   {
     nodeName: 'InlineCode',
     subNodeNameToHide: 'CodeMark',
+    onHide: (_state, node) => {
+      const startMark = node.node.firstChild;
+      const endMark = node.node.lastChild;
+      if (
+        !startMark ||
+        !endMark ||
+        startMark.type.name !== 'CodeMark' ||
+        endMark.type.name !== 'CodeMark'
+      ) {
+        return;
+      }
+
+      const from = startMark.to;
+      const to = endMark.from;
+      if (from >= to) return;
+      return inlineCodeDecoration.range(from, to);
+    },
   },
   {
     nodeName: 'Link',
