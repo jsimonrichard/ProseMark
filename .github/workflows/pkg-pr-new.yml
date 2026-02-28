@@ -33,4 +33,11 @@ jobs:
       - name: Lint
         run: bun turbo lint -F "{packages/*}"
 
-      - run: bunx pkg-pr-new publish 'packages/*' --template 'apps/demo'
+      - name: Prepare StackBlitz demo template
+        run: |
+          rm -rf .pkg-pr-new-demo-template
+          cp -R apps/demo .pkg-pr-new-demo-template
+          cp tsconfig.base.json .pkg-pr-new-demo-template/tsconfig.base.json
+          sed -i 's#\.\./\.\./tsconfig\.base\.json#./tsconfig.base.json#' .pkg-pr-new-demo-template/tsconfig.json
+
+      - run: bunx pkg-pr-new publish 'packages/*' --template '.pkg-pr-new-demo-template'
