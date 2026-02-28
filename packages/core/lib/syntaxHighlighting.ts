@@ -74,6 +74,9 @@ export const baseSyntaxHighlights = syntaxHighlighting(
       fontVariantLigatures: 'none',
       fontFeatureSettings: '"calt" 0',
       fontKerning: 'none',
+      padding: '0.2rem 0',
+      fontSize: '0.8rem',
+      backgroundColor: 'var(--pm-code-background-color)',
     },
     {
       tag: markdownTags.linkURL,
@@ -135,16 +138,6 @@ export const baseTheme = EditorView.theme({
   },
   '.cm-image-block': {
     paddingLeft: '6px',
-  },
-  '.cm-inline-code': {
-    fontFamily: codeFontFamily,
-    fontVariantLigatures: 'none',
-    fontFeatureSettings: '"calt" 0',
-    fontKerning: 'none',
-    padding: '0.2rem',
-    borderRadius: '0.4rem',
-    fontSize: '0.8rem',
-    backgroundColor: 'var(--pm-code-background-color)',
   },
 });
 
