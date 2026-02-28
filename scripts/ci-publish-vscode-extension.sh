@@ -33,6 +33,11 @@ is_truthy_flag() {
   esac
 }
 
+contains_already_exists_error() {
+  local output="${1,,}"
+  [[ "${output}" == *"already exists"* ]]
+}
+
 EXTENSION_ID="${PUBLISHER}.${NAME}"
 SAFE_NAME=${EXTENSION_ID//\//-}
 VSIX_PATH=$(mktemp "/tmp/${SAFE_NAME}-${VERSION}-XXXXXX.vsix")
@@ -98,7 +103,7 @@ if ! ${has_marketplace_release}; then
   marketplace_status=$?
   set -e
   if [[ ${marketplace_status} -ne 0 ]]; then
-    if rg -qi "already exists" <<<"${marketplace_publish_output}"; then
+    if contains_already_exists_error "${marketplace_publish_output}"; then
       echo "VS Code Marketplace already contains ${EXTENSION_ID}@${VERSION}, skipping."
     else
       echo "${marketplace_publish_output}"
@@ -120,9 +125,15 @@ if ! ${has_openvsx_release}; then
   # Capture output so "already exists" can be treated as a safe no-op.
   openvsx_publish_output=$(bunx ovsx publish "${VSIX_PATH}" --pat "${OVSX_PAT}" 2>&1)
   openvsx_status=$?
+  if [[ ${openvsx_status} -ne 0 && "${openvsx_publish_output,,}" == *"lru_cache_1.lrucache is not a constructor"* ]]; then
+    # Bun can resolve an incompatible lru-cache for ovsx in CI; retry with npm's resolver.
+    echo "bunx ovsx failed with an LRUCache constructor error, retrying with npx ovsx..."
+    openvsx_publish_output=$(npx --yes ovsx@latest publish "${VSIX_PATH}" --pat "${OVSX_PAT}" 2>&1)
+    openvsx_status=$?
+  fi
   set -e
   if [[ ${openvsx_status} -ne 0 ]]; then
-    if rg -qi "already exists" <<<"${openvsx_publish_output}"; then
+    if contains_already_exists_error "${openvsx_publish_output}"; then
       echo "Open VSX already contains ${EXTENSION_ID}@${VERSION}, skipping."
     else
       echo "${openvsx_publish_output}"
