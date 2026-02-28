@@ -56,12 +56,15 @@ function parseParenthesizedSegment(cx: InlineContext, start: number): number {
   return -1;
 }
 
-export const nestedLinkTextMarkdownSyntaxExtension: MarkdownConfig = {
+export const nestedLinkAsPlainText: MarkdownConfig = {
   parseInline: [
     {
-      name: 'NestedLinkText',
+      name: 'NestedLinkAsPlainText',
       before: 'Link',
       parse: (cx: InlineContext, next: number, pos: number): number => {
+        // Only intercept `[` inside an already-open link label, so nested
+        // link syntax is treated as plain text while other inline syntax
+        // (like `**bold**`) is still parsed by the normal markdown parsers.
         if (next !== 91 /* [ */ || !cx.hasOpenLink) return -1;
 
         const labelEnd = parseBracketedSegment(cx, pos);
