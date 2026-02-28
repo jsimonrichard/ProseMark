@@ -21,6 +21,27 @@
         "typescript-eslint": "^8.46.2",
       },
     },
+    "apps/debug-vscode-parity": {
+      "name": "debug-vscode-parity",
+      "dependencies": {
+        "@codemirror/lang-markdown": "^6.5.0",
+        "@codemirror/language": "^6.11.3",
+        "@codemirror/language-data": "^6.5.2",
+        "@codemirror/state": "^6.5.2",
+        "@codemirror/view": "^6.39.4",
+        "@lezer/markdown": "^1.6.1",
+        "@prosemark/core": "workspace:*",
+        "@prosemark/paste-rich-text": "workspace:*",
+        "@prosemark/render-html": "workspace:*",
+        "@prosemark/spellcheck-frontend": "workspace:*",
+        "dictionary-en": "^3.2.0",
+        "nspell": "^2.1.5",
+      },
+      "devDependencies": {
+        "typescript": "^5.2.2",
+        "vite": "^5.3.1",
+      },
+    },
     "apps/demo": {
       "name": "demo",
       "dependencies": {
@@ -1073,6 +1094,8 @@
     "csso": ["csso@5.0.5", "", { "dependencies": { "css-tree": "~2.2.0" } }, "sha512-0LrrStPOdJj+SPCCrGhzryycLjwcgUSHBtxNA8aIDxf0GLsRh1cKYhB00Gd1lDOS4yGH69+SNn13+TWbVHETFQ=="],
 
     "debug": ["debug@4.4.3", "", { "dependencies": { "ms": "^2.1.3" } }, "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA=="],
+
+    "debug-vscode-parity": ["debug-vscode-parity@workspace:apps/debug-vscode-parity"],
 
     "decamelize": ["decamelize@4.0.0", "", {}, "sha512-9iE1PgSik9HeIIw2JO94IidnE3eBoQrFJ3w7sFuzSX4DpmZ3v5sZpUiV5Swcf6mQEF+Y0ru8Neo+p+nyh2J+hQ=="],
 

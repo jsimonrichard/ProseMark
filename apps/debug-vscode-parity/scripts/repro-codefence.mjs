@@ -4,7 +4,16 @@ import { promises as fs } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const playwrightModulePath = process.env.PLAYWRIGHT_MODULE ?? 'playwright';
-const { chromium } = await import(playwrightModulePath);
+let chromium;
+try {
+  ({ chromium } = await import(playwrightModulePath));
+} catch (error) {
+  console.error(
+    'Could not load Playwright. Install it in an isolated directory and set PLAYWRIGHT_MODULE, or add it to this workspace before running repro:codefence.',
+  );
+  console.error(String(error));
+  process.exit(1);
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
