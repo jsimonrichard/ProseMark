@@ -9,7 +9,7 @@ These features are illustrated in our [Demo](/demo).
 
 - Inline styles including italics, bold text, code spans, and strike-throughs. Highlights using the `==highlight==` syntax are planned.
 
-- Both ATX Headings (`# My Heading`) and Setext Headings (headings over top a line with `=====` or `-----`) are supported.
+- Both ATX Headings (`# My Heading`) and Setext Headings (headings over a line with `=====` or `-----`) are supported.
 
 - Unordered lists using `-` and ordered lists using `1.` are supported. Ordered lists using `+` are not yet supported.
 
@@ -20,6 +20,8 @@ These features are illustrated in our [Demo](/demo).
 - Block quotes (including nested block quotes) are supported.
 
 - Horizontal rules using the `---` syntax are supported.
+
+- YAML frontmatter blocks at the top of a document (`---` ... `---`) are supported and parsed as YAML.
 
 ## `@prosemark/render-html`
 
@@ -35,6 +37,6 @@ These features are illustrated in our [Demo](/demo).
 
 ## `@prosemark/spellcheck-frontend`
 
-- Provides tools for managing spellcseck issue tatee inside CodeMirror
+- Provides tools for managing spellcheck issue state inside CodeMirror.
 
 - Provides an underline decoration and a spellcheck suggestion tooltip
