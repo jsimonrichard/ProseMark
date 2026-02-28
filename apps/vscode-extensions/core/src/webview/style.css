@@ -15,6 +15,7 @@
     --pm-link-color: var(--vscode-textLink-foreground);
     --pm-muted-color: var(--vscode-icon-foreground);
     --pm-code-background-color: var(--vscode-textCodeBlock-background);
+    --pm-code-font: var(--vscode-editor-font-family);
     --pm-code-btn-background-color: var(--vscode-button-background);
     --pm-code-btn-hover-background-color: var(--vscode-button-hoverBackground);
     --pm-blockquote-vertical-line-background-color: var(

@@ -7,6 +7,10 @@ import {
   type TagStyle,
 } from '@codemirror/language';
 
+const fallbackMonospaceCodeFont =
+  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
+const codeFontFamily = `var(--pm-code-font, ${fallbackMonospaceCodeFont})`;
+
 export const additionalMarkdownSyntaxTags = {
   // Define new nodes with tags here
   defineNodes: [],
@@ -66,7 +70,10 @@ export const baseSyntaxHighlights = syntaxHighlighting(
     },
     {
       tag: markdownTags.inlineCode,
-      fontFamily: 'monospace',
+      fontFamily: codeFontFamily,
+      fontVariantLigatures: 'none',
+      fontFeatureSettings: '"calt" 0',
+      fontKerning: 'none',
       padding: '0.2rem',
       borderRadius: '0.4rem',
       fontSize: '0.8rem',
