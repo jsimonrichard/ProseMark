@@ -42,6 +42,9 @@ h1 {
     --font:
         Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
         'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --pm-code-font:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        'Liberation Mono', 'Courier New', monospace;
 
     --pm-blockquote-vertical-line-background-color: gray;
 }
