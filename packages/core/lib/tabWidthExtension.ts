@@ -8,6 +8,10 @@ import {
   type ViewUpdate,
 } from '@codemirror/view';
 
+// Issue #96 ("Text Vibrating like crazy"):
+// Native tab rendering can vary enough to throw off softIndentExtension's pixel
+// measurements. Replacing each visible tab with a fixed-width widget keeps
+// indentation width deterministic and prevents jitter.
 const TAB_CHARACTER = '\t';
 const TAB_WIDTH_CH = 4;
 
@@ -28,10 +32,6 @@ const fixedTabDecoration = Decoration.replace({
   widget: new FixedTabWidthWidget(),
 });
 
-// Issue #96 ("Text Vibrating like crazy"):
-// Native tab rendering can vary enough to throw off softIndentExtension's pixel
-// measurements. Replacing each visible tab with a fixed-width widget keeps
-// indentation width deterministic and prevents jitter.
 const buildTabWidthDecorations = (view: EditorView): DecorationSet => {
   const builder = new RangeSetBuilder<Decoration>();
   const visitedTabPositions = new Set<number>();
