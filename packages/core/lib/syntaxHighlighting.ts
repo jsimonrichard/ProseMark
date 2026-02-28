@@ -18,7 +18,6 @@ export const additionalMarkdownSyntaxTags = {
     // Override tags here
     styleTags({
       HeaderMark: markdownTags.headerMark,
-      CodeMark: markdownTags.codeMark,
       FencedCode: markdownTags.fencedCode,
       InlineCode: markdownTags.inlineCode,
       URL: markdownTags.linkURL,
@@ -40,10 +39,6 @@ export const baseSyntaxHighlights = syntaxHighlighting(
     {
       tag: markdownTags.headerMark,
       color: 'var(--pm-header-mark-color)',
-    },
-    {
-      tag: markdownTags.codeMark,
-      color: 'currentColor',
     },
     {
       tag: tags.strong,
@@ -72,13 +67,6 @@ export const baseSyntaxHighlights = syntaxHighlighting(
     {
       tag: markdownTags.escapeMark,
       color: 'var(--pm-muted-color)',
-    },
-    {
-      tag: markdownTags.inlineCode,
-      fontFamily: codeFontFamily,
-      fontVariantLigatures: 'none',
-      fontFeatureSettings: '"calt" 0',
-      fontKerning: 'none',
     },
     {
       tag: markdownTags.linkURL,
