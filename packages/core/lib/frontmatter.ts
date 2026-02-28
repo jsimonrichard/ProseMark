@@ -41,6 +41,12 @@ const hasClosingDelimiterAhead = (cx: BlockContext, afterPos: number): boolean =
   return /(?:^|\n)(?:---|\.\.\.)[ \t]*(?:\n|$)/.test(rest);
 };
 
+const isAtDocumentStart = (cx: BlockContext): boolean => {
+  const input = (cx as unknown as { input?: Input }).input;
+  if (!input) return cx.lineStart === 0;
+  return input.read(0, cx.lineStart).trim().length === 0;
+};
+
 export const isFrontmatterInfo = (info: string): boolean =>
   info.trim() === FRONTMATTER_INFO_SENTINEL;
 
@@ -71,7 +77,7 @@ export const frontmatterMarkdownSyntaxExtension: MarkdownConfig = {
       name: 'Frontmatter',
       before: 'HorizontalRule',
       parse: (cx: BlockContext, line: Line): boolean => {
-        if (cx.lineStart !== 0 || !isDelimiterLine(line)) return false;
+        if (!isAtDocumentStart(cx) || !isDelimiterLine(line)) return false;
         if (!looksLikeFrontmatterBodyStart(cx.peekLine())) return false;
         if (!hasClosingDelimiterAhead(cx, cx.lineStart + line.text.length + 1))
           return false;
