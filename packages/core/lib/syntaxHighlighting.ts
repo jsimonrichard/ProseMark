@@ -19,7 +19,6 @@ export const additionalMarkdownSyntaxTags = {
     styleTags({
       HeaderMark: markdownTags.headerMark,
       FencedCode: markdownTags.fencedCode,
-      InlineCode: markdownTags.inlineCode,
       URL: markdownTags.linkURL,
       ListMark: markdownTags.listMark,
     }),
