@@ -70,7 +70,7 @@ export const frontmatterMarkdownSyntaxExtension: MarkdownConfig = {
     {
       name: 'Frontmatter',
       before: 'HorizontalRule',
-      parse: (cx, line) => {
+      parse: (cx: BlockContext, line: Line): boolean => {
         if (cx.lineStart !== 0 || !isDelimiterLine(line)) return false;
         if (!looksLikeFrontmatterBodyStart(cx.peekLine())) return false;
         if (!hasClosingDelimiterAhead(cx, cx.lineStart + line.text.length + 1))
