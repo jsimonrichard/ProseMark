@@ -46,6 +46,7 @@
     "package": "vsce package",
     "publish": "vsce publish",
     "ci:publish": "bash ../../../scripts/ci-publish-vscode-extension.sh",
+    "ci:publish:dry-run": "DRY_RUN=1 bash ../../../scripts/ci-publish-vscode-extension.sh",
     "build": "bun run check-types && bun run lint && tsdown",
     "dev": "tsc --noEmit && concurrently \"tsc -w\" \"tsdown --watch\"",
     "build-tests": "tsc -p . --outDir out",

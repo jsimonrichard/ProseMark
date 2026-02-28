@@ -5,6 +5,7 @@ set -euo pipefail
 NAME=$(jq -r '.name' package.json)
 PUBLISHER=$(jq -r '.publisher' package.json)
 VERSION=$(jq -r '.version' package.json)
+DRY_RUN=${DRY_RUN:-false}
 
 if [[ -z "${NAME}" || "${NAME}" == "null" ]]; then
   echo "Unable to publish extension: missing package.json name."
@@ -20,6 +21,17 @@ if [[ -z "${VERSION}" || "${VERSION}" == "null" ]]; then
   echo "Unable to publish extension: missing package.json version."
   exit 1
 fi
+
+is_true() {
+  case "${1,,}" in
+  1 | true | yes | on)
+    return 0
+    ;;
+  *)
+    return 1
+    ;;
+  esac
+}
 
 EXTENSION_ID="${PUBLISHER}.${NAME}"
 SAFE_NAME=${EXTENSION_ID//\//-}
@@ -51,6 +63,22 @@ fi
 
 echo "Packaging ${EXTENSION_ID}@${VERSION}..."
 bunx @vscode/vsce package --no-dependencies --out "${VSIX_PATH}"
+
+if is_true "${DRY_RUN}"; then
+  if ! ${has_marketplace_release}; then
+    echo "DRY RUN: would publish ${EXTENSION_ID}@${VERSION} to VS Code Marketplace."
+  else
+    echo "DRY RUN: VS Code Marketplace already contains ${EXTENSION_ID}@${VERSION}, would skip."
+  fi
+
+  if ! ${has_openvsx_release}; then
+    echo "DRY RUN: would publish ${EXTENSION_ID}@${VERSION} to Open VSX."
+  else
+    echo "DRY RUN: Open VSX already contains ${EXTENSION_ID}@${VERSION}, would skip."
+  fi
+
+  exit 0
+fi
 
 if ! ${has_marketplace_release}; then
   if [[ -z "${VSCE_PAT:-}" ]]; then
