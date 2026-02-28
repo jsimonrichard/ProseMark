@@ -118,7 +118,8 @@ const procs: WebviewProcMap = {
   },
 
   updateInfo: ({ issues }) => {
-    if (!window.proseMark?.view) {
+    const view = window.proseMark?.view;
+    if (!view) {
       return;
     }
 
@@ -151,7 +152,7 @@ const procs: WebviewProcMap = {
       })
       .filter(isDefined);
 
-    window.proseMark?.view?.dispatch({
+    view.dispatch({
       effects: spellcheckIssueCompartment.reconfigure([
         spellcheckIssues.of(RangeSet.of(issueRanges)),
       ]),

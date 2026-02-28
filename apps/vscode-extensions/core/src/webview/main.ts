@@ -171,11 +171,12 @@ const recoverFromStateMismatch = async (
 };
 
 window.addEventListener('error', (event) => {
+  const details = event.error ? formatUnknownError(event.error) : undefined;
   reportFrontendError({
     source: 'window.error',
     severity: 'fatal',
     message: event.message || 'Unhandled frontend error in ProseMark webview.',
-    details: event.error ? formatUnknownError(event.error) : undefined,
+    ...(details ? { details } : {}),
   });
 });
 

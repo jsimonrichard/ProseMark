@@ -85,8 +85,8 @@ export class Core implements SubExtension<
     linkClick: (link) => {
       void this.#followLink(link, this.#document.uri);
     },
-    requestFullDocument: async () => {
-      return this.#document.getText();
+    requestFullDocument: () => {
+      return Promise.resolve(this.#document.getText());
     },
     reportFrontendError: (error) => {
       this.#handleFrontendError(error);
