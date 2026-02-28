@@ -41,6 +41,7 @@ const defaultHidableSpecs: HidableNodeSpec[] = [
   {
     nodeName: 'InlineCode',
     subNodeNameToHide: 'CodeMark',
+    keepOnSelection: true,
     onHide: (_state, node) => {
       const startMark = node.node.firstChild;
       const endMark = node.node.lastChild;
