@@ -41,9 +41,11 @@ import {
 import { softIndentExtension } from './softIndentExtension';
 import { fixedTabWidthExtension } from './tabWidthExtension';
 import { revealBlockOnArrowExtension } from './revealBlockOnArrow';
+import { nestedLinkAsPlainText } from './nestedLinkAsPlainText';
 
 export const prosemarkMarkdownSyntaxExtensions = [
   additionalMarkdownSyntaxTags,
+  nestedLinkAsPlainText,
   escapeMarkdownSyntaxExtension,
   emojiMarkdownSyntaxExtension,
   dashMarkdownSyntaxExtension
