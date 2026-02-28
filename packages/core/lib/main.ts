@@ -6,6 +6,7 @@ export * from './markdownTags';
 export * from './clickLink';
 export * from './softIndentExtension';
 export * from './codeFenceExtension';
+export * from './inlineCodeDecorationExtension';
 
 export * from './basicSetup';
 

@@ -31,6 +31,7 @@ import {
   codeBlockDecorationsExtension,
   codeFenceTheme,
 } from './codeFenceExtension';
+import { inlineCodeDecorationExtension } from './inlineCodeDecorationExtension';
 import {
   additionalMarkdownSyntaxTags,
   baseSyntaxHighlights,
@@ -51,6 +52,7 @@ export const prosemarkMarkdownSyntaxExtensions = [
 export const prosemarkBasicSetup = (): Extension => [
   // ProseMark Setup
   defaultHideExtensions,
+  inlineCodeDecorationExtension,
   defaultFoldableSyntaxExtensions,
   revealBlockOnArrowExtension,
   clickLinkExtension,
