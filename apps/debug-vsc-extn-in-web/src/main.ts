@@ -71,7 +71,18 @@ const editor = new EditorView({
   parent: editorParent,
 });
 
-editorParent.addEventListener('click', () => {
+editorParent.addEventListener('click', (event) => {
+  const clickTarget = event.target;
+  const clickedInsideEditor =
+    clickTarget instanceof Node && editor.dom.contains(clickTarget);
+
+  if (!clickedInsideEditor) {
+    editor.dispatch({
+      selection: { anchor: editor.state.doc.length },
+      scrollIntoView: true,
+    });
+  }
+
   if (
     document.activeElement !== editorParent &&
     !editorParent.contains(document.activeElement)
