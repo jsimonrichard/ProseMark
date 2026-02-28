@@ -33,4 +33,4 @@ jobs:
       - name: Lint
         run: bun turbo lint -F "{packages/*}"
 
-      - run: bunx pkg-pr-new publish 'packages/*'
+      - run: bunx pkg-pr-new publish 'packages/*' --template 'apps/demo'
