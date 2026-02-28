@@ -58,7 +58,7 @@ jobs:
           version: bun run version
           # ChangeSets splits this into an array of string args, so we don't add quotes to the filter
           # --env-mode=loose makes sure that the OIDC vars are passed to the publish scripts
-          publish: bun turbo ci:publish -F {packages/*} -F {apps/vscode-extensions/*} --env-mode=loose
+          publish: bun turbo ci:publish -F {packages/*} --env-mode=loose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VSCE_PAT: ${{ secrets.VSCE_PAT }}

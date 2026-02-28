@@ -123,14 +123,9 @@ if ! ${has_openvsx_release}; then
   echo "Publishing ${EXTENSION_ID}@${VERSION} to Open VSX..."
   set +e
   # Capture output so "already exists" can be treated as a safe no-op.
-  openvsx_publish_output=$(bunx ovsx publish "${VSIX_PATH}" --pat "${OVSX_PAT}" 2>&1)
+  # Use npm's resolver for ovsx to avoid Bun's transient dependency resolution issues in CI.
+  openvsx_publish_output=$(npx --yes ovsx@latest publish "${VSIX_PATH}" --pat "${OVSX_PAT}" 2>&1)
   openvsx_status=$?
-  if [[ ${openvsx_status} -ne 0 && "${openvsx_publish_output,,}" == *"lru_cache_1.lrucache is not a constructor"* ]]; then
-    # Bun can resolve an incompatible lru-cache for ovsx in CI; retry with npm's resolver.
-    echo "bunx ovsx failed with an LRUCache constructor error, retrying with npx ovsx..."
-    openvsx_publish_output=$(npx --yes ovsx@latest publish "${VSIX_PATH}" --pat "${OVSX_PAT}" 2>&1)
-    openvsx_status=$?
-  fi
   set -e
   if [[ ${openvsx_status} -ne 0 ]]; then
     if contains_already_exists_error "${openvsx_publish_output}"; then
