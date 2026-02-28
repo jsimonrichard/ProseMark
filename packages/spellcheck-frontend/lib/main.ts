@@ -3,6 +3,7 @@ import {
   RangeValue,
   RangeSetBuilder,
   Facet,
+  Prec,
 } from '@codemirror/state';
 import {
   Decoration,
@@ -103,7 +104,7 @@ const spellcheckTheme = EditorView.baseTheme({
 });
 
 export const spellcheckExtension = [
-  spellcheckDecorations,
+  Prec.lowest(spellcheckDecorations),
   spellcheckTheme,
   spellcheckTooltipExtension,
 ];
