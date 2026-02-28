@@ -1,6 +1,6 @@
 import { EditorView } from '@codemirror/view';
 import { styleTags, Tag, tags } from '@lezer/highlight';
-import { markdownTags } from './markdownTags';
+import { markdownTags } from './markdown/tags';
 import {
   HighlightStyle,
   syntaxHighlighting,

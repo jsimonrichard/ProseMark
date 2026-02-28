@@ -3,11 +3,9 @@ import {
   type HidableNodeSpec,
   hidableNodeFacet,
   hideInlineDecoration,
-  hideInlineKeepSpaceDecoration,
 } from './core';
 import type { InlineContext, MarkdownConfig } from '@lezer/markdown';
-import { markdownTags } from '../markdownTags';
-import { isFrontmatterFencedCodeNode } from '../frontmatter';
+import { markdownTags } from '../markdown/tags';
 import { stateWORDAt } from '../utils';
 
 export { hideExtension } from './core';
@@ -63,19 +61,8 @@ const defaultHidableSpecs: HidableNodeSpec[] = [
   },
   {
     nodeName: 'FencedCode',
-    onHide: (state, node) => {
-      if (isFrontmatterFencedCodeNode(state, node)) return;
-
-      const decorations: ReturnType<typeof hideInlineKeepSpaceDecoration.range>[] = [];
-      node.node.cursor().iterate((childNode) => {
-        if (childNode.type.name === 'CodeMark' || childNode.type.name === 'CodeInfo') {
-          decorations.push(
-            hideInlineKeepSpaceDecoration.range(childNode.from, childNode.to),
-          );
-        }
-      });
-      return decorations;
-    },
+    subNodeNameToHide: ['CodeMark', 'CodeInfo'],
+    keepSpace: true,
   },
   {
     nodeName: 'Blockquote',

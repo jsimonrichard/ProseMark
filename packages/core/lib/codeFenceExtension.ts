@@ -9,7 +9,10 @@ import { RangeSetBuilder } from '@codemirror/state';
 import type { DecorationSet } from '@codemirror/view';
 import { WidgetType } from '@codemirror/view';
 import { type Extension } from '@codemirror/state';
-import { isFrontmatterFencedCodeNode } from './frontmatter';
+import {
+  FRONTMATTER_LANGUAGE_LABEL,
+  isFrontmatterNode,
+} from './markdown/frontmatter';
 
 const codeBlockDecorations = (view: EditorView) => {
   const builder = new RangeSetBuilder<Decoration>();
@@ -23,19 +26,33 @@ const codeBlockDecorations = (view: EditorView) => {
       from,
       to,
       enter: (node) => {
-        if (node.name === 'FencedCode') {
+        const isFencedCode = node.name === 'FencedCode';
+        const isFrontmatter = isFrontmatterNode(node);
+
+        if (isFencedCode || isFrontmatter) {
           const key = JSON.stringify([node.from, node.to]);
           if (visited.has(key)) return;
           visited.add(key);
 
           let lang = '';
-          const codeInfoNode = node.node.getChild('CodeInfo');
-          if (codeInfoNode) {
-            lang = isFrontmatterFencedCodeNode(view.state, node)
-              ? 'YAML (FRONTMATTER)'
-              : view.state.doc
-                  .sliceString(codeInfoNode.from, codeInfoNode.to)
-                  .toUpperCase();
+          let code = '';
+          if (isFrontmatter) {
+            lang = FRONTMATTER_LANGUAGE_LABEL;
+            const contentNode = node.node.getChild('FrontmatterContent');
+            code = contentNode
+              ? view.state.doc.sliceString(contentNode.from, contentNode.to)
+              : '';
+          } else {
+            const codeInfoNode = node.node.getChild('CodeInfo');
+            if (codeInfoNode) {
+              lang = view.state.doc
+                .sliceString(codeInfoNode.from, codeInfoNode.to)
+                .toUpperCase();
+            }
+            const firstLine = view.state.doc.lineAt(node.from);
+            const codeStart = firstLine.to + 1;
+            const codeEnd = Math.max(codeStart, node.to - 4);
+            code = view.state.doc.sliceString(codeStart, codeEnd);
           }
 
           for (let pos = node.from; pos <= node.to; ) {
@@ -60,7 +77,7 @@ const codeBlockDecorations = (view: EditorView) => {
                 Decoration.widget({
                   widget: new CodeBlockInfoWidget(
                     lang,
-                    view.state.doc.sliceString(line.to + 1, node.to - 4),
+                    code,
                   ),
                 }),
               );

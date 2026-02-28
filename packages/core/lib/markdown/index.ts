@@ -1,15 +1,16 @@
 import { dashMarkdownSyntaxExtension, emojiMarkdownSyntaxExtension } from '../fold';
-import { frontmatterMarkdownSyntaxExtension } from '../frontmatter';
 import { escapeMarkdownSyntaxExtension } from '../hide';
 import { additionalMarkdownSyntaxTags } from '../syntaxHighlighting';
+import { frontmatterMarkdownSyntaxExtension } from './frontmatter';
+import { nestedLinkAsPlainText } from './nestedLinkAsPlainText';
 
-export { markdownTags } from '../markdownTags';
+export { markdownTags } from './tags';
 export {
-  FRONTMATTER_INFO_SENTINEL,
-  isFrontmatterFencedCodeNode,
-  isFrontmatterInfo,
+  FRONTMATTER_LANGUAGE_LABEL,
+  isFrontmatterNode,
   frontmatterMarkdownSyntaxExtension,
-} from '../frontmatter';
+} from './frontmatter';
+export { nestedLinkAsPlainText } from './nestedLinkAsPlainText';
 export { escapeMarkdownSyntaxExtension } from '../hide';
 export { additionalMarkdownSyntaxTags } from '../syntaxHighlighting';
 export { emojiMarkdownSyntaxExtension, dashMarkdownSyntaxExtension } from '../fold';
@@ -17,6 +18,7 @@ export { emojiMarkdownSyntaxExtension, dashMarkdownSyntaxExtension } from '../fo
 export const prosemarkMarkdownSyntaxExtensions = [
   additionalMarkdownSyntaxTags,
   frontmatterMarkdownSyntaxExtension,
+  nestedLinkAsPlainText,
   escapeMarkdownSyntaxExtension,
   emojiMarkdownSyntaxExtension,
   dashMarkdownSyntaxExtension,
