@@ -35,6 +35,13 @@ const buildDecorations = (state: EditorState) => {
 
   syntaxTree(state).iterate({
     enter: (node) => {
+      // If the selection overlaps with the node, don't hide it
+      if (
+        state.selection.ranges.some((range) => rangeTouchesRange(node, range))
+      ) {
+        return;
+      }
+
       for (const spec of specs) {
         // Check spec
         if (spec.nodeName instanceof Function) {
@@ -49,20 +56,12 @@ const buildDecorations = (state: EditorState) => {
           continue;
         }
 
-        const selectionTouchesNode = state.selection.ranges.some((range) =>
-          rangeTouchesRange(node, range),
-        );
-        if (selectionTouchesNode && spec.unhideOnSelection !== false) {
-          continue;
-        }
-
         // Check custom show zone
         if (spec.unhideZone) {
           const res = spec.unhideZone(state, node);
-          const zones = Array.isArray(res) ? res : [res];
           if (
             state.selection.ranges.some((range) =>
-              zones.some((zone) => rangeTouchesRange(zone, range)),
+              rangeTouchesRange(res, range),
             )
           ) {
             return;
@@ -114,23 +113,9 @@ export const hideExtension = StateField.define<DecorationSet>({
   },
 
   update(deco, tr) {
-    if (tr.docChanged) {
+    if (tr.docChanged || tr.selection) {
       return buildDecorations(tr.state);
     }
-
-    if (tr.selection) {
-      const hasRangeSelection = tr.state.selection.ranges.some(
-        (range) => !range.empty,
-      );
-
-      // Rebuilding hide decorations on every mouse-move selection tick can
-      // destabilize line tiles in complex blocks (like fenced code). Only
-      // rebuild eagerly for cursor/caret movement, not active range drags.
-      if (!hasRangeSelection) {
-        return buildDecorations(tr.state);
-      }
-    }
-
     return deco.map(tr.changes);
   },
   provide: (f) => [EditorView.decorations.from(f), hideTheme],
@@ -145,11 +130,7 @@ export interface HidableNodeSpec {
   ) => Range<Decoration> | Range<Decoration>[] | undefined;
   block?: boolean;
   keepSpace?: boolean;
-  unhideZone?: (
-    state: EditorState,
-    node: SyntaxNodeRef,
-  ) => RangeLike | RangeLike[];
-  unhideOnSelection?: boolean;
+  unhideZone?: (state: EditorState, node: SyntaxNodeRef) => RangeLike;
 }
 
 const checkSpec = (spec: HidableNodeSpec) => {

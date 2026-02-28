@@ -7,6 +7,7 @@ import {
 import { syntaxTree } from '@codemirror/language';
 import { RangeSetBuilder } from '@codemirror/state';
 import type { DecorationSet } from '@codemirror/view';
+import { WidgetType } from '@codemirror/view';
 import { type Extension } from '@codemirror/state';
 
 const codeBlockDecorations = (view: EditorView) => {
@@ -26,6 +27,14 @@ const codeBlockDecorations = (view: EditorView) => {
           if (visited.has(key)) return;
           visited.add(key);
 
+          let lang = '';
+          const codeInfoNode = node.node.getChild('CodeInfo');
+          if (codeInfoNode) {
+            lang = view.state.doc
+              .sliceString(codeInfoNode.from, codeInfoNode.to)
+              .toUpperCase();
+          }
+
           for (let pos = node.from; pos <= node.to; ) {
             const line = view.state.doc.lineAt(pos);
             const isFirstLine = pos === node.from;
@@ -41,6 +50,19 @@ const codeBlockDecorations = (view: EditorView) => {
               }),
             );
 
+            if (isFirstLine) {
+              builder.add(
+                line.from,
+                line.from,
+                Decoration.widget({
+                  widget: new CodeBlockInfoWidget(
+                    lang,
+                    view.state.doc.sliceString(line.to + 1, node.to - 4),
+                  ),
+                }),
+              );
+            }
+
             pos = line.to + 1;
           }
         }
@@ -50,6 +72,52 @@ const codeBlockDecorations = (view: EditorView) => {
 
   return builder.finish();
 };
+
+class CodeBlockInfoWidget extends WidgetType {
+  constructor(
+    readonly lang: string,
+    readonly code: string,
+  ) {
+    super();
+  }
+
+  eq(other: CodeBlockInfoWidget) {
+    return other.lang === this.lang && other.code === this.code;
+  }
+
+  toDOM() {
+    const container = document.createElement('span');
+    container.className = 'cm-code-block-info';
+    container.setAttribute('contenteditable', 'false');
+
+    const langContainer = document.createElement('span');
+    langContainer.className = 'cm-code-block-lang-container';
+    langContainer.innerText = this.lang;
+    container.appendChild(langContainer);
+
+    const copyButton = document.createElement('button');
+    copyButton.className = 'cm-code-block-copy-button';
+    // Copy icon from Lucide
+    copyButton.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg"
+        width="16" height="16" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        class="lucide lucide-copy-icon lucide-copy">
+          <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+          <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+      </svg>`;
+    copyButton.onclick = () => {
+      void navigator.clipboard.writeText(this.code);
+    };
+    container.appendChild(copyButton);
+
+    return container;
+  }
+
+  ignoreEvent(_event: Event): boolean {
+    return true;
+  }
+}
 
 export const codeBlockDecorationsExtension: Extension = ViewPlugin.fromClass(
   class {

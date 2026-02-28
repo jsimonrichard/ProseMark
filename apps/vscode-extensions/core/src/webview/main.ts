@@ -109,10 +109,23 @@ const getDocOffset = (
   return line.from + clampedChar;
 };
 
-const replaceEditorDocumentText = (text: string): boolean => {
+const replaceEditorDocumentText = (
+  text: string,
+  options?: { resetSelectionBeforeReplace?: boolean },
+): boolean => {
   const view = window.proseMark?.view;
   if (!view) {
     return false;
+  }
+
+  if (options?.resetSelectionBeforeReplace) {
+    const selection = view.state.selection.main;
+    if (selection.anchor !== 0 || selection.head !== 0) {
+      view.dispatch({
+        selection: { anchor: 0 },
+        userEvent: 'updateFromVSCode',
+      });
+    }
   }
 
   view.dispatch({
@@ -121,6 +134,7 @@ const replaceEditorDocumentText = (text: string): boolean => {
       to: view.state.doc.length,
       insert: text,
     },
+    selection: { anchor: 0 },
     userEvent: 'updateFromVSCode',
   });
   return true;
@@ -139,7 +153,9 @@ const recoverFromStateMismatch = async (
 
   try {
     const latestText = await callProcWithReturnValue('requestFullDocument');
-    const didReplaceText = replaceEditorDocumentText(latestText);
+    const didReplaceText = replaceEditorDocumentText(latestText, {
+      resetSelectionBeforeReplace: true,
+    });
     if (!didReplaceText) {
       reportFrontendError({
         source,
@@ -300,7 +316,11 @@ const procs: WebviewProcMap = {
     procs.focus();
   },
   set: (text) => {
-    if (!replaceEditorDocumentText(text)) {
+    if (
+      !replaceEditorDocumentText(text, {
+        resetSelectionBeforeReplace: true,
+      })
+    ) {
       reportFrontendError({
         source: 'core.set',
         severity: 'fatal',

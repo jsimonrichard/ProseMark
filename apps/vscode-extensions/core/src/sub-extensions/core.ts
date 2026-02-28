@@ -203,7 +203,7 @@ export class Core implements SubExtension<
     }
     this.#hasShownFatalErrorMessage = true;
     const choice = await vscode.window.showErrorMessage(
-      'ProseMark encountered an unrecoverable editor error and may be out of sync. Reopen this editor to recover.',
+      'ProseMark encountered a serious editor error. It may still recover, but you may need to reopen this editor (or reload VS Code) if it remains broken.',
       'Reopen ProseMark Editor',
       'Open Webview DevTools',
     );
