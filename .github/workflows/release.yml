@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  # Allows maintainers to manually rerun release publishing without
+  # manufacturing a new commit or reverting a version PR.
+  workflow_dispatch:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -15,6 +18,8 @@ permissions:
 jobs:
   release:
     name: Release
+    # Only publish from main even if workflow_dispatch is run from another ref.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: Production
     steps:
