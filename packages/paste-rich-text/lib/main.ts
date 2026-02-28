@@ -9,7 +9,10 @@ const isSelectionInsideFencedCode = (view: EditorView): boolean => {
 
   const isInsideAtPos = (position: number, side: -1 | 1): boolean => {
     const clampedPos = Math.max(0, Math.min(position, docLength));
-    let node = tree.resolveInner(clampedPos, side);
+    let node: ReturnType<typeof tree.resolveInner> | null = tree.resolveInner(
+      clampedPos,
+      side,
+    );
 
     while (node) {
       if (node.name === 'FencedCode') {
