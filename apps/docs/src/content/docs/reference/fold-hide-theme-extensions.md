@@ -75,7 +75,7 @@ Hiding syntax isn't enough to make markdown text look "rendered." We also need t
 
 ### Syntax Highlighting
 
-Syntax highlighting extensions apply styles or classes to the test corresponding with various syntax tags. They can be made using `@codemirror/language`:
+Syntax highlighting extensions apply styles or classes to the text corresponding with various syntax tags. They can be made using `@codemirror/language`:
 
 ```javascript
 import {

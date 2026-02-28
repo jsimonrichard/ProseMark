@@ -31,6 +31,7 @@
   },
   "keywords": [],
   "dependencies": {
+    "@codemirror/language": "^6.12.2",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.39.4",
     "@types/turndown": "^5.0.6",

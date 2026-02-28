@@ -20,33 +20,23 @@ import {
   closeBracketsKeymap,
 } from '@codemirror/autocomplete';
 import { lintKeymap } from '@codemirror/lint';
-import { defaultHideExtensions, escapeMarkdownSyntaxExtension } from './hide';
-import {
-  emojiMarkdownSyntaxExtension,
-  defaultFoldableSyntaxExtensions,
-  dashMarkdownSyntaxExtension,
-} from './fold';
+import { defaultHideExtensions } from './hide';
+import { defaultFoldableSyntaxExtensions } from './fold';
 import { clickLinkExtension, defaultClickLinkHandler } from './clickLink';
 import {
   codeBlockDecorationsExtension,
   codeFenceTheme,
 } from './codeFenceExtension';
 import {
-  additionalMarkdownSyntaxTags,
   baseSyntaxHighlights,
   baseTheme,
   generalSyntaxHighlights,
   lightTheme,
 } from './syntaxHighlighting';
 import { softIndentExtension } from './softIndentExtension';
+import { fixedTabWidthExtension } from './tabWidthExtension';
 import { revealBlockOnArrowExtension } from './revealBlockOnArrow';
-
-export const prosemarkMarkdownSyntaxExtensions = [
-  additionalMarkdownSyntaxTags,
-  escapeMarkdownSyntaxExtension,
-  emojiMarkdownSyntaxExtension,
-  dashMarkdownSyntaxExtension
-];
+export { prosemarkMarkdownSyntaxExtensions } from './markdown';
 
 export const prosemarkBasicSetup = (): Extension => [
   // ProseMark Setup
@@ -55,6 +45,7 @@ export const prosemarkBasicSetup = (): Extension => [
   revealBlockOnArrowExtension,
   clickLinkExtension,
   defaultClickLinkHandler,
+  fixedTabWidthExtension,
   softIndentExtension,
   codeBlockDecorationsExtension,
 

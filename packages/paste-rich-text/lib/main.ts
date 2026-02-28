@@ -1,6 +1,36 @@
 import type { Extension } from '@codemirror/state';
 import { EditorView, keymap, type Command } from '@codemirror/view';
+import { syntaxTree } from '@codemirror/language';
 import TurndownService from 'turndown';
+
+const isSelectionInsideFencedCode = (view: EditorView): boolean => {
+  const tree = syntaxTree(view.state);
+  const docLength = view.state.doc.length;
+
+  const isInsideAtPos = (position: number, side: -1 | 1): boolean => {
+    const clampedPos = Math.max(0, Math.min(position, docLength));
+    let node: ReturnType<typeof tree.resolveInner> | null = tree.resolveInner(
+      clampedPos,
+      side,
+    );
+
+    while (node) {
+      if (node.name === 'FencedCode') {
+        return true;
+      }
+      node = node.parent;
+    }
+
+    return false;
+  };
+
+  const { from, to } = view.state.selection.main;
+  if (from === to) {
+    return isInsideAtPos(from, -1) || isInsideAtPos(from, 1);
+  }
+
+  return isInsideAtPos(from, 1) || isInsideAtPos(to, -1);
+};
 
 export const pastePlainTextExtension = (
   extraCallback?: (
@@ -50,25 +80,26 @@ export const pasteRichTextExtension = (
   return EditorView.domEventHandlers({
     paste(event, view) {
       const html = event.clipboardData?.getData('text/html');
-      if (html) {
-        event.preventDefault();
-        const markdown = turndown.turndown(html);
-
-        const from = view.state.selection.main.from;
-        const to = view.state.selection.main.to;
-        const newPos = from + markdown.length;
-
-        view.dispatch({
-          changes: { from, to, insert: markdown },
-          selection: { anchor: newPos },
-          scrollIntoView: true,
-        });
-
-        extraCallback?.(event, view, from, newPos);
-
-        return true;
+      if (!html || isSelectionInsideFencedCode(view)) {
+        return false;
       }
-      return false;
+
+      event.preventDefault();
+      const markdown = turndown.turndown(html);
+
+      const from = view.state.selection.main.from;
+      const to = view.state.selection.main.to;
+      const newPos = from + markdown.length;
+
+      view.dispatch({
+        changes: { from, to, insert: markdown },
+        selection: { anchor: newPos },
+        scrollIntoView: true,
+      });
+
+      extraCallback?.(event, view, from, newPos);
+
+      return true;
     },
   });
 };
