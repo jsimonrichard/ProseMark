@@ -11,6 +11,8 @@ export interface Change {
 export interface VSCodeExtensionProcMap {
   update: (changes: Change[]) => void;
   linkClick: (link: string) => void;
+  requestFullDocument: () => Promise<string>;
+  reportFrontendError: (error: FrontendError) => void;
 }
 
 export type WebviewMessage = MessageFromProcMap<'core', VSCodeExtensionProcMap>;
@@ -38,6 +40,13 @@ export interface WordCountVSCodeProcs {
 }
 
 export type VSCodeExtMessage = MessageFromProcMap<'core', WebviewProcMap>;
+
+export interface FrontendError {
+  message: string;
+  source: string;
+  severity: 'recoverable' | 'fatal';
+  details?: string;
+}
 
 export const exhaustiveMatchingGuard = (_: never): never => {
   throw new Error('Should not have reached here!');

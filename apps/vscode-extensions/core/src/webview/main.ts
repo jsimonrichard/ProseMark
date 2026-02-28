@@ -16,6 +16,7 @@ import { GFM } from '@lezer/markdown';
 import { Compartment, EditorState, StateEffect } from '@codemirror/state';
 import type {
   Change,
+  FrontendError,
   VSCodeExtensionProcMap,
   WebviewProcMap,
   WordCountVSCodeProcs,
@@ -40,7 +41,7 @@ window.proseMark.externalModules = {
   '@codemirror/state': CodeMirrorState,
 };
 
-const { callProcAndForget, callProcWithReturnValue: _callProcWithReturnValue } =
+const { callProcAndForget, callProcWithReturnValue } =
   registerWebviewMessagePoster<'core', VSCodeExtensionProcMap>(
     'core',
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -55,6 +56,137 @@ const { callProcAndForget: callWordCountProc } = registerWebviewMessagePoster<
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   window.proseMark.vscode as any,
 );
+
+let isRecoveringFromSyncFailure = false;
+let hasReportedFatalError = false;
+const isDefined = <T>(value: T | undefined): value is T => value !== undefined;
+
+const formatUnknownError = (error: unknown): string => {
+  if (error instanceof Error) {
+    return `${error.message}${error.stack ? `\n${error.stack}` : ''}`;
+  }
+  return typeof error === 'string' ? error : JSON.stringify(error);
+};
+
+const reportFrontendError = (error: FrontendError) => {
+  if (error.severity === 'fatal') {
+    if (hasReportedFatalError) {
+      return;
+    }
+    hasReportedFatalError = true;
+  }
+
+  try {
+    callProcAndForget('reportFrontendError', error);
+  } catch (reportingError: unknown) {
+    console.error(
+      'Failed to report ProseMark frontend error to VS Code:',
+      reportingError,
+      error,
+    );
+  }
+};
+
+const getDocOffset = (
+  lineIndexZeroBased: number,
+  charIndexZeroBased: number,
+): number | undefined => {
+  const view = window.proseMark?.view;
+  if (!view) {
+    return undefined;
+  }
+
+  if (
+    lineIndexZeroBased < 0 ||
+    lineIndexZeroBased >= view.state.doc.lines ||
+    Number.isNaN(charIndexZeroBased)
+  ) {
+    return undefined;
+  }
+
+  const line = view.state.doc.line(lineIndexZeroBased + 1);
+  const clampedChar = Math.max(0, Math.min(charIndexZeroBased, line.length));
+  return line.from + clampedChar;
+};
+
+const replaceEditorDocumentText = (text: string): boolean => {
+  const view = window.proseMark?.view;
+  if (!view) {
+    return false;
+  }
+
+  view.dispatch({
+    changes: {
+      from: 0,
+      to: view.state.doc.length,
+      insert: text,
+    },
+    userEvent: 'updateFromVSCode',
+  });
+  return true;
+};
+
+const recoverFromStateMismatch = async (
+  source: string,
+  reason: string,
+  error?: unknown,
+) => {
+  if (isRecoveringFromSyncFailure) {
+    return;
+  }
+  isRecoveringFromSyncFailure = true;
+  const details = `${reason}${error ? `\n${formatUnknownError(error)}` : ''}`;
+
+  try {
+    const latestText = await callProcWithReturnValue('requestFullDocument');
+    const didReplaceText = replaceEditorDocumentText(latestText);
+    if (!didReplaceText) {
+      reportFrontendError({
+        source,
+        severity: 'fatal',
+        message:
+          'ProseMark could not recover because the editor view is unavailable.',
+        details,
+      });
+      return;
+    }
+
+    reportFrontendError({
+      source,
+      severity: 'recoverable',
+      message: 'ProseMark detected a state mismatch and automatically re-synced.',
+      details,
+    });
+  } catch (recoveryError: unknown) {
+    reportFrontendError({
+      source,
+      severity: 'fatal',
+      message:
+        'ProseMark could not recover from an editor state mismatch automatically.',
+      details: `${details}\nRecovery failed: ${formatUnknownError(recoveryError)}`,
+    });
+  } finally {
+    isRecoveringFromSyncFailure = false;
+  }
+};
+
+window.addEventListener('error', (event) => {
+  reportFrontendError({
+    source: 'window.error',
+    severity: 'fatal',
+    message: event.message || 'Unhandled frontend error in ProseMark webview.',
+    details: event.error ? formatUnknownError(event.error) : undefined,
+  });
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  reportFrontendError({
+    source: 'window.unhandledrejection',
+    severity: 'fatal',
+    message: 'Unhandled promise rejection in ProseMark webview.',
+    details: formatUnknownError(event.reason),
+  });
+});
 
 // Send updates to VS Code about text changes and word count
 const updateVSCodeExtension = EditorView.updateListener.of((update) => {
@@ -161,45 +293,67 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
 const procs: WebviewProcMap = {
   init: (text, { vimModeEnabled, ...dynamicConfig }) => {
     window.proseMark ??= {};
+    window.proseMark.view?.destroy();
     window.proseMark.view = buildEditor(text, vimModeEnabled);
     procs.setDynamicConfig(dynamicConfig);
     procs.focus();
   },
   set: (text) => {
-    window.proseMark?.view?.dispatch({
-      changes: {
-        from: 0,
-        to: window.proseMark.view.state.doc.length,
-        insert: text,
-      },
-      userEvent: 'updateFromVSCode',
-    });
+    if (!replaceEditorDocumentText(text)) {
+      reportFrontendError({
+        source: 'core.set',
+        severity: 'fatal',
+        message:
+          'Received a full-document sync update before the ProseMark view initialized.',
+      });
+    }
   },
   update: (changes) => {
     if (!window.proseMark?.view) {
-      throw new Error(
-        'ProseMark state and view should have been built already',
-      );
+      reportFrontendError({
+        source: 'core.update',
+        severity: 'fatal',
+        message: 'Received a text update before the ProseMark view initialized.',
+      });
+      return;
     }
 
-    window.proseMark.view.dispatch({
-      changes: changes.map((c) => {
-        // Calculate document position using line and char (col) numbers
-        // switch to 1-based line numbers
-
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const fromLine = window.proseMark!.view!.state.doc.line(c.fromLine + 1);
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const toLine = window.proseMark!.view!.state.doc.line(c.toLine + 1);
+    const mappedChanges = changes
+      .map((c) => {
+        const from = getDocOffset(c.fromLine, c.fromChar);
+        const to = getDocOffset(c.toLine, c.toChar);
+        if (from === undefined || to === undefined || to < from) {
+          return undefined;
+        }
 
         return {
-          from: fromLine.from + c.fromChar,
-          to: toLine.from + c.toChar,
+          from,
+          to,
           insert: c.insert,
         };
-      }),
-      userEvent: 'updateFromVSCode',
-    });
+      })
+      .filter(isDefined);
+
+    if (mappedChanges.length !== changes.length) {
+      void recoverFromStateMismatch(
+        'core.update',
+        'Received invalid range data while applying VS Code updates.',
+      );
+      return;
+    }
+
+    try {
+      window.proseMark.view.dispatch({
+        changes: mappedChanges,
+        userEvent: 'updateFromVSCode',
+      });
+    } catch (error: unknown) {
+      void recoverFromStateMismatch(
+        'core.update',
+        'Applying VS Code updates to the ProseMark webview failed.',
+        error,
+      );
+    }
   },
   focus: () => {
     window.proseMark?.view?.focus();
