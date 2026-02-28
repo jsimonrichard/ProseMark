@@ -1,5 +1,5 @@
 import { keymap, dropCursor, EditorView } from '@codemirror/view';
-import { type Extension, Prec } from '@codemirror/state';
+import { type Extension } from '@codemirror/state';
 import {
   indentOnInput,
   bracketMatching,
@@ -50,7 +50,7 @@ export const prosemarkMarkdownSyntaxExtensions = [
 
 export const prosemarkBasicSetup = (): Extension => [
   // ProseMark Setup
-  Prec.low(defaultHideExtensions),
+  defaultHideExtensions,
   defaultFoldableSyntaxExtensions,
   revealBlockOnArrowExtension,
   clickLinkExtension,

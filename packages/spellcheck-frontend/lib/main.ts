@@ -104,7 +104,7 @@ const spellcheckTheme = EditorView.baseTheme({
 });
 
 export const spellcheckExtension = [
-  Prec.high(spellcheckDecorations),
+  Prec.low(spellcheckDecorations),
   spellcheckTheme,
   spellcheckTooltipExtension,
 ];
