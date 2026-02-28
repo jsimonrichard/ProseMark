@@ -50,7 +50,7 @@ if ${has_marketplace_release} && ${has_openvsx_release}; then
 fi
 
 echo "Packaging ${EXTENSION_ID}@${VERSION}..."
-bunx @vscode/vsce package --out "${VSIX_PATH}"
+bunx @vscode/vsce package --no-dependencies --out "${VSIX_PATH}"
 
 if ! ${has_marketplace_release}; then
   if [[ -z "${VSCE_PAT:-}" ]]; then
@@ -60,7 +60,7 @@ if ! ${has_marketplace_release}; then
 
   echo "Publishing ${EXTENSION_ID}@${VERSION} to VS Code Marketplace..."
   set +e
-  marketplace_publish_output=$(bunx @vscode/vsce publish --packagePath "${VSIX_PATH}" --pat "${VSCE_PAT}" 2>&1)
+  marketplace_publish_output=$(bunx @vscode/vsce publish --no-dependencies --packagePath "${VSIX_PATH}" --pat "${VSCE_PAT}" 2>&1)
   marketplace_status=$?
   set -e
   if [[ ${marketplace_status} -ne 0 ]]; then
