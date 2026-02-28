@@ -64,17 +64,25 @@ function buildDecorations(
 
 const spellcheckDecorations = ViewPlugin.fromClass(
   class SpellcheckDecorations {
-    decorations;
+    decorations: DecorationSet;
     constructor(public view: EditorView) {
       const issues = view.state.facet(spellcheckIssues);
       this.decorations = buildDecorations(view, issues);
     }
     update(update: ViewUpdate) {
-      // Rebuild decorations when doc changes or when issues are updated
-      if (
+      const issuesChanged =
         update.startState.facet(spellcheckIssues) !==
-        update.state.facet(spellcheckIssues)
-      ) {
+        update.state.facet(spellcheckIssues);
+
+      // Keep existing decorations in sync with document edits.
+      // Without this mapping step, stale ranges can become invalid and break
+      // the editor view when follow-up (non-doc) transactions run.
+      if (update.docChanged && !issuesChanged) {
+        this.decorations = this.decorations.map(update.changes);
+      }
+
+      // Rebuild when spellcheck issues are updated.
+      if (issuesChanged) {
         const issues = update.state.facet(spellcheckIssues);
         this.decorations = buildDecorations(update.view, issues);
       }

@@ -63,12 +63,16 @@ export class CSpellIntegration implements SubExtension<
   }
 
   async #spellcheck() {
+    const requestVersion = this.#document.version;
     const requestId = ++this.#latestSpellcheckRequestId;
     const res = await this.#cSpellApi.checkDocument({
       uri: this.#document.uri.toString(),
-      version: this.#document.version,
+      version: requestVersion,
     });
-    if (requestId !== this.#latestSpellcheckRequestId) {
+    if (
+      requestId !== this.#latestSpellcheckRequestId ||
+      this.#document.version !== requestVersion
+    ) {
       return;
     }
     this.#callProcAndForget('updateInfo', res);
