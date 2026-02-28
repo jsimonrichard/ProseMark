@@ -40,7 +40,7 @@ import {
 } from './syntaxHighlighting';
 import { softIndentExtension } from './softIndentExtension';
 import { revealBlockOnArrowExtension } from './revealBlockOnArrow';
-import { nestedLinkAsPlainText } from './nestedLinkText';
+import { nestedLinkAsPlainText } from './nestedLinkAsPlainText';
 
 export const prosemarkMarkdownSyntaxExtensions = [
   additionalMarkdownSyntaxTags,
