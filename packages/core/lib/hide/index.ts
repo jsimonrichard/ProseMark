@@ -3,9 +3,11 @@ import {
   type HidableNodeSpec,
   hidableNodeFacet,
   hideInlineDecoration,
+  hideInlineKeepSpaceDecoration,
 } from './core';
 import type { InlineContext, MarkdownConfig } from '@lezer/markdown';
 import { markdownTags } from '../markdownTags';
+import { isFrontmatterFencedCodeNode } from '../frontmatter';
 import { stateWORDAt } from '../utils';
 
 export { hideExtension } from './core';
@@ -61,10 +63,19 @@ const defaultHidableSpecs: HidableNodeSpec[] = [
   },
   {
     nodeName: 'FencedCode',
-    subNodeNameToHide: ['CodeMark', 'CodeInfo'],
-    // Use transparent hiding to keep layout stable in fenced code while
-    // preserving normal unhide-on-selection behavior.
-    keepSpace: true,
+    onHide: (state, node) => {
+      if (isFrontmatterFencedCodeNode(state, node)) return;
+
+      const decorations: ReturnType<typeof hideInlineKeepSpaceDecoration.range>[] = [];
+      node.node.cursor().iterate((childNode) => {
+        if (childNode.type.name === 'CodeMark' || childNode.type.name === 'CodeInfo') {
+          decorations.push(
+            hideInlineKeepSpaceDecoration.range(childNode.from, childNode.to),
+          );
+        }
+      });
+      return decorations;
+    },
   },
   {
     nodeName: 'Blockquote',

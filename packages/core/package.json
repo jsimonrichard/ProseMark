@@ -33,6 +33,7 @@
   "dependencies": {
     "@lezer/common": "^1.4.0",
     "@lezer/markdown": "^1.6.1",
+    "@lezer/yaml": "^1.0.4",
     "ajv": "^8.17.1",
     "node-emoji": "^2.2.0"
   },

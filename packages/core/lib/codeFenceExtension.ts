@@ -9,6 +9,7 @@ import { RangeSetBuilder } from '@codemirror/state';
 import type { DecorationSet } from '@codemirror/view';
 import { WidgetType } from '@codemirror/view';
 import { type Extension } from '@codemirror/state';
+import { isFrontmatterFencedCodeNode } from './frontmatter';
 
 const codeBlockDecorations = (view: EditorView) => {
   const builder = new RangeSetBuilder<Decoration>();
@@ -30,9 +31,11 @@ const codeBlockDecorations = (view: EditorView) => {
           let lang = '';
           const codeInfoNode = node.node.getChild('CodeInfo');
           if (codeInfoNode) {
-            lang = view.state.doc
-              .sliceString(codeInfoNode.from, codeInfoNode.to)
-              .toUpperCase();
+            lang = isFrontmatterFencedCodeNode(view.state, node)
+              ? 'YAML'
+              : view.state.doc
+                  .sliceString(codeInfoNode.from, codeInfoNode.to)
+                  .toUpperCase();
           }
 
           for (let pos = node.from; pos <= node.to; ) {

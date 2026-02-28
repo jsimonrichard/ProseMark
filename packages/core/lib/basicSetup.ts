@@ -26,6 +26,7 @@ import {
   defaultFoldableSyntaxExtensions,
   dashMarkdownSyntaxExtension,
 } from './fold';
+import { frontmatterMarkdownSyntaxExtension } from './frontmatter';
 import { clickLinkExtension, defaultClickLinkHandler } from './clickLink';
 import {
   codeBlockDecorationsExtension,
@@ -43,6 +44,7 @@ import { revealBlockOnArrowExtension } from './revealBlockOnArrow';
 
 export const prosemarkMarkdownSyntaxExtensions = [
   additionalMarkdownSyntaxTags,
+  frontmatterMarkdownSyntaxExtension,
   escapeMarkdownSyntaxExtension,
   emojiMarkdownSyntaxExtension,
   dashMarkdownSyntaxExtension
