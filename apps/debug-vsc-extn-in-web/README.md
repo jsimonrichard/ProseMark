@@ -14,13 +14,13 @@ It includes:
 ## Run
 
 ```bash
-bun --cwd apps/debug-vscode-parity dev
+bun --cwd apps/debug-vsc-extn-in-web dev
 ```
 
 ## Build
 
 ```bash
-bun --cwd apps/debug-vscode-parity build
+bun --cwd apps/debug-vsc-extn-in-web build
 ```
 
 ## Optional reproducibility script
@@ -28,7 +28,7 @@ bun --cwd apps/debug-vscode-parity build
 After building, you can run:
 
 ```bash
-bun --cwd apps/debug-vscode-parity repro:codefence
+bun --cwd apps/debug-vsc-extn-in-web repro:codefence
 ```
 
 By default this expects `playwright` to be resolvable. You can point to an

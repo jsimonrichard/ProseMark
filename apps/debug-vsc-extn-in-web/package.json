@@ -1,5 +1,5 @@
 {
-  "name": "debug-vscode-parity",
+  "name": "debug-vsc-extn-in-web",
   "private": true,
   "type": "module",
   "scripts": {
@@ -7,7 +7,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check-types": "tsc",
-    "dev-all": "turbo dev -F 'debug-vscode-parity...'",
+    "dev-all": "turbo dev -F 'debug-vsc-extn-in-web...'",
     "repro:codefence": "node ./scripts/repro-codefence.mjs"
   },
   "devDependencies": {
