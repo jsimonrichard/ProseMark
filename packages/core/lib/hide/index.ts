@@ -5,7 +5,7 @@ import {
   hideInlineDecoration,
 } from './core';
 import type { InlineContext, MarkdownConfig } from '@lezer/markdown';
-import { markdownTags } from '../markdownTags';
+import { markdownTags } from '../markdown/tags';
 import { stateWORDAt } from '../utils';
 
 export { hideExtension } from './core';
@@ -62,8 +62,6 @@ const defaultHidableSpecs: HidableNodeSpec[] = [
   {
     nodeName: 'FencedCode',
     subNodeNameToHide: ['CodeMark', 'CodeInfo'],
-    // Use transparent hiding to keep layout stable in fenced code while
-    // preserving normal unhide-on-selection behavior.
     keepSpace: true,
   },
   {

@@ -1,5 +1,5 @@
 import type { InlineContext, MarkdownConfig } from "@lezer/markdown";
-import { markdownTags } from "../markdownTags";
+import { markdownTags } from "../markdown/tags";
 import { Decoration, WidgetType } from "@codemirror/view";
 import { foldableSyntaxFacet } from "./core";
 

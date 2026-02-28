@@ -5,7 +5,7 @@ import {
   syntaxTree,
 } from '@codemirror/language';
 import { eventHandlersWithClass, iterChildren } from './utils';
-import { markdownTags } from './markdownTags';
+import { markdownTags } from './markdown/tags';
 import { Facet } from '@codemirror/state';
 
 function getUrlFromLink(view: EditorView, pos: number): string | undefined {
