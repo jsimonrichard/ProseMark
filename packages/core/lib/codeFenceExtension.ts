@@ -32,7 +32,7 @@ const codeBlockDecorations = (view: EditorView) => {
           const codeInfoNode = node.node.getChild('CodeInfo');
           if (codeInfoNode) {
             lang = isFrontmatterFencedCodeNode(view.state, node)
-              ? 'YAML'
+              ? 'YAML (FRONTMATTER)'
               : view.state.doc
                   .sliceString(codeInfoNode.from, codeInfoNode.to)
                   .toUpperCase();
