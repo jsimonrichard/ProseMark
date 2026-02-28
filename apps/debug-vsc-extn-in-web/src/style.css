@@ -1,0 +1,168 @@
+:root {
+  font-family:
+    Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f7f7f8;
+  color: #16181d;
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.layout {
+  width: min(1600px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 320px minmax(480px, 1fr) 360px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.controls,
+.editor-panel,
+.log-panel {
+  background: #ffffff;
+  border: 1px solid #dde1e8;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgb(20 25 38 / 4%);
+}
+
+.controls {
+  padding: 1rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.controls h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+}
+
+.controls p {
+  margin-top: 0;
+  color: #4a5568;
+  font-size: 0.92rem;
+}
+
+.control-group {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.control-group.toggles {
+  border: 1px solid #ebedf2;
+  border-radius: 8px;
+  padding: 0.65rem;
+}
+
+label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  color: #2b3340;
+}
+
+input[type='number'] {
+  width: 100%;
+  border: 1px solid #ced3dd;
+  border-radius: 6px;
+  padding: 0.3rem 0.45rem;
+  font: inherit;
+}
+
+button {
+  border: 1px solid #c4ccda;
+  border-radius: 8px;
+  background: #f5f7fc;
+  padding: 0.45rem 0.55rem;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #e9eefc;
+}
+
+.editor-panel {
+  min-height: 86vh;
+  padding: 0.35rem 0.6rem;
+}
+
+#codemirror-container {
+  min-height: 82vh;
+  width: 100%;
+  display: flex;
+  cursor: text;
+  --font:
+    Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --pm-blockquote-vertical-line-background-color: gray;
+}
+
+#codemirror-container > .cm-editor {
+  flex: 1;
+}
+
+#codemirror-container > .cm-editor,
+#codemirror-container > .cm-editor > .cm-scroller,
+#codemirror-container > .cm-editor > .cm-scroller > .cm-content {
+  min-height: 100%;
+}
+
+.log-panel {
+  padding: 1rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.log-panel h2 {
+  margin-top: 0;
+  margin-bottom: 0.55rem;
+  font-size: 1rem;
+}
+
+#log-output {
+  margin: 0;
+  max-height: 82vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  background: #111827;
+  color: #d7e3fd;
+  border-radius: 8px;
+  padding: 0.7rem;
+}
+
+@media (max-width: 1400px) {
+  .layout {
+    grid-template-columns: 300px minmax(380px, 1fr);
+  }
+
+  .log-panel {
+    grid-column: 1 / -1;
+    position: static;
+  }
+}

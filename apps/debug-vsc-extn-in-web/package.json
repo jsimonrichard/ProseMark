@@ -1,0 +1,31 @@
+{
+  "name": "debug-vsc-extn-in-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check-types": "tsc",
+    "dev-all": "turbo dev -F 'debug-vsc-extn-in-web...'",
+    "repro:codefence": "node ./scripts/repro-codefence.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1"
+  },
+  "dependencies": {
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@codemirror/language": "^6.11.3",
+    "@codemirror/language-data": "^6.5.2",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.39.4",
+    "@lezer/markdown": "^1.6.1",
+    "@prosemark/core": "workspace:*",
+    "@prosemark/paste-rich-text": "workspace:*",
+    "@prosemark/render-html": "workspace:*",
+    "@prosemark/spellcheck-frontend": "workspace:*",
+    "dictionary-en": "^3.2.0",
+    "nspell": "^2.1.5"
+  }
+}
