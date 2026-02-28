@@ -14,6 +14,10 @@ import {
   isFrontmatterNode,
 } from './markdown/frontmatter';
 
+const fallbackMonospaceCodeFont =
+  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
+const codeFontFamily = `var(--pm-code-font, ${fallbackMonospaceCodeFont})`;
+
 const codeBlockDecorations = (view: EditorView) => {
   const builder = new RangeSetBuilder<Decoration>();
 
@@ -163,6 +167,10 @@ export const codeFenceTheme = EditorView.theme({
     display: 'block',
     marginLeft: '6px',
     backgroundColor: 'var(--pm-code-background-color)',
+    fontFamily: codeFontFamily,
+    fontVariantLigatures: 'none',
+    fontFeatureSettings: '"calt" 0',
+    fontKerning: 'none',
   },
   // In case the active line color changes
   '.cm-activeLine.cm-fenced-code-line': {

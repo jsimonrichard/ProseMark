@@ -89,6 +89,9 @@ ProseMark can be styled using CSS variables. The following CSS is used in our de
   --pm-link-color: oklch(58.8% 0.158 241.966);
   --pm-muted-color: oklch(37.2% 0.044 257.287);
   --pm-code-background-color: oklch(92.9% 0.013 255.508);
+  --pm-code-font:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
   --pm-code-btn-background-color: oklch(86.9% 0.022 252.894);
   --pm-code-btn-hover-background-color: oklch(70.4% 0.04 256.788);
   --pm-blockquote-vertical-line-background-color: oklch(70.4% 0.04 256.788);
@@ -123,6 +126,9 @@ ProseMark can be styled using CSS variables. The following CSS is used in our de
   --pm-link-color: oklch(58.8% 0.158 241.966);
   --pm-muted-color: oklch(55.4% 0.046 257.417);
   --pm-code-background-color: oklch(27.9% 0.041 260.031);
+  --pm-code-font:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
   --pm-code-btn-background-color: oklch(37.2% 0.044 257.287);
   --pm-code-btn-hover-background-color: oklch(44.6% 0.043 257.281);
   --pm-blockquote-vertical-line-background-color: oklch(44.6% 0.043 257.281);
@@ -160,3 +166,5 @@ ProseMark can be styled using CSS variables. The following CSS is used in our de
   }
 }
 ```
+
+Use `--pm-code-font` to control the typeface used by inline code spans and fenced code blocks.

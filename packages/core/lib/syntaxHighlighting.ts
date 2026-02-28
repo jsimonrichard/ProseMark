@@ -7,6 +7,10 @@ import {
   type TagStyle,
 } from '@codemirror/language';
 
+const fallbackMonospaceCodeFont =
+  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
+const codeFontFamily = `var(--pm-code-font, ${fallbackMonospaceCodeFont})`;
+
 export const additionalMarkdownSyntaxTags = {
   // Define new nodes with tags here
   defineNodes: [],
@@ -15,7 +19,6 @@ export const additionalMarkdownSyntaxTags = {
     styleTags({
       HeaderMark: markdownTags.headerMark,
       FencedCode: markdownTags.fencedCode,
-      InlineCode: markdownTags.inlineCode,
       URL: markdownTags.linkURL,
       ListMark: markdownTags.listMark,
     }),
@@ -63,14 +66,6 @@ export const baseSyntaxHighlights = syntaxHighlighting(
     {
       tag: markdownTags.escapeMark,
       color: 'var(--pm-muted-color)',
-    },
-    {
-      tag: markdownTags.inlineCode,
-      fontFamily: 'monospace',
-      padding: '0.2rem',
-      borderRadius: '0.4rem',
-      fontSize: '0.8rem',
-      backgroundColor: 'var(--pm-code-background-color)',
     },
     {
       tag: markdownTags.linkURL,
@@ -132,6 +127,16 @@ export const baseTheme = EditorView.theme({
   },
   '.cm-image-block': {
     paddingLeft: '6px',
+  },
+  '.cm-inline-code': {
+    fontFamily: codeFontFamily,
+    fontVariantLigatures: 'none',
+    fontFeatureSettings: '"calt" 0',
+    fontKerning: 'none',
+    padding: '0.2rem',
+    borderRadius: '0.4rem',
+    fontSize: '0.8rem',
+    backgroundColor: 'var(--pm-code-background-color)',
   },
 });
 

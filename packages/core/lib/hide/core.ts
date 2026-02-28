@@ -35,12 +35,9 @@ const buildDecorations = (state: EditorState) => {
 
   syntaxTree(state).iterate({
     enter: (node) => {
-      // If the selection overlaps with the node, don't hide it
-      if (
-        state.selection.ranges.some((range) => rangeTouchesRange(node, range))
-      ) {
-        return;
-      }
+      const selectionTouchesNodeRange = state.selection.ranges.some((range) =>
+        rangeTouchesRange(node, range),
+      );
 
       for (const spec of specs) {
         // Check spec
@@ -64,8 +61,16 @@ const buildDecorations = (state: EditorState) => {
               rangeTouchesRange(res, range),
             )
           ) {
-            return;
+            continue;
           }
+        }
+
+        if (spec.nodeDecoration) {
+          decorations.push(spec.nodeDecoration.range(node.from, node.to));
+        }
+
+        if (selectionTouchesNodeRange) {
+          continue;
         }
 
         // Hide node using one of the provided methods
@@ -123,6 +128,7 @@ export const hideExtension = StateField.define<DecorationSet>({
 
 export interface HidableNodeSpec {
   nodeName: string | string[] | ((nodeName: string) => boolean);
+  nodeDecoration?: Decoration;
   subNodeNameToHide?: string | string[];
   onHide?: (
     state: EditorState,
