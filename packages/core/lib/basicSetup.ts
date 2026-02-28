@@ -39,6 +39,7 @@ import {
   lightTheme,
 } from './syntaxHighlighting';
 import { softIndentExtension } from './softIndentExtension';
+import { fixedTabWidthExtension } from './tabWidthExtension';
 import { revealBlockOnArrowExtension } from './revealBlockOnArrow';
 
 export const prosemarkMarkdownSyntaxExtensions = [
@@ -55,6 +56,7 @@ export const prosemarkBasicSetup = (): Extension => [
   revealBlockOnArrowExtension,
   clickLinkExtension,
   defaultClickLinkHandler,
+  fixedTabWidthExtension,
   softIndentExtension,
   codeBlockDecorationsExtension,
 
