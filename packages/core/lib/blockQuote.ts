@@ -98,6 +98,10 @@ export const blockQuoteExtension = ViewPlugin.fromClass(
     }
 
     update(u: ViewUpdate) {
+      if (u.docChanged) {
+        this.decorations = this.decorations.map(u.changes);
+      }
+
       if (u.docChanged || u.viewportChanged) {
         this.requestMeasure(u.view);
       }
