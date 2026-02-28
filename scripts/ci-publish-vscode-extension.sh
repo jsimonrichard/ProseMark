@@ -22,7 +22,7 @@ if [[ -z "${VERSION}" || "${VERSION}" == "null" ]]; then
   exit 1
 fi
 
-is_true() {
+is_truthy_flag() {
   case "${1,,}" in
   1 | true | yes | on)
     return 0
@@ -43,6 +43,8 @@ cleanup() {
 trap cleanup EXIT
 
 has_marketplace_release=false
+# Probe existing versions first so reruns are idempotent; if lookups fail we
+# still continue and let publish commands surface actionable errors.
 if marketplace_metadata=$(bunx @vscode/vsce show "${EXTENSION_ID}" --json 2>/dev/null); then
   if jq -e --arg version "${VERSION}" '(.versions // []) | any(.version == $version)' >/dev/null <<<"${marketplace_metadata}"; then
     has_marketplace_release=true
@@ -62,9 +64,12 @@ if ${has_marketplace_release} && ${has_openvsx_release}; then
 fi
 
 echo "Packaging ${EXTENSION_ID}@${VERSION}..."
+# This repo uses workspaces, so dependency scanning can misread local workspace
+# deps; --no-dependencies keeps packaging deterministic in CI.
 bunx @vscode/vsce package --no-dependencies --out "${VSIX_PATH}"
 
-if is_true "${DRY_RUN}"; then
+# Dry-run still packages the VSIX so local checks catch build/prepublish issues.
+if is_truthy_flag "${DRY_RUN}"; then
   if ! ${has_marketplace_release}; then
     echo "DRY RUN: would publish ${EXTENSION_ID}@${VERSION} to VS Code Marketplace."
   else
@@ -88,6 +93,7 @@ if ! ${has_marketplace_release}; then
 
   echo "Publishing ${EXTENSION_ID}@${VERSION} to VS Code Marketplace..."
   set +e
+  # Capture output so "already exists" can be treated as a safe no-op.
   marketplace_publish_output=$(bunx @vscode/vsce publish --no-dependencies --packagePath "${VSIX_PATH}" --pat "${VSCE_PAT}" 2>&1)
   marketplace_status=$?
   set -e
@@ -111,6 +117,7 @@ if ! ${has_openvsx_release}; then
 
   echo "Publishing ${EXTENSION_ID}@${VERSION} to Open VSX..."
   set +e
+  # Capture output so "already exists" can be treated as a safe no-op.
   openvsx_publish_output=$(bunx ovsx publish "${VSIX_PATH}" --pat "${OVSX_PAT}" 2>&1)
   openvsx_status=$?
   set -e
