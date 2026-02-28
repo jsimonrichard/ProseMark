@@ -62,9 +62,18 @@ const defaultHidableSpecs: HidableNodeSpec[] = [
   {
     nodeName: 'FencedCode',
     subNodeNameToHide: ['CodeMark', 'CodeInfo'],
-    // Keep code-fence markers hidden while selecting inside fenced code blocks.
-    // Avoids rapid decoration churn during mouse selection in code fences.
+    // Keep code-fence markers hidden when selecting code content itself.
+    // Markers are still revealed when the selection/cursor is on opening/closing
+    // fence lines so users can edit them.
     unhideOnSelection: false,
+    unhideZone: (state, node) => {
+      const openingLine = state.doc.lineAt(node.from);
+      const closingLine = state.doc.lineAt(Math.max(node.to - 1, node.from));
+      if (openingLine.from === closingLine.from) {
+        return openingLine;
+      }
+      return [openingLine, closingLine];
+    },
   },
   {
     nodeName: 'Blockquote',

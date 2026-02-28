@@ -59,9 +59,10 @@ const buildDecorations = (state: EditorState) => {
         // Check custom show zone
         if (spec.unhideZone) {
           const res = spec.unhideZone(state, node);
+          const zones = Array.isArray(res) ? res : [res];
           if (
             state.selection.ranges.some((range) =>
-              rangeTouchesRange(res, range),
+              zones.some((zone) => rangeTouchesRange(zone, range)),
             )
           ) {
             return;
@@ -130,7 +131,10 @@ export interface HidableNodeSpec {
   ) => Range<Decoration> | Range<Decoration>[] | undefined;
   block?: boolean;
   keepSpace?: boolean;
-  unhideZone?: (state: EditorState, node: SyntaxNodeRef) => RangeLike;
+  unhideZone?: (
+    state: EditorState,
+    node: SyntaxNodeRef,
+  ) => RangeLike | RangeLike[];
   unhideOnSelection?: boolean;
 }
 
