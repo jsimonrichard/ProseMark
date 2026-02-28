@@ -37,13 +37,13 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: TurboRepo Build
-        run: bun turbo build -F "{packages/*}"
+        run: bun turbo build -F "{packages/*}" -F "{apps/vscode-extensions/*}"
 
       - name: Check Types
-        run: bun turbo check-types -F "{packages/*}"
+        run: bun turbo check-types -F "{packages/*}" -F "{apps/vscode-extensions/*}"
 
       - name: Lint
-        run: bun turbo lint -F "{packages/*}"
+        run: bun turbo lint -F "{packages/*}" -F "{apps/vscode-extensions/*}"
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
@@ -53,6 +53,8 @@ jobs:
           version: bun run version
           # ChangeSets splits this into an array of string args, so we don't add quotes to the filter
           # --env-mode=loose makes sure that the OIDC vars are passed to the publish scripts
-          publish: bun turbo ci:publish -F {packages/*} --env-mode=loose
+          publish: bun turbo ci:publish -F {packages/*} -F {apps/vscode-extensions/*} --env-mode=loose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
