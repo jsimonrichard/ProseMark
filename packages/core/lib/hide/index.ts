@@ -62,6 +62,7 @@ const defaultHidableSpecs: HidableNodeSpec[] = [
   {
     nodeName: 'FencedCode',
     subNodeNameToHide: ['CodeMark', 'CodeInfo'],
+    keepSpace: true,
     // Keep code-fence markers hidden when selecting code content itself.
     // Markers are still revealed when the selection/cursor is on opening/closing
     // fence lines so users can edit them.
