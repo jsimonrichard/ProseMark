@@ -12,6 +12,7 @@ import {
 // Native tab rendering can vary enough to throw off softIndentExtension's pixel
 // measurements. Replacing each visible tab with a fixed-width widget keeps
 // indentation width deterministic and prevents jitter.
+
 const TAB_CHARACTER = '\t';
 const TAB_WIDTH_CH = 4;
 
