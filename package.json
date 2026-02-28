@@ -18,7 +18,9 @@
   "type": "module",
   "workspaces": [
     "apps/**",
-    "packages/**"
+    "!apps/**/node_modules/**",
+    "packages/**",
+    "!packages/**/node_modules/**"
   ],
   "dependencies": {
     "typescript": "^5.9.3"
