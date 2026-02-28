@@ -8,6 +8,9 @@ import {
   type ViewUpdate,
 } from '@codemirror/view';
 
+const TAB_CHARACTER = '\t';
+const TAB_WIDTH_CH = 4;
+
 class FixedTabWidthWidget extends WidgetType {
   eq(other: FixedTabWidthWidget): boolean {
     return other instanceof FixedTabWidthWidget;
@@ -25,32 +28,26 @@ const fixedTabDecoration = Decoration.replace({
   widget: new FixedTabWidthWidget(),
 });
 
+// Issue #96 ("Text Vibrating like crazy"):
+// On some platforms (notably Android WebView), native tab rendering is not stable
+// enough for softIndentExtension's pixel measurements. Replacing each visible tab
+// with a fixed-width widget keeps indentation width deterministic and prevents jitter.
 const buildTabWidthDecorations = (view: EditorView): DecorationSet => {
   const builder = new RangeSetBuilder<Decoration>();
-  const visitedLines = new Set<number>();
+  const visitedTabPositions = new Set<number>();
 
   for (const { from, to } of view.visibleRanges) {
-    const firstLine = view.state.doc.lineAt(from).number;
-    const lastLine = view.state.doc.lineAt(to).number;
-
-    for (let lineNumber = firstLine; lineNumber <= lastLine; lineNumber++) {
-      if (visitedLines.has(lineNumber)) {
-        continue;
+    // Scan the whole visible range directly rather than iterating line-by-line.
+    // Visible ranges can overlap, so dedupe by absolute tab position.
+    const visibleText = view.state.doc.sliceString(from, to);
+    let tabOffset = visibleText.indexOf(TAB_CHARACTER);
+    while (tabOffset !== -1) {
+      const tabPos = from + tabOffset;
+      if (!visitedTabPositions.has(tabPos)) {
+        builder.add(tabPos, tabPos + 1, fixedTabDecoration);
+        visitedTabPositions.add(tabPos);
       }
-      visitedLines.add(lineNumber);
-
-      const line = view.state.doc.line(lineNumber);
-      const text = view.state.doc.sliceString(line.from, line.to);
-
-      let tabOffset = text.indexOf('\t');
-      while (tabOffset !== -1) {
-        builder.add(
-          line.from + tabOffset,
-          line.from + tabOffset + 1,
-          fixedTabDecoration,
-        );
-        tabOffset = text.indexOf('\t', tabOffset + 1);
-      }
+      tabOffset = visibleText.indexOf(TAB_CHARACTER, tabOffset + 1);
     }
   }
 
@@ -79,7 +76,7 @@ const fixedTabWidthDecorations = ViewPlugin.fromClass(
 const fixedTabWidthTheme = EditorView.baseTheme({
   '.cm-fixed-tab-width-widget': {
     display: 'inline-block',
-    width: '4ch',
+    width: `${TAB_WIDTH_CH.toString()}ch`,
     pointerEvents: 'none',
   },
 });
