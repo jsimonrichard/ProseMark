@@ -20,6 +20,7 @@ import './style.css';
 import { Compartment, RangeSet } from '@codemirror/state';
 
 const spellcheckIssueCompartment = new Compartment();
+const isDefined = <T>(value: T | undefined): value is T => value !== undefined;
 
 // Register message poster to call VSCode extension procedures
 const { callProcWithReturnValue } = registerWebviewMessagePoster<
@@ -30,6 +31,27 @@ const { callProcWithReturnValue } = registerWebviewMessagePoster<
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   window.proseMark?.vscode as any,
 );
+
+const getDocOffset = (
+  lineIndexZeroBased: number,
+  charIndexZeroBased: number,
+): number | undefined => {
+  const view = window.proseMark?.view;
+  if (!view) {
+    return undefined;
+  }
+  if (Number.isNaN(lineIndexZeroBased) || Number.isNaN(charIndexZeroBased)) {
+    return undefined;
+  }
+
+  const safeLineNumber = Math.max(
+    1,
+    Math.min(lineIndexZeroBased + 1, view.state.doc.lines),
+  );
+  const line = view.state.doc.line(safeLineNumber);
+  const safeChar = Math.max(0, Math.min(charIndexZeroBased, line.length));
+  return line.from + safeChar;
+};
 
 const procs: WebviewProcMap = {
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -96,38 +118,43 @@ const procs: WebviewProcMap = {
   },
 
   updateInfo: ({ issues }) => {
-    if (!issues || issues.length === 0) {
+    const view = window.proseMark?.view;
+    if (!view) {
       return;
     }
 
-    const issue_ranges = issues.map((is) => {
-      if (!window.proseMark?.view) {
-        throw new Error('View should have been initialized');
-      }
-
-      const from =
-        window.proseMark.view.state.doc.line(is.range.start.line + 1).from +
-        is.range.start.character;
-      const to =
-        window.proseMark.view.state.doc.line(is.range.end.line + 1).from +
-        is.range.end.character;
-
-      // Convert cspell suggestions to spellcheck-frontend format
-      const suggestions = is.suggestions?.map((s) => {
-        const result: { word: string; isPreferred?: boolean } = {
-          word: s.word,
-        };
-        if (s.isPreferred !== undefined) {
-          result.isPreferred = s.isPreferred;
+    const issueRanges = (issues ?? [])
+      .map((is) => {
+        const from = getDocOffset(is.range.start.line, is.range.start.character);
+        const to = getDocOffset(is.range.end.line, is.range.end.character);
+        if (from === undefined || to === undefined) {
+          return undefined;
         }
-        return result;
-      });
 
-      return new SpellcheckIssue(is.text, suggestions).range(from, to);
-    });
-    window.proseMark?.view?.dispatch({
+        const safeFrom = Math.min(from, to);
+        const safeTo = Math.max(from, to);
+        if (safeFrom === safeTo) {
+          return undefined;
+        }
+
+        // Convert cspell suggestions to spellcheck-frontend format
+        const suggestions = is.suggestions?.map((s) => {
+          const result: { word: string; isPreferred?: boolean } = {
+            word: s.word,
+          };
+          if (s.isPreferred !== undefined) {
+            result.isPreferred = s.isPreferred;
+          }
+          return result;
+        });
+
+        return new SpellcheckIssue(is.text, suggestions).range(safeFrom, safeTo);
+      })
+      .filter(isDefined);
+
+    view.dispatch({
       effects: spellcheckIssueCompartment.reconfigure([
-        spellcheckIssues.of(RangeSet.of(issue_ranges)),
+        spellcheckIssues.of(RangeSet.of(issueRanges)),
       ]),
     });
   },

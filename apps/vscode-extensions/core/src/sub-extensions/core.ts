@@ -5,7 +5,11 @@ import {
   type SubExtensionCallback,
 } from '@prosemark/vscode-extension-integrator/types';
 import * as vscode from 'vscode';
-import type { VSCodeExtensionProcMap, WebviewProcMap } from '../common';
+import type {
+  FrontendError,
+  VSCodeExtensionProcMap,
+  WebviewProcMap,
+} from '../common';
 import path from 'path';
 
 const extId = 'core';
@@ -17,7 +21,9 @@ export class Core implements SubExtension<
   #extensionUri: vscode.Uri;
   #document: vscode.TextDocument;
   #callProcAndForget: CallProc<WebviewProcMap>;
-  #isUpdatingFromWebview = false;
+  #isApplyingWebviewUpdate = false;
+  #pendingWebviewUpdates: Promise<void> = Promise.resolve();
+  #hasShownFatalErrorMessage = false;
 
   constructor(
     extensionUri: vscode.Uri,
@@ -67,27 +73,23 @@ export class Core implements SubExtension<
   }
 
   onTextDocumentChange(changes: Change[]): void {
-    if (!this.#isUpdatingFromWebview && changes.length) {
+    if (!this.#isApplyingWebviewUpdate && changes.length) {
       this.#callProcAndForget('update', changes);
     }
   }
 
   procMap: VSCodeExtensionProcMap = {
     update: (changes) => {
-      this.#isUpdatingFromWebview = true;
-      this.#updateTextDocument(changes)
-        .catch((e: unknown) => {
-          console.error(
-            'Encountered an error while trying to update the document:',
-            e,
-          );
-        })
-        .finally(() => {
-          this.#isUpdatingFromWebview = false;
-        });
+      this.#enqueueWebviewUpdate(changes);
     },
     linkClick: (link) => {
       void this.#followLink(link, this.#document.uri);
+    },
+    requestFullDocument: () => {
+      return Promise.resolve(this.#document.getText());
+    },
+    reportFrontendError: (error) => {
+      this.#handleFrontendError(error);
     },
   };
 
@@ -107,6 +109,52 @@ export class Core implements SubExtension<
     }
     const result = await vscode.workspace.applyEdit(edit);
     return result;
+  }
+
+  #enqueueWebviewUpdate(changes: Change[]) {
+    if (changes.length === 0) {
+      return;
+    }
+
+    this.#pendingWebviewUpdates = this.#pendingWebviewUpdates
+      .catch((error: unknown) => {
+        console.error(
+          'Encountered an error in a previous webview update:',
+          error,
+        );
+      })
+      .then(async () => {
+        this.#isApplyingWebviewUpdate = true;
+        try {
+          const result = await this.#updateTextDocument(changes);
+          if (!result) {
+            this.#recoverFromStateMismatch(
+              'VS Code rejected an update from the ProseMark webview.',
+            );
+          }
+        } catch (error: unknown) {
+          console.error(
+            'Encountered an error while trying to update the document:',
+            error,
+          );
+          this.#recoverFromStateMismatch(
+            'Applying an update from the ProseMark webview failed.',
+            error,
+          );
+        } finally {
+          this.#isApplyingWebviewUpdate = false;
+        }
+      });
+  }
+
+  #recoverFromStateMismatch(reason: string, error?: unknown) {
+    this.#callProcAndForget('set', this.#document.getText());
+    this.#handleFrontendError({
+      source: 'vscode-extension',
+      severity: 'recoverable',
+      message: 'ProseMark detected an editor state mismatch and re-synced.',
+      details: `${reason}${error ? ` ${this.#formatUnknownError(error)}` : ''}`,
+    });
   }
 
   /// Follow a link within the markdown document, relative to the current document
@@ -135,6 +183,56 @@ export class Core implements SubExtension<
 
   onEditorShown(): void {
     this.#callProcAndForget('focus');
+  }
+
+  #handleFrontendError(error: FrontendError): void {
+    const details = error.details ? `\n${error.details}` : '';
+    const logMessage = `[${error.source}] ${error.message}${details}`;
+    if (error.severity === 'fatal') {
+      console.error(logMessage);
+      void this.#showFatalFrontendErrorMessage();
+      return;
+    }
+
+    console.warn(logMessage);
+  }
+
+  async #showFatalFrontendErrorMessage() {
+    if (this.#hasShownFatalErrorMessage) {
+      return;
+    }
+    this.#hasShownFatalErrorMessage = true;
+    const choice = await vscode.window.showErrorMessage(
+      'ProseMark encountered a serious editor error. It may still recover, but you may need to reopen this editor (or reload VS Code) if it remains broken.',
+      'Reopen ProseMark Editor',
+      'Open Webview DevTools',
+    );
+
+    try {
+      if (choice === 'Reopen ProseMark Editor') {
+        await vscode.commands.executeCommand(
+          'vscode.openWith',
+          this.#document.uri,
+          'prosemark.editor',
+        );
+      } else if (choice === 'Open Webview DevTools') {
+        await vscode.commands.executeCommand(
+          'workbench.action.webview.openDeveloperTools',
+        );
+      }
+    } catch (error: unknown) {
+      console.error(
+        'Failed while handling ProseMark frontend error action:',
+        error,
+      );
+    }
+  }
+
+  #formatUnknownError(error: unknown): string {
+    if (error instanceof Error) {
+      return `${error.message}${error.stack ? `\n${error.stack}` : ''}`;
+    }
+    return typeof error === 'string' ? error : JSON.stringify(error);
   }
 }
 

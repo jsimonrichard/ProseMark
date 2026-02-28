@@ -25,6 +25,10 @@ export const softIndentExtension = ViewPlugin.fromClass(
     }
 
     update(u: ViewUpdate) {
+      if (u.docChanged) {
+        this.decorations = this.decorations.map(u.changes);
+      }
+
       if (u.docChanged || u.viewportChanged || u.selectionSet) {
         this.requestMeasure(u.view);
       }

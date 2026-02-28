@@ -15,11 +15,12 @@ export class CSpellIntegration implements SubExtension<
   VSCodeExtensionProcMap
 > {
   #extensionUri: vscode.Uri;
-  #documentUri: vscode.Uri;
+  #document: vscode.TextDocument;
   #cSpellApi: CSpell.ExtensionApi;
   #callProcAndForget: CallProc<WebviewProcMap>;
   #callProcWithReturnValue: CallProcWithReturnValue<WebviewProcMap>;
   #cSpellcheckTimer: NodeJS.Timeout | undefined;
+  #latestSpellcheckRequestId = 0;
 
   constructor(
     extensionUri: vscode.Uri,
@@ -30,7 +31,7 @@ export class CSpellIntegration implements SubExtension<
   ) {
     this.#extensionUri = extensionUri;
     this.#cSpellApi = cSpellApi;
-    this.#documentUri = document.uri;
+    this.#document = document;
     this.#callProcAndForget = callProcAndForget;
     this.#callProcWithReturnValue = callProcWithReturnValue;
   }
@@ -62,9 +63,18 @@ export class CSpellIntegration implements SubExtension<
   }
 
   async #spellcheck() {
+    const requestVersion = this.#document.version;
+    const requestId = ++this.#latestSpellcheckRequestId;
     const res = await this.#cSpellApi.checkDocument({
-      uri: this.#documentUri.toString(),
+      uri: this.#document.uri.toString(),
+      version: requestVersion,
     });
+    if (
+      requestId !== this.#latestSpellcheckRequestId ||
+      this.#document.version !== requestVersion
+    ) {
+      return;
+    }
     this.#callProcAndForget('updateInfo', res);
   }
 
@@ -98,7 +108,7 @@ export class CSpellIntegration implements SubExtension<
     addWordToWorkspaceDictionary: async (word) => {
       await this.#cSpellApi.addWordToWorkspaceDictionary(
         word,
-        this.#documentUri,
+        this.#document.uri,
       );
       // Re-trigger spellcheck to update issues
       setTimeout(() => {
@@ -108,7 +118,7 @@ export class CSpellIntegration implements SubExtension<
       }, 100);
     },
     requestSpellcheckSuggestions: async (word) => {
-      const doc = { uri: this.#documentUri.toString() };
+      const doc = { uri: this.#document.uri.toString() };
       const suggestions = (
         await this.#cSpellApi
           .cSpellClient()
@@ -118,6 +128,13 @@ export class CSpellIntegration implements SubExtension<
       return suggestions;
     },
   };
+
+  dispose(): void {
+    if (this.#cSpellcheckTimer) {
+      clearTimeout(this.#cSpellcheckTimer);
+      this.#cSpellcheckTimer = undefined;
+    }
+  }
 }
 
 export function createCSpellIntegration(
