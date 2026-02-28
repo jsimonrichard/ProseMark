@@ -86,8 +86,9 @@ class CodeBlockInfoWidget extends WidgetType {
   }
 
   toDOM() {
-    const container = document.createElement('div');
+    const container = document.createElement('span');
     container.className = 'cm-code-block-info';
+    container.setAttribute('contenteditable', 'false');
 
     const langContainer = document.createElement('span');
     langContainer.className = 'cm-code-block-lang-container';
@@ -111,6 +112,10 @@ class CodeBlockInfoWidget extends WidgetType {
     container.appendChild(copyButton);
 
     return container;
+  }
+
+  ignoreEvent(_event: Event): boolean {
+    return true;
   }
 }
 

@@ -62,6 +62,9 @@ const defaultHidableSpecs: HidableNodeSpec[] = [
   {
     nodeName: 'FencedCode',
     subNodeNameToHide: ['CodeMark', 'CodeInfo'],
+    // Keep code-fence markers hidden while selecting inside fenced code blocks.
+    // Avoids rapid decoration churn during mouse selection in code fences.
+    unhideOnSelection: false,
   },
   {
     nodeName: 'Blockquote',

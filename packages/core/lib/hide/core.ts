@@ -35,13 +35,6 @@ const buildDecorations = (state: EditorState) => {
 
   syntaxTree(state).iterate({
     enter: (node) => {
-      // If the selection overlaps with the node, don't hide it
-      if (
-        state.selection.ranges.some((range) => rangeTouchesRange(node, range))
-      ) {
-        return;
-      }
-
       for (const spec of specs) {
         // Check spec
         if (spec.nodeName instanceof Function) {
@@ -53,6 +46,13 @@ const buildDecorations = (state: EditorState) => {
             continue;
           }
         } else if (node.type.name !== spec.nodeName) {
+          continue;
+        }
+
+        const selectionTouchesNode = state.selection.ranges.some((range) =>
+          rangeTouchesRange(node, range),
+        );
+        if (selectionTouchesNode && spec.unhideOnSelection !== false) {
           continue;
         }
 
@@ -131,6 +131,7 @@ export interface HidableNodeSpec {
   block?: boolean;
   keepSpace?: boolean;
   unhideZone?: (state: EditorState, node: SyntaxNodeRef) => RangeLike;
+  unhideOnSelection?: boolean;
 }
 
 const checkSpec = (spec: HidableNodeSpec) => {
