@@ -29,9 +29,9 @@ const fixedTabDecoration = Decoration.replace({
 });
 
 // Issue #96 ("Text Vibrating like crazy"):
-// On some platforms (notably Android WebView), native tab rendering is not stable
-// enough for softIndentExtension's pixel measurements. Replacing each visible tab
-// with a fixed-width widget keeps indentation width deterministic and prevents jitter.
+// Native tab rendering can vary enough to throw off softIndentExtension's pixel
+// measurements. Replacing each visible tab with a fixed-width widget keeps
+// indentation width deterministic and prevents jitter.
 const buildTabWidthDecorations = (view: EditorView): DecorationSet => {
   const builder = new RangeSetBuilder<Decoration>();
   const visitedTabPositions = new Set<number>();
