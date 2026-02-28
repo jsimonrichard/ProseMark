@@ -6,7 +6,57 @@
     <title>ProseMark VS Code Parity Debugger</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div class="layout">
+        <aside class="controls">
+          <h1>VS Code Parity Debugger</h1>
+          <p>
+            Reproduce and debug ProseMark editor-state issues outside VS Code.
+          </p>
+
+          <div class="control-group">
+            <button id="load-code-fence-fixture">Load Code Fence Fixture</button>
+            <button id="select-code-fence-body">Select First Fence Body</button>
+            <button id="stress-selection">Run Selection Stress Loop</button>
+          </div>
+
+          <div class="control-group">
+            <button id="run-spellcheck-now">Run Spellcheck Now</button>
+            <button id="simulate-outdated-spellcheck">Simulate Outdated Spellcheck Apply</button>
+            <button id="clear-spellcheck">Clear Spellcheck Issues</button>
+          </div>
+
+          <div class="control-group toggles">
+            <label>
+              <input id="auto-spellcheck" type="checkbox" checked />
+              Auto spellcheck on doc changes
+            </label>
+            <label>
+              <input id="stale-guard" type="checkbox" checked />
+              Drop stale spellcheck results
+            </label>
+            <label>
+              Spellcheck delay (ms)
+              <input id="spellcheck-delay-ms" type="number" min="0" step="10" value="120" />
+            </label>
+          </div>
+
+          <div class="control-group">
+            <button id="print-tree">Print Syntax Tree</button>
+            <button id="clear-log">Clear Log</button>
+          </div>
+        </aside>
+
+        <main class="editor-panel">
+          <div id="codemirror-container"></div>
+        </main>
+
+        <section class="log-panel">
+          <h2>Event Log</h2>
+          <pre id="log-output"></pre>
+        </section>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
