@@ -2,6 +2,7 @@ import { Tag } from '@lezer/highlight';
 
 export const markdownTags = {
   headerMark: Tag.define(),
+  codeMark: Tag.define(),
   inlineCode: Tag.define(),
   fencedCode: Tag.define(),
   linkURL: Tag.define(),

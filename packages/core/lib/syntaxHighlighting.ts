@@ -18,6 +18,7 @@ export const additionalMarkdownSyntaxTags = {
     // Override tags here
     styleTags({
       HeaderMark: markdownTags.headerMark,
+      CodeMark: markdownTags.codeMark,
       FencedCode: markdownTags.fencedCode,
       InlineCode: markdownTags.inlineCode,
       URL: markdownTags.linkURL,
@@ -39,6 +40,10 @@ export const baseSyntaxHighlights = syntaxHighlighting(
     {
       tag: markdownTags.headerMark,
       color: 'var(--pm-header-mark-color)',
+    },
+    {
+      tag: markdownTags.codeMark,
+      color: 'currentColor',
     },
     {
       tag: tags.strong,
