@@ -71,6 +71,15 @@ const editor = new EditorView({
   parent: editorParent,
 });
 
+editorParent.addEventListener('click', () => {
+  if (
+    document.activeElement !== editorParent &&
+    !editorParent.contains(document.activeElement)
+  ) {
+    editor.focus();
+  }
+});
+
 void spellcheck.runSpellcheck(editor, 0);
 
 const codeFenceFixture = `# Code fence stress fixture
