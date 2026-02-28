@@ -6,12 +6,15 @@ import {
 } from './core';
 import type { InlineContext, MarkdownConfig } from '@lezer/markdown';
 import { markdownTags } from '../markdownTags';
-import { stateWORDAt } from '../utils';
+import { rangeTouchesRange, stateWORDAt } from '../utils';
 
 export { hideExtension } from './core';
 
 const renderedLinkDecoration = Decoration.mark({
   class: 'cm-rendered-link',
+});
+const inlineCodeDecoration = Decoration.mark({
+  class: 'cm-inline-code',
 });
 
 const defaultHidableSpecs: HidableNodeSpec[] = [
@@ -37,7 +40,32 @@ const defaultHidableSpecs: HidableNodeSpec[] = [
   },
   {
     nodeName: 'InlineCode',
-    subNodeNameToHide: 'CodeMark',
+    keepOnSelection: true,
+    onHide: (state, node) => {
+      const startMark = node.node.firstChild;
+      const endMark = node.node.lastChild;
+      if (
+        !startMark ||
+        !endMark ||
+        startMark.type.name !== 'CodeMark' ||
+        endMark.type.name !== 'CodeMark'
+      ) {
+        return;
+      }
+
+      const decorations = [
+        inlineCodeDecoration.range(startMark.from, endMark.to),
+      ];
+
+      const isEditingInlineCode = state.selection.ranges.some((range) =>
+        rangeTouchesRange(node, range),
+      );
+      if (isEditingInlineCode) return decorations;
+
+      decorations.push(hideInlineDecoration.range(startMark.from, startMark.to));
+      decorations.push(hideInlineDecoration.range(endMark.from, endMark.to));
+      return decorations;
+    },
   },
   {
     nodeName: 'Link',
