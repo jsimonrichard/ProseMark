@@ -1,5 +1,16 @@
 # @prosemark/render-html
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies [eb433ce]
+- Updated dependencies [3c0e35c]
+- Updated dependencies [7e1f596]
+- Updated dependencies [8be2705]
+- Updated dependencies [b732e28]
+  - @prosemark/core@0.0.5
+
 ## 0.0.5
 
 ### Patch Changes

@@ -3,7 +3,7 @@
   "displayName": "ProseMark - Code Spell Checker (cSpell) Integration",
   "description": "A \"What You See Is What You Mean\" editor, like Typora or Obsidian",
   "publisher": "jsimonrichard",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": {
     "type": "GitHub",
     "url": "https://github.com/jsimonrichard/ProseMark"
