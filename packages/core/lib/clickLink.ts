@@ -124,12 +124,22 @@ function getLineEndingLinkRangeFromHiddenUrlHit(
     from: pos,
     to: pos,
     enter(node) {
-      if (node.name !== 'URL') return;
-      if (node.node.parent?.name !== 'Link') return;
-      range = {
-        from: node.node.parent.from,
-        to: node.node.parent.to,
-      };
+      if (node.name !== 'Link') return;
+
+      let urlFrom: number | undefined;
+      iterChildren(node.node.cursor(), (cursor) => {
+        if (cursor.name === 'URL') {
+          urlFrom = cursor.from;
+          return true;
+        }
+      });
+      if (urlFrom === undefined) return;
+
+      // In folded links, clicks just to the right of visible label text often
+      // map into the hidden closing mark / URL zone near `](...)`.
+      if (pos < urlFrom - 1) return;
+
+      range = { from: node.from, to: node.to };
       return true;
     },
   });
