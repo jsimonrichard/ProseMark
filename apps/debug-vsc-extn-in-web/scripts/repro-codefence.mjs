@@ -1,6 +1,6 @@
 import http from 'node:http';
 import path from 'node:path';
-import { promises as fs } from 'node:fs';
+import { appendFileSync, promises as fs } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const playwrightModulePath = process.env.PLAYWRIGHT_MODULE ?? 'playwright';
@@ -19,6 +19,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const distDir = path.resolve(__dirname, '../dist');
 const port = 4310;
+const debugLogPath = '/opt/cursor/logs/debug.log';
+const debugConsolePrefix = '__PM_DEBUG__';
+
+const appendDebugLog = (entry) => {
+  // #region agent log
+  appendFileSync(debugLogPath, `${JSON.stringify(entry)}\n`);
+  // #endregion
+};
 
 const contentTypeByExt = new Map([
   ['.html', 'text/html; charset=utf-8'],
@@ -75,28 +83,82 @@ const closeServer = (server_) =>
   });
 
 const pageErrors = [];
+let currentPhase = 'startup';
+
+const runSelectionStress = async (page, phaseLabel) => {
+  // #region agent log
+  appendDebugLog({
+    hypothesisId: 'D',
+    location: 'repro-codefence.mjs:88',
+    message: 'runSelectionStress start',
+    data: { phase: phaseLabel },
+    timestamp: Date.now(),
+  });
+  // #endregion
+  await page.click('#select-code-fence-body');
+  for (let i = 0; i < 20; i++) {
+    await page.click('#stress-selection');
+  }
+};
 
 try {
+  // #region agent log
+  appendDebugLog({
+    hypothesisId: 'D',
+    location: 'repro-codefence.mjs:104',
+    message: 'script start',
+    data: { playwrightModulePath },
+    timestamp: Date.now(),
+  });
+  // #endregion
   await listen(server, port);
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
   page.on('pageerror', (error) => {
-    pageErrors.push(String(error));
+    const serializedError = `${currentPhase}: ${String(error)}`;
+    pageErrors.push(serializedError);
+    // #region agent log
+    appendDebugLog({
+      hypothesisId: 'D',
+      location: 'repro-codefence.mjs:120',
+      message: 'pageerror',
+      data: { phase: currentPhase, error: serializedError },
+      timestamp: Date.now(),
+    });
+    // #endregion
+  });
+  page.on('console', (message) => {
+    const text = message.text();
+    if (!text.startsWith(debugConsolePrefix)) return;
+    try {
+      const payload = JSON.parse(text.slice(debugConsolePrefix.length));
+      // #region agent log
+      appendDebugLog(payload);
+      // #endregion
+    } catch (error) {
+      // #region agent log
+      appendDebugLog({
+        hypothesisId: 'D',
+        location: 'repro-codefence.mjs:140',
+        message: 'failed to parse console debug payload',
+        data: { text, error: String(error) },
+        timestamp: Date.now(),
+      });
+      // #endregion
+    }
   });
 
   await page.goto(`http://127.0.0.1:${String(port)}/`, {
     waitUntil: 'networkidle',
   });
   await page.waitForFunction(() => Boolean(window.debugEditor));
+  currentPhase = 'first-load-initial-doc';
+  await runSelectionStress(page, currentPhase);
 
+  currentPhase = 'after-fixture-reload';
   await page.click('#load-code-fence-fixture');
-  await page.click('#select-code-fence-body');
-
-  for (let i = 0; i < 20; i++) {
-    await page.click('#stress-selection');
-  }
-
-  await page.waitForTimeout(250);
+  await runSelectionStress(page, currentPhase);
+  await page.waitForTimeout(150);
   await browser.close();
 } finally {
   await closeServer(server);

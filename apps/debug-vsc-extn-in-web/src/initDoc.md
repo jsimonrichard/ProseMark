@@ -15,11 +15,12 @@ This app is for reproducing editor-state and decoration bugs outside VS Code.
 - recieve
 - accomodate
 
-## Sample fenced code
+## Sample fenced code (first-load JSON comment case)
 
-```ts
-const tehValue = 1;
-function recieveMessage() {
-  return 'accomodate';
+```json
+{
+  // comment inside JSON-like payload
+  "tehValue": 1,
+  "recieveMessage": "accomodate"
 }
 ```

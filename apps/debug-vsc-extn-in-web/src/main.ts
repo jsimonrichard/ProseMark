@@ -23,6 +23,7 @@ declare global {
     debugEditor?: EditorView;
     ProseMark?: typeof ProseMark;
     runDebugSpellcheck?: () => Promise<void>;
+    __PM_DEBUG_LOG__?: (entry: unknown) => void;
   }
 }
 
@@ -71,6 +72,10 @@ const editor = new EditorView({
   parent: editorParent,
 });
 
+window.__PM_DEBUG_LOG__ = (entry: unknown) => {
+  console.log(`__PM_DEBUG__${JSON.stringify(entry)}`);
+};
+
 editorParent.addEventListener('click', (event) => {
   const clickTarget = event.target;
   const clickedInsideEditor =
@@ -95,10 +100,11 @@ void spellcheck.runSpellcheck(editor, 0);
 
 const codeFenceFixture = `# Code fence stress fixture
 
-\`\`\`ts
-const tehValue = 1;
-function recieveMessage() {
-  return 'accomodate';
+\`\`\`json
+{
+  // comment inside JSON-like payload
+  "tehValue": 1,
+  "recieveMessage": "accomodate"
 }
 \`\`\`
 
