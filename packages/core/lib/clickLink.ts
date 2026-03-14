@@ -139,22 +139,13 @@ const clickRawUrlExtension = EditorView.domEventHandlers(
  * Fixes a folded-link edge case where clicking right of a line-ending link
  * can place the cursor inside hidden URL syntax.
  */
-const pendingFoldedLinkCorrection = new WeakMap<
-  EditorView,
-  {
-    clickX: number;
-    linkTo: number;
-    right: number;
-  }
->();
-
 const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
   mousedown: (e: MouseEvent, view: EditorView) => {
     if (e.defaultPrevented || e.button !== 0) return false;
     if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return false;
     const clickX = e.clientX;
 
-    const renderedLinksAtMouseDown = [
+    const renderedLinks = [
       ...view.dom.querySelectorAll<HTMLElement>('.cm-rendered-link'),
     ].flatMap((renderedLink) => {
       const pos = view.posAtDOM(renderedLink, 0);
@@ -167,9 +158,9 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
       return [{ linkRange, right, verticalDistance }];
     });
 
-    if (renderedLinksAtMouseDown.length === 0) return false;
+    if (renderedLinks.length === 0) return false;
 
-    const yTolerance = view.defaultLineHeight;
+    const yTolerance = view.defaultLineHeight * 2;
     let candidate:
       | {
           linkRange: { from: number; to: number };
@@ -177,7 +168,7 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
           verticalDistance: number;
         }
       | undefined;
-    for (const link of renderedLinksAtMouseDown) {
+    for (const link of renderedLinks) {
       if (clickX <= link.right) continue;
       if (link.verticalDistance > yTolerance) continue;
       if (
@@ -191,29 +182,10 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
     }
 
     if (!candidate) return false;
+    if (clickX <= candidate.right) return false;
 
-    pendingFoldedLinkCorrection.set(view, {
-      clickX,
-      linkTo: candidate.linkRange.to,
-      right: candidate.right,
-    });
-    return false;
-  },
-  mouseup: (_e: MouseEvent, view: EditorView) => {
-    const pending = pendingFoldedLinkCorrection.get(view);
-    if (!pending) return false;
-    pendingFoldedLinkCorrection.delete(view);
-
-    const selection = view.state.selection.main;
-    if (selection.anchor !== selection.head) return false;
-
-    // Only snap for clicks on the right side of the rendered link.
-    if (pending.clickX <= pending.right) return false;
-
-    setTimeout(() => {
-      view.dispatch({ selection: { anchor: pending.linkTo } });
-    }, 0);
-    return false;
+    view.dispatch({ selection: { anchor: candidate.linkRange.to } });
+    return true;
   },
 });
 
