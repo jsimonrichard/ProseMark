@@ -32,6 +32,28 @@ function getUrlFromLink(view: EditorView, pos: number): string | undefined {
   return url;
 }
 
+function getLinkRange(
+  view: EditorView,
+  pos: number,
+): { from: number; to: number } | undefined {
+  const tree = syntaxTree(view.state);
+
+  let range: { from: number; to: number } | undefined;
+
+  tree.iterate({
+    to: pos,
+    from: pos,
+    enter(node) {
+      if (node.name !== 'Link') return;
+
+      range = { from: node.from, to: node.to };
+      return true;
+    },
+  });
+
+  return range;
+}
+
 export type ClickLinkHandler = (link: string) => void;
 
 export const clickLinkHandler = Facet.define<ClickLinkHandler>();
@@ -113,7 +135,51 @@ const clickRawUrlExtension = EditorView.domEventHandlers(
   }),
 );
 
+/**
+ * Fixes a folded-link edge case where clicking right of a line-ending link
+ * can place the cursor inside hidden URL syntax.
+ */
+const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
+  mousedown: (e: MouseEvent, view: EditorView) => {
+    if (e.defaultPrevented || e.button !== 0) return false;
+    if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return false;
+
+    const target = e.target;
+    if (!(target instanceof Element)) return false;
+
+    const line = target.closest('.cm-line');
+    if (!(line instanceof HTMLElement)) return false;
+
+    const renderedLinks = [...line.querySelectorAll<HTMLElement>('.cm-rendered-link')];
+    if (renderedLinks.length === 0) return false;
+
+    let rightmostLinkToLeftOfClick: HTMLElement | undefined;
+    let rightmostBoundary = -Infinity;
+    for (const link of renderedLinks) {
+      const { top, bottom, right } = link.getBoundingClientRect();
+      if (e.clientY < top || e.clientY > bottom) continue;
+      if (e.clientX <= right) continue;
+      if (right > rightmostBoundary) {
+        rightmostBoundary = right;
+        rightmostLinkToLeftOfClick = link;
+      }
+    }
+    if (!rightmostLinkToLeftOfClick) return false;
+
+    const pos = view.posAtDOM(rightmostLinkToLeftOfClick, 0);
+    const linkRange = getLinkRange(view, pos);
+    if (!linkRange) return false;
+
+    // Only snap when that folded link reaches the end of the visual line.
+    if (view.state.doc.lineAt(linkRange.to).to !== linkRange.to) return false;
+
+    view.dispatch({ selection: { anchor: linkRange.to } });
+    return true;
+  },
+});
+
 export const clickLinkExtension = [
+  cursorAtEndOfLineEndingFoldedLinkExtension,
   clickFullLinkExtension,
   addClassToUrl,
   clickRawUrlExtension,
