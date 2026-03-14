@@ -85,6 +85,30 @@ const closeServer = (server_) =>
 const pageErrors = [];
 let currentPhase = 'startup';
 
+const inspectFenceDecorations = async (page, phaseLabel) => {
+  const snapshot = await page.evaluate(() => {
+    const lineCount = document.querySelectorAll('.cm-fenced-code-line').length;
+    const widgetNodes = Array.from(
+      document.querySelectorAll('.cm-code-block-lang-container'),
+    );
+    const widgetCount = widgetNodes.length;
+    const hasJsonWidget = widgetNodes.some(
+      (node) => node.textContent?.trim().toUpperCase() === 'JSON',
+    );
+    return { lineCount, widgetCount, hasJsonWidget };
+  });
+  // #region agent log
+  appendDebugLog({
+    hypothesisId: 'E',
+    location: 'repro-codefence.mjs:95',
+    message: 'decoration snapshot',
+    data: { phase: phaseLabel, ...snapshot },
+    timestamp: Date.now(),
+  });
+  // #endregion
+  return snapshot;
+};
+
 const runSelectionStress = async (page, phaseLabel) => {
   // #region agent log
   appendDebugLog({
@@ -153,11 +177,35 @@ try {
   });
   await page.waitForFunction(() => Boolean(window.debugEditor));
   currentPhase = 'first-load-initial-doc';
+  const firstLoadBeforeStress = await inspectFenceDecorations(page, `${currentPhase}-before-stress`);
   await runSelectionStress(page, currentPhase);
+  const firstLoadAfterStress = await inspectFenceDecorations(page, `${currentPhase}-after-stress`);
 
   currentPhase = 'after-fixture-reload';
   await page.click('#load-code-fence-fixture');
+  const postReloadBeforeStress = await inspectFenceDecorations(
+    page,
+    `${currentPhase}-before-stress`,
+  );
   await runSelectionStress(page, currentPhase);
+  const postReloadAfterStress = await inspectFenceDecorations(
+    page,
+    `${currentPhase}-after-stress`,
+  );
+  // #region agent log
+  appendDebugLog({
+    hypothesisId: 'E',
+    location: 'repro-codefence.mjs:174',
+    message: 'phase comparison summary',
+    data: {
+      firstLoadBeforeStress,
+      firstLoadAfterStress,
+      postReloadBeforeStress,
+      postReloadAfterStress,
+    },
+    timestamp: Date.now(),
+  });
+  // #endregion
   await page.waitForTimeout(150);
   await browser.close();
 } finally {
