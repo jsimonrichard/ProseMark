@@ -11,7 +11,7 @@ import { type RangeLike, rangeTouchesRange } from '../utils';
 
 const hideTheme = EditorView.theme({
   '.cm-hidden-token': {
-    display: 'none',
+    fontSize: '0px',
   },
   '.cm-transparent-token': {
     opacity: 0,

@@ -135,25 +135,46 @@ const clickRawUrlExtension = EditorView.domEventHandlers(
   }),
 );
 
-function getVisibleInlineRight(element: HTMLElement): number {
-  let right = -Infinity;
+function getLineEndingLinkRangeFromHiddenUrlHit(
+  view: EditorView,
+  pos: number,
+): { from: number; to: number } | undefined {
+  const tree = syntaxTree(view.state);
 
-  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
-  let current = walker.nextNode();
-  while (current) {
-    if (current.textContent?.trim()) {
-      const range = document.createRange();
-      range.selectNodeContents(current);
-      const rect = range.getBoundingClientRect();
-      if (rect.width > 0 || rect.height > 0) {
-        right = Math.max(right, rect.right);
-      }
+  let range: { from: number; to: number } | undefined;
+  tree.iterate({
+    from: pos,
+    to: pos,
+    enter(node) {
+      if (node.name !== 'URL') return;
+      if (node.node.parent?.name !== 'Link') return;
+      range = {
+        from: node.node.parent.from,
+        to: node.node.parent.to,
+      };
+      return true;
+    },
+  });
+
+  if (!range) return undefined;
+  if (view.state.doc.lineAt(range.to).to !== range.to) return undefined;
+  return range;
+}
+
+function hasRenderedLinkForRange(
+  view: EditorView,
+  range: { from: number; to: number },
+): boolean {
+  const renderedLinks = view.dom.querySelectorAll<HTMLElement>('.cm-rendered-link');
+  for (const renderedLink of renderedLinks) {
+    const pos = view.posAtDOM(renderedLink, 0);
+    const linkRange = getLinkRange(view, pos);
+    if (!linkRange) continue;
+    if (linkRange.from === range.from && linkRange.to === range.to) {
+      return true;
     }
-    current = walker.nextNode();
   }
-
-  if (right > -Infinity) return right;
-  return element.getBoundingClientRect().right;
+  return false;
 }
 
 /**
@@ -164,50 +185,15 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
   mousedown: (e: MouseEvent, view: EditorView) => {
     if (e.defaultPrevented || e.button !== 0) return false;
     if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return false;
-    const clickX = e.clientX;
 
-    const renderedLinks = [
-      ...view.dom.querySelectorAll<HTMLElement>('.cm-rendered-link'),
-    ].flatMap((renderedLink) => {
-      const pos = view.posAtDOM(renderedLink, 0);
-      const linkRange = getLinkRange(view, pos);
-      if (!linkRange) return [];
-      if (view.state.doc.lineAt(linkRange.to).to !== linkRange.to) return [];
-      const { top, bottom } = renderedLink.getBoundingClientRect();
-      const right = getVisibleInlineRight(renderedLink);
-      const verticalDistance =
-        e.clientY < top ? top - e.clientY : e.clientY > bottom ? e.clientY - bottom : 0;
-      return [{ linkRange, right, verticalDistance }];
-    });
+    const pos = view.posAtCoords(e);
+    if (pos === null) return false;
 
-    if (renderedLinks.length === 0) return false;
+    const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(view, pos);
+    if (!linkRange) return false;
+    if (!hasRenderedLinkForRange(view, linkRange)) return false;
 
-    const yTolerance = view.defaultLineHeight * 2;
-    const rightSideTolerance = view.defaultCharacterWidth;
-    let candidate:
-      | {
-          linkRange: { from: number; to: number };
-          right: number;
-          verticalDistance: number;
-        }
-      | undefined;
-    for (const link of renderedLinks) {
-      if (clickX <= link.right - rightSideTolerance) continue;
-      if (link.verticalDistance > yTolerance) continue;
-      if (
-        !candidate ||
-        link.verticalDistance < candidate.verticalDistance ||
-        (link.verticalDistance === candidate.verticalDistance &&
-          link.right > candidate.right)
-      ) {
-        candidate = link;
-      }
-    }
-
-    if (!candidate) return false;
-    if (clickX <= candidate.right - rightSideTolerance) return false;
-
-    view.dispatch({ selection: { anchor: candidate.linkRange.to } });
+    view.dispatch({ selection: { anchor: linkRange.to } });
     return true;
   },
 });
