@@ -4,9 +4,9 @@ import {
   syntaxHighlighting,
   syntaxTree,
 } from '@codemirror/language';
-import { eventHandlersWithClass, iterChildren, rangeTouchesRange } from './utils';
+import { eventHandlersWithClass, iterChildren } from './utils';
 import { markdownTags } from './markdown/tags';
-import { Facet, type EditorState } from '@codemirror/state';
+import { EditorSelection, Facet, type EditorState } from '@codemirror/state';
 
 function getUrlFromLink(view: EditorView, pos: number): string | undefined {
   const tree = syntaxTree(view.state);
@@ -153,25 +153,22 @@ function getLineEndingLinkRangeFromHiddenUrlHit(
  * Fixes a folded-link edge case where clicking right of a line-ending link
  * can place the cursor inside hidden URL syntax.
  */
-const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.updateListener.of(
-  (update) => {
-    if (!update.selectionSet) return;
+const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.mouseSelectionStyle.of(
+  (view, event) => {
+    if (event.defaultPrevented || event.button !== 0) return null;
+    if (event.shiftKey || event.altKey || event.ctrlKey || event.metaKey)
+      return null;
 
-    const selection = update.state.selection.main;
-    if (selection.anchor !== selection.head) return;
+    const pos = view.posAtCoords(event);
+    if (pos === null) return null;
 
-    const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(
-      update.state,
-      selection.head,
-    );
-    if (!linkRange) return;
+    const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(view.state, pos);
+    if (!linkRange) return null;
 
-    const selectionWasAlreadyInLink = update.startState.selection.ranges.some(
-      (range) => rangeTouchesRange(range, linkRange),
-    );
-    if (selectionWasAlreadyInLink) return;
-
-    update.view.dispatch({ selection: { anchor: linkRange.to } });
+    return {
+      get: () => EditorSelection.single(linkRange.to),
+      update: () => false,
+    };
   },
 );
 
