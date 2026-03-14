@@ -3,9 +3,7 @@ import { GFM, parser } from '@lezer/markdown';
 import type { SyntaxNode } from '@lezer/common';
 import { prosemarkMarkdownSyntaxExtensions } from '../lib/markdown/index.ts';
 
-const markdownParser = parser.configure({
-  extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
-});
+const markdownParser = parser.configure([GFM, prosemarkMarkdownSyntaxExtensions]);
 
 const topLevelBlockNames = (node: SyntaxNode): string[] => {
   const names: string[] = [];

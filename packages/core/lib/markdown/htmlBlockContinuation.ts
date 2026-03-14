@@ -1,4 +1,5 @@
-import type { BlockContext, Input, Line, MarkdownConfig } from '@lezer/markdown';
+import type { Input } from '@lezer/common';
+import type { BlockContext, Line, MarkdownConfig } from '@lezer/markdown';
 
 const EMPTY_LINE = /^[ \t]*$/;
 const STYLE_1_TAG_NAMES = new Set(['script', 'pre', 'style']);
@@ -19,7 +20,9 @@ const escapeRegExp = (value: string): string =>
 const extractOpeningTagName = (lineText: string): string | null => {
   const match = OPENING_TAG.exec(lineText);
   if (!match) return null;
-  return match[1].toLowerCase();
+  const tagName = match[1];
+  if (!tagName) return null;
+  return tagName.toLowerCase();
 };
 
 const isSelfClosingOpeningTag = (lineText: string): boolean => {
