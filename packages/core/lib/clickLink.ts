@@ -4,9 +4,9 @@ import {
   syntaxHighlighting,
   syntaxTree,
 } from '@codemirror/language';
-import { eventHandlersWithClass, iterChildren } from './utils';
+import { eventHandlersWithClass, iterChildren, rangeTouchesRange } from './utils';
 import { markdownTags } from './markdown/tags';
-import { Facet, Prec } from '@codemirror/state';
+import { Facet, type EditorState } from '@codemirror/state';
 
 function getUrlFromLink(view: EditorView, pos: number): string | undefined {
   const tree = syntaxTree(view.state);
@@ -30,28 +30,6 @@ function getUrlFromLink(view: EditorView, pos: number): string | undefined {
   });
 
   return url;
-}
-
-function getLinkRange(
-  view: EditorView,
-  pos: number,
-): { from: number; to: number } | undefined {
-  const tree = syntaxTree(view.state);
-
-  let range: { from: number; to: number } | undefined;
-
-  tree.iterate({
-    to: pos,
-    from: pos,
-    enter(node) {
-      if (node.name !== 'Link') return;
-
-      range = { from: node.from, to: node.to };
-      return true;
-    },
-  });
-
-  return range;
 }
 
 export type ClickLinkHandler = (link: string) => void;
@@ -136,10 +114,10 @@ const clickRawUrlExtension = EditorView.domEventHandlers(
 );
 
 function getLineEndingLinkRangeFromHiddenUrlHit(
-  view: EditorView,
+  state: EditorState,
   pos: number,
 ): { from: number; to: number } | undefined {
-  const tree = syntaxTree(view.state);
+  const tree = syntaxTree(state);
 
   let range: { from: number; to: number } | undefined;
   tree.iterate({
@@ -157,64 +135,34 @@ function getLineEndingLinkRangeFromHiddenUrlHit(
   });
 
   if (!range) return undefined;
-  if (view.state.doc.lineAt(range.to).to !== range.to) return undefined;
+  if (state.doc.lineAt(range.to).to !== range.to) return undefined;
   return range;
 }
-
-const pendingFoldedLinkRanges = new WeakMap<
-  EditorView,
-  { from: number; to: number }[]
->();
 
 /**
  * Fixes a folded-link edge case where clicking right of a line-ending link
  * can place the cursor inside hidden URL syntax.
  */
-const cursorAtEndOfLineEndingFoldedLinkExtension = Prec.highest(
-  EditorView.domEventHandlers({
-    mousedown: (e: MouseEvent, view: EditorView) => {
-      if (e.defaultPrevented || e.button !== 0) return false;
-      if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return false;
+const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.updateListener.of(
+  (update) => {
+    if (!update.selectionSet) return;
 
-      const renderedLinks = [
-        ...view.dom.querySelectorAll<HTMLElement>('.cm-rendered-link'),
-      ].flatMap((renderedLink) => {
-        const pos = view.posAtDOM(renderedLink, 0);
-        const linkRange = getLinkRange(view, pos);
-        if (!linkRange) return [];
-        if (view.state.doc.lineAt(linkRange.to).to !== linkRange.to) return [];
-        return [linkRange];
-      });
-      if (renderedLinks.length === 0) return false;
-      pendingFoldedLinkRanges.set(view, renderedLinks);
-      return false;
-    },
-    mouseup: (_e: MouseEvent, view: EditorView) => {
-      const pending = pendingFoldedLinkRanges.get(view);
-      if (!pending) return false;
-      pendingFoldedLinkRanges.delete(view);
+    const selection = update.state.selection.main;
+    if (selection.anchor !== selection.head) return;
 
-      setTimeout(() => {
-        const selection = view.state.selection.main;
-        if (selection.anchor !== selection.head) return;
+    const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(
+      update.state,
+      selection.head,
+    );
+    if (!linkRange) return;
 
-        const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(
-          view,
-          selection.head,
-        );
-        if (!linkRange) return;
+    const selectionWasAlreadyInLink = update.startState.selection.ranges.some(
+      (range) => rangeTouchesRange(range, linkRange),
+    );
+    if (selectionWasAlreadyInLink) return;
 
-        const wasFoldedAtMouseDown = pending.some(
-          (range) => range.from === linkRange.from && range.to === linkRange.to,
-        );
-        if (!wasFoldedAtMouseDown) return;
-
-        view.dispatch({ selection: { anchor: linkRange.to } });
-      }, 0);
-
-      return false;
-    },
-  }),
+    update.view.dispatch({ selection: { anchor: linkRange.to } });
+  },
 );
 
 export const clickLinkExtension = [
