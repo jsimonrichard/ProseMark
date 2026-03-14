@@ -198,7 +198,6 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
       return false;
     }
 
-    const line = target.closest('.cm-line');
     const clickPos = view.posAtCoords({ x: e.clientX, y: e.clientY });
     // #region agent log
     appendDebugLog({
@@ -206,24 +205,24 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
       location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
       message: 'resolved target line and click pos',
       data: {
-        hasLineFromTarget: line instanceof HTMLElement,
+        hasLineFromTarget: target.closest('.cm-line') instanceof HTMLElement,
         clickPos,
         clickLineFromPos: clickPos === null ? null : view.state.doc.lineAt(clickPos).number,
       },
       timestamp: Date.now(),
     });
     // #endregion
-    if (!(line instanceof HTMLElement)) return false;
-
-    const renderedLinks = [...line.querySelectorAll<HTMLElement>('.cm-rendered-link')];
+    const renderedLinks = [
+      ...view.dom.querySelectorAll<HTMLElement>('.cm-rendered-link'),
+    ];
     if (renderedLinks.length === 0) {
       // #region agent log
       appendDebugLog({
         hypothesisId: 'B',
         location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
-        message: 'return false: no rendered links on target line',
+        message: 'return false: no rendered links in viewport',
         data: {
-          targetLineText: line.textContent,
+          targetClass: target.className,
         },
         timestamp: Date.now(),
       });
@@ -231,12 +230,21 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
       return false;
     }
 
+    const yTolerance = view.defaultLineHeight * 0.75;
     let rightmostLinkToLeftOfClick: HTMLElement | undefined;
+    let smallestVerticalDistance = Number.POSITIVE_INFINITY;
     let rightmostBoundary = -Infinity;
     for (const link of renderedLinks) {
-      const { right } = link.getBoundingClientRect();
+      const { top, bottom, right } = link.getBoundingClientRect();
       if (e.clientX <= right) continue;
-      if (right > rightmostBoundary) {
+      const verticalDistance =
+        e.clientY < top ? top - e.clientY : e.clientY > bottom ? e.clientY - bottom : 0;
+      if (verticalDistance > yTolerance) continue;
+      if (
+        verticalDistance < smallestVerticalDistance ||
+        (verticalDistance === smallestVerticalDistance && right > rightmostBoundary)
+      ) {
+        smallestVerticalDistance = verticalDistance;
         rightmostBoundary = right;
         rightmostLinkToLeftOfClick = link;
       }
@@ -248,6 +256,11 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
       message: 'candidate link scan result',
       data: {
         renderedLinks: renderedLinks.length,
+        yTolerance,
+        smallestVerticalDistance:
+          smallestVerticalDistance === Number.POSITIVE_INFINITY
+            ? null
+            : smallestVerticalDistance,
         rightmostBoundary,
         candidateFound: !!rightmostLinkToLeftOfClick,
       },
