@@ -210,7 +210,9 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
     // Only snap for clicks on the right side of the rendered link.
     if (pending.clickX <= pending.right) return false;
 
-    view.dispatch({ selection: { anchor: pending.linkTo } });
+    setTimeout(() => {
+      view.dispatch({ selection: { anchor: pending.linkTo } });
+    }, 0);
     return false;
   },
 });
