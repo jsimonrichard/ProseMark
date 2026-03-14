@@ -6,7 +6,7 @@ import {
 } from '@codemirror/language';
 import { eventHandlersWithClass, iterChildren } from './utils';
 import { markdownTags } from './markdown/tags';
-import { EditorSelection, Facet, type EditorState } from '@codemirror/state';
+import { Facet, type EditorState } from '@codemirror/state';
 
 function getUrlFromLink(view: EditorView, pos: number): string | undefined {
   const tree = syntaxTree(view.state);
@@ -47,6 +47,17 @@ const clickFullLinkExtension = EditorView.domEventHandlers(
         const pos = view.posAtCoords(e);
         if (pos === null) {
           return;
+        }
+
+        // If this click mapped into the folded link's hidden `](...)` zone,
+        // place the cursor at the end of the full link syntax.
+        const hiddenZoneLinkRange = getLineEndingLinkRangeFromHiddenUrlHit(
+          view.state,
+          pos,
+        );
+        if (hiddenZoneLinkRange) {
+          view.dispatch({ selection: { anchor: hiddenZoneLinkRange.to } });
+          return true;
         }
 
         const url = getUrlFromLink(view, pos);
@@ -153,27 +164,7 @@ function getLineEndingLinkRangeFromHiddenUrlHit(
  * Fixes a folded-link edge case where clicking right of a line-ending link
  * can place the cursor inside hidden URL syntax.
  */
-const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.mouseSelectionStyle.of(
-  (view, event) => {
-    if (event.defaultPrevented || event.button !== 0) return null;
-    if (event.shiftKey || event.altKey || event.ctrlKey || event.metaKey)
-      return null;
-
-    const pos = view.posAtCoords(event);
-    if (pos === null) return null;
-
-    const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(view.state, pos);
-    if (!linkRange) return null;
-
-    return {
-      get: () => EditorSelection.single(linkRange.to),
-      update: () => false,
-    };
-  },
-);
-
 export const clickLinkExtension = [
-  cursorAtEndOfLineEndingFoldedLinkExtension,
   clickFullLinkExtension,
   addClassToUrl,
   clickRawUrlExtension,
