@@ -1,4 +1,4 @@
-import { Facet, StateEffect, StateField } from '@codemirror/state';
+import { Facet, Prec, StateEffect, StateField } from '@codemirror/state';
 import {
   EditorView,
   showTooltip,
@@ -45,11 +45,19 @@ export const setTooltip = StateEffect.define<Tooltip | null>();
 const spellcheckTooltipItemSelector = '.cm-spellcheck-tooltip-item';
 
 function getTooltipElement(view: EditorView): HTMLElement | null {
-  return view.dom.closest('.cm-editor')?.querySelector('.cm-spellcheck-tooltip');
+  const localTooltip = view.dom
+    .closest('.cm-editor')
+    ?.querySelector<HTMLElement>('.cm-spellcheck-tooltip');
+  if (localTooltip) {
+    return localTooltip;
+  }
+  return view.dom.ownerDocument.querySelector<HTMLElement>(
+    '.cm-spellcheck-tooltip',
+  );
 }
 
 function moveTooltipFocus(
-  container: ParentNode,
+  container: HTMLElement,
   direction: 'up' | 'down',
 ): boolean {
   const items = Array.from(
@@ -407,7 +415,8 @@ export const closeTooltipHandlers = [
       return false;
     },
   }),
-  keymap.of([
+  Prec.highest(
+    keymap.of([
     {
       key: 'ArrowDown',
       run: (view) => {
@@ -439,7 +448,8 @@ export const closeTooltipHandlers = [
         return false;
       },
     },
-  ]),
+    ]),
+  ),
 ];
 
 export const spellcheckTooltipTheme = EditorView.theme({
@@ -514,6 +524,12 @@ export const spellcheckTooltipTheme = EditorView.theme({
   },
   '.cm-spellcheck-tooltip-item:hover': {
     backgroundColor: 'var(--pm-spellcheck-tooltip-hover, #f0f0f0)',
+  },
+  '.cm-spellcheck-tooltip-item:focus-visible': {
+    backgroundColor: 'var(--pm-spellcheck-tooltip-hover, #f0f0f0)',
+    outline:
+      '1px solid var(--pm-spellcheck-tooltip-focus, var(--pm-spellcheck-issue-underline-color, #037bfc))',
+    outlineOffset: '0',
   },
   '.cm-spellcheck-tooltip-item-preferred': {
     fontWeight: '600',
