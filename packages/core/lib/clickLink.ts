@@ -135,6 +135,27 @@ const clickRawUrlExtension = EditorView.domEventHandlers(
   }),
 );
 
+function getVisibleInlineRight(element: HTMLElement): number {
+  let right = -Infinity;
+
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+  let current = walker.nextNode();
+  while (current) {
+    if (current.textContent?.trim()) {
+      const range = document.createRange();
+      range.selectNodeContents(current);
+      const rect = range.getBoundingClientRect();
+      if (rect.width > 0 || rect.height > 0) {
+        right = Math.max(right, rect.right);
+      }
+    }
+    current = walker.nextNode();
+  }
+
+  if (right > -Infinity) return right;
+  return element.getBoundingClientRect().right;
+}
+
 /**
  * Fixes a folded-link edge case where clicking right of a line-ending link
  * can place the cursor inside hidden URL syntax.
@@ -152,7 +173,8 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
       const linkRange = getLinkRange(view, pos);
       if (!linkRange) return [];
       if (view.state.doc.lineAt(linkRange.to).to !== linkRange.to) return [];
-      const { right, top, bottom } = renderedLink.getBoundingClientRect();
+      const { top, bottom } = renderedLink.getBoundingClientRect();
+      const right = getVisibleInlineRight(renderedLink);
       const verticalDistance =
         e.clientY < top ? top - e.clientY : e.clientY > bottom ? e.clientY - bottom : 0;
       return [{ linkRange, right, verticalDistance }];
