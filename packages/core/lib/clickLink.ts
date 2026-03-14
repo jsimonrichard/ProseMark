@@ -161,6 +161,7 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
     if (renderedLinks.length === 0) return false;
 
     const yTolerance = view.defaultLineHeight * 2;
+    const rightSideTolerance = view.defaultCharacterWidth;
     let candidate:
       | {
           linkRange: { from: number; to: number };
@@ -169,7 +170,7 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
         }
       | undefined;
     for (const link of renderedLinks) {
-      if (clickX <= link.right) continue;
+      if (clickX <= link.right - rightSideTolerance) continue;
       if (link.verticalDistance > yTolerance) continue;
       if (
         !candidate ||
@@ -182,7 +183,7 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
     }
 
     if (!candidate) return false;
-    if (clickX <= candidate.right) return false;
+    if (clickX <= candidate.right - rightSideTolerance) return false;
 
     view.dispatch({ selection: { anchor: candidate.linkRange.to } });
     return true;
