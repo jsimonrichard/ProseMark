@@ -161,21 +161,10 @@ function getLineEndingLinkRangeFromHiddenUrlHit(
   return range;
 }
 
-function hasRenderedLinkForRange(
-  view: EditorView,
-  range: { from: number; to: number },
-): boolean {
-  const renderedLinks = view.dom.querySelectorAll<HTMLElement>('.cm-rendered-link');
-  for (const renderedLink of renderedLinks) {
-    const pos = view.posAtDOM(renderedLink, 0);
-    const linkRange = getLinkRange(view, pos);
-    if (!linkRange) continue;
-    if (linkRange.from === range.from && linkRange.to === range.to) {
-      return true;
-    }
-  }
-  return false;
-}
+const pendingFoldedLinkRanges = new WeakMap<
+  EditorView,
+  { from: number; to: number }[]
+>();
 
 /**
  * Fixes a folded-link edge case where clicking right of a line-ending link
@@ -187,12 +176,37 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = Prec.highest(
       if (e.defaultPrevented || e.button !== 0) return false;
       if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return false;
 
-      const pos = view.posAtCoords(e);
-      if (pos === null) return false;
+      const renderedLinks = [
+        ...view.dom.querySelectorAll<HTMLElement>('.cm-rendered-link'),
+      ].flatMap((renderedLink) => {
+        const pos = view.posAtDOM(renderedLink, 0);
+        const linkRange = getLinkRange(view, pos);
+        if (!linkRange) return [];
+        if (view.state.doc.lineAt(linkRange.to).to !== linkRange.to) return [];
+        return [linkRange];
+      });
+      if (renderedLinks.length === 0) return false;
+      pendingFoldedLinkRanges.set(view, renderedLinks);
+      return false;
+    },
+    mouseup: (_e: MouseEvent, view: EditorView) => {
+      const pending = pendingFoldedLinkRanges.get(view);
+      if (!pending) return false;
+      pendingFoldedLinkRanges.delete(view);
 
-      const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(view, pos);
+      const selection = view.state.selection.main;
+      if (selection.anchor !== selection.head) return false;
+
+      const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(
+        view,
+        selection.head,
+      );
       if (!linkRange) return false;
-      if (!hasRenderedLinkForRange(view, linkRange)) return false;
+
+      const wasFoldedAtMouseDown = pending.some(
+        (range) => range.from === linkRange.from && range.to === linkRange.to,
+      );
+      if (!wasFoldedAtMouseDown) return false;
 
       view.dispatch({ selection: { anchor: linkRange.to } });
       return true;
