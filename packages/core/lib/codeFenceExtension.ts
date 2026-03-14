@@ -18,8 +18,38 @@ const fallbackMonospaceCodeFont =
   "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
 const codeFontFamily = `var(--pm-code-font, ${fallbackMonospaceCodeFont})`;
 
+const emitAgentLog = (
+  hypothesisId: string,
+  location: string,
+  message: string,
+  data: Record<string, unknown>,
+) => {
+  const logger = (globalThis as { __PM_DEBUG_LOG__?: (entry: unknown) => void })
+    .__PM_DEBUG_LOG__;
+  if (typeof logger === 'function') {
+    logger({
+      hypothesisId,
+      location,
+      message,
+      data,
+      timestamp: Date.now(),
+    });
+  }
+};
+
 const codeBlockDecorations = (view: EditorView) => {
   const builder = new RangeSetBuilder<Decoration>();
+  let lineDecorationCount = 0;
+  let widgetDecorationCount = 0;
+  let fencedNodeCount = 0;
+  let invalidPosCount = 0;
+
+  // #region agent log
+  emitAgentLog('A', 'codeFenceExtension.ts:40', 'codeBlockDecorations enter', {
+    visibleRanges: view.visibleRanges.map(({ from, to }) => ({ from, to })),
+    docLength: view.state.doc.length,
+  });
+  // #endregion
 
   // If there are multiple visible ranges, it's possible to see
   // the same code block multiple times
@@ -34,6 +64,7 @@ const codeBlockDecorations = (view: EditorView) => {
         const isFrontmatter = isFrontmatterNode(node);
 
         if (isFencedCode || isFrontmatter) {
+          fencedNodeCount += 1;
           const key = JSON.stringify([node.from, node.to]);
           if (visited.has(key)) return;
           visited.add(key);
@@ -59,7 +90,29 @@ const codeBlockDecorations = (view: EditorView) => {
             code = view.state.doc.sliceString(codeStart, codeEnd);
           }
 
+          // #region agent log
+          emitAgentLog('C', 'codeFenceExtension.ts:92', 'visiting fenced block', {
+            nodeName: node.name,
+            from: node.from,
+            to: node.to,
+            lang,
+            isFrontmatter,
+          });
+          // #endregion
+
           for (let pos = node.from; pos <= node.to; ) {
+            if (pos < 0 || pos > view.state.doc.length) {
+              invalidPosCount += 1;
+              // #region agent log
+              emitAgentLog(
+                'B',
+                'codeFenceExtension.ts:104',
+                'line iteration pos out of doc bounds',
+                { pos, docLength: view.state.doc.length, nodeFrom: node.from, nodeTo: node.to },
+              );
+              // #endregion
+              break;
+            }
             const line = view.state.doc.lineAt(pos);
             const isFirstLine = pos === node.from;
             const isLastLine = line.to >= node.to;
@@ -73,6 +126,7 @@ const codeBlockDecorations = (view: EditorView) => {
                 } ${isLastLine ? 'cm-fenced-code-line-last' : ''}`,
               }),
             );
+            lineDecorationCount += 1;
 
             if (isFirstLine) {
               builder.add(
@@ -85,6 +139,7 @@ const codeBlockDecorations = (view: EditorView) => {
                   ),
                 }),
               );
+              widgetDecorationCount += 1;
             }
 
             pos = line.to + 1;
@@ -93,6 +148,15 @@ const codeBlockDecorations = (view: EditorView) => {
       },
     });
   }
+
+  // #region agent log
+  emitAgentLog('B', 'codeFenceExtension.ts:154', 'codeBlockDecorations exit', {
+    fencedNodeCount,
+    lineDecorationCount,
+    widgetDecorationCount,
+    invalidPosCount,
+  });
+  // #endregion
 
   return builder.finish();
 };
@@ -148,11 +212,27 @@ export const codeBlockDecorationsExtension: Extension = ViewPlugin.fromClass(
     decorations: DecorationSet;
 
     constructor(view: EditorView) {
+      // #region agent log
+      emitAgentLog('D', 'codeFenceExtension.ts:209', 'plugin constructor', {
+        docLength: view.state.doc.length,
+        visibleRanges: view.visibleRanges.map(({ from, to }) => ({ from, to })),
+      });
+      // #endregion
       this.decorations = codeBlockDecorations(view);
     }
 
     update(update: ViewUpdate) {
-      if (update.docChanged || update.viewportChanged) {
+      const shouldRecompute = update.docChanged || update.viewportChanged;
+      // #region agent log
+      emitAgentLog('A', 'codeFenceExtension.ts:220', 'plugin update', {
+        docChanged: update.docChanged,
+        viewportChanged: update.viewportChanged,
+        selectionSet: update.selectionSet,
+        geometryChanged: update.geometryChanged,
+        shouldRecompute,
+      });
+      // #endregion
+      if (shouldRecompute) {
         this.decorations = codeBlockDecorations(update.view);
       }
     }

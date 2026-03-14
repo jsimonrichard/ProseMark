@@ -23,6 +23,7 @@ declare global {
     debugEditor?: EditorView;
     ProseMark?: typeof ProseMark;
     runDebugSpellcheck?: () => Promise<void>;
+    __PM_DEBUG_LOG__?: (entry: unknown) => void;
   }
 }
 
@@ -44,6 +45,10 @@ const editorParent = document.getElementById('codemirror-container');
 if (!(editorParent instanceof HTMLDivElement)) {
   throw new Error('Could not find editor container');
 }
+
+window.__PM_DEBUG_LOG__ = (entry: unknown) => {
+  console.log(`__PM_DEBUG__${JSON.stringify(entry)}`);
+};
 
 const editor = new EditorView({
   extensions: [
@@ -95,10 +100,11 @@ void spellcheck.runSpellcheck(editor, 0);
 
 const codeFenceFixture = `# Code fence stress fixture
 
-\`\`\`ts
-const tehValue = 1;
-function recieveMessage() {
-  return 'accomodate';
+\`\`\`json
+{
+  // comment inside JSON-like payload
+  "tehValue": 1,
+  "recieveMessage": "accomodate"
 }
 \`\`\`
 
