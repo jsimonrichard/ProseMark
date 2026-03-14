@@ -143,7 +143,8 @@ const pendingFoldedLinkCorrection = new WeakMap<
   EditorView,
   {
     clickX: number;
-    renderedLinks: { linkRange: { from: number; to: number }; right: number }[];
+    linkTo: number;
+    right: number;
   }
 >();
 
@@ -159,14 +160,42 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
       const pos = view.posAtDOM(renderedLink, 0);
       const linkRange = getLinkRange(view, pos);
       if (!linkRange) return [];
-      return [{ linkRange, right: renderedLink.getBoundingClientRect().right }];
+      if (view.state.doc.lineAt(linkRange.to).to !== linkRange.to) return [];
+      const { right, top, bottom } = renderedLink.getBoundingClientRect();
+      const verticalDistance =
+        e.clientY < top ? top - e.clientY : e.clientY > bottom ? e.clientY - bottom : 0;
+      return [{ linkRange, right, verticalDistance }];
     });
 
     if (renderedLinksAtMouseDown.length === 0) return false;
 
+    const yTolerance = view.defaultLineHeight;
+    let candidate:
+      | {
+          linkRange: { from: number; to: number };
+          right: number;
+          verticalDistance: number;
+        }
+      | undefined;
+    for (const link of renderedLinksAtMouseDown) {
+      if (clickX <= link.right) continue;
+      if (link.verticalDistance > yTolerance) continue;
+      if (
+        !candidate ||
+        link.verticalDistance < candidate.verticalDistance ||
+        (link.verticalDistance === candidate.verticalDistance &&
+          link.right > candidate.right)
+      ) {
+        candidate = link;
+      }
+    }
+
+    if (!candidate) return false;
+
     pendingFoldedLinkCorrection.set(view, {
       clickX,
-      renderedLinks: renderedLinksAtMouseDown,
+      linkTo: candidate.linkRange.to,
+      right: candidate.right,
     });
     return false;
   },
@@ -178,22 +207,10 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
     const selection = view.state.selection.main;
     if (selection.anchor !== selection.head) return false;
 
-    const linkRange = getLinkRange(view, selection.head);
-    if (!linkRange) return false;
-
-    // Only snap when that folded link reaches the end of the visual line.
-    if (view.state.doc.lineAt(linkRange.to).to !== linkRange.to) return false;
-
-    const renderedLinkAtMouseDown = pending.renderedLinks.find(
-      ({ linkRange: range }) =>
-        range.from === linkRange.from && range.to === linkRange.to,
-    );
-    if (!renderedLinkAtMouseDown) return false;
-
     // Only snap for clicks on the right side of the rendered link.
-    if (pending.clickX <= renderedLinkAtMouseDown.right) return false;
+    if (pending.clickX <= pending.right) return false;
 
-    view.dispatch({ selection: { anchor: linkRange.to } });
+    view.dispatch({ selection: { anchor: pending.linkTo } });
     return false;
   },
 });
