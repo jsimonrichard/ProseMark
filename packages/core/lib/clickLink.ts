@@ -4,7 +4,7 @@ import {
   syntaxHighlighting,
   syntaxTree,
 } from '@codemirror/language';
-import { eventHandlersWithClass, iterChildren } from './utils';
+import { eventHandlersWithClass, iterChildren, rangeTouchesRange } from './utils';
 import { markdownTags } from './markdown/tags';
 import { Facet, type EditorState } from '@codemirror/state';
 
@@ -124,6 +124,39 @@ const clickRawUrlExtension = EditorView.domEventHandlers(
   }),
 );
 
+const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
+  mousedown: (e: MouseEvent, view: EditorView) => {
+    if (e.defaultPrevented || e.button !== 0) return false;
+    if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return false;
+
+    const selectionAtMouseDown = view.state.selection.ranges.map((range) => ({
+      from: range.from,
+      to: range.to,
+    }));
+
+    // Let CodeMirror resolve the click first, then correct hidden-link hits.
+    setTimeout(() => {
+      const selection = view.state.selection.main;
+      if (selection.anchor !== selection.head) return;
+
+      const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(
+        view.state,
+        selection.head,
+      );
+      if (!linkRange) return;
+
+      const wasAlreadyInsideLink = selectionAtMouseDown.some((range) =>
+        rangeTouchesRange(range, linkRange),
+      );
+      if (wasAlreadyInsideLink) return;
+
+      view.dispatch({ selection: { anchor: linkRange.to } });
+    }, 0);
+
+    return false;
+  },
+});
+
 function getLineEndingLinkRangeFromHiddenUrlHit(
   state: EditorState,
   pos: number,
@@ -165,6 +198,7 @@ function getLineEndingLinkRangeFromHiddenUrlHit(
  * can place the cursor inside hidden URL syntax.
  */
 export const clickLinkExtension = [
+  cursorAtEndOfLineEndingFoldedLinkExtension,
   clickFullLinkExtension,
   addClassToUrl,
   clickRawUrlExtension,
