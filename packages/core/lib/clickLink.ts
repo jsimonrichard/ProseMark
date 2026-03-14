@@ -4,7 +4,7 @@ import {
   syntaxHighlighting,
   syntaxTree,
 } from '@codemirror/language';
-import { eventHandlersWithClass, iterChildren, rangeTouchesRange } from './utils';
+import { eventHandlersWithClass, iterChildren } from './utils';
 import { markdownTags } from './markdown/tags';
 import { Facet, type EditorState } from '@codemirror/state';
 
@@ -47,17 +47,6 @@ const clickFullLinkExtension = EditorView.domEventHandlers(
         const pos = view.posAtCoords(e);
         if (pos === null) {
           return;
-        }
-
-        // If this click mapped into the folded link's hidden `](...)` zone,
-        // place the cursor at the end of the full link syntax.
-        const hiddenZoneLinkRange = getLineEndingLinkRangeFromHiddenUrlHit(
-          view.state,
-          pos,
-        );
-        if (hiddenZoneLinkRange) {
-          view.dispatch({ selection: { anchor: hiddenZoneLinkRange.to } });
-          return true;
         }
 
         const url = getUrlFromLink(view, pos);
@@ -129,31 +118,18 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
     if (e.defaultPrevented || e.button !== 0) return false;
     if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return false;
 
-    const selectionAtMouseDown = view.state.selection.ranges.map((range) => ({
-      from: range.from,
-      to: range.to,
-    }));
+    const clickPos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+    if (clickPos === null) return false;
 
-    // Let CodeMirror resolve the click first, then correct hidden-link hits.
-    setTimeout(() => {
-      const selection = view.state.selection.main;
-      if (selection.anchor !== selection.head) return;
+    const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(view.state, clickPos);
+    if (!linkRange) return false;
 
-      const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(
-        view.state,
-        selection.head,
-      );
-      if (!linkRange) return;
+    // Only snap when click is at or right of rendered link end.
+    const linkEndCoords = view.coordsAtPos(linkRange.to);
+    if (linkEndCoords && e.clientX < linkEndCoords.left - 1) return false;
 
-      const wasAlreadyInsideLink = selectionAtMouseDown.some((range) =>
-        rangeTouchesRange(range, linkRange),
-      );
-      if (wasAlreadyInsideLink) return;
-
-      view.dispatch({ selection: { anchor: linkRange.to } });
-    }, 0);
-
-    return false;
+    view.dispatch({ selection: { anchor: linkRange.to } });
+    return true;
   },
 });
 
