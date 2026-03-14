@@ -124,10 +124,6 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
     const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(view.state, clickPos);
     if (!linkRange) return false;
 
-    // Only snap when click is at or right of rendered link end.
-    const linkEndCoords = view.coordsAtPos(linkRange.to);
-    if (linkEndCoords && e.clientX < linkEndCoords.left - 1) return false;
-
     view.dispatch({ selection: { anchor: linkRange.to } });
     return true;
   },
