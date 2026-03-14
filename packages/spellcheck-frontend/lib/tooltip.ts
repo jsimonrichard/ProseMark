@@ -42,6 +42,51 @@ export const spellcheckActions = Facet.define<
 // Tooltip state management using a StateField
 export const setTooltip = StateEffect.define<Tooltip | null>();
 
+const spellcheckTooltipItemSelector = '.cm-spellcheck-tooltip-item';
+
+function getTooltipElement(view: EditorView): HTMLElement | null {
+  return view.dom.closest('.cm-editor')?.querySelector('.cm-spellcheck-tooltip');
+}
+
+function moveTooltipFocus(
+  container: ParentNode,
+  direction: 'up' | 'down',
+): boolean {
+  const items = Array.from(
+    container.querySelectorAll<HTMLButtonElement>(spellcheckTooltipItemSelector),
+  );
+  if (items.length === 0) {
+    return false;
+  }
+
+  const activeElement = container.ownerDocument.activeElement;
+  const currentIndex = items.findIndex((item) => item === activeElement);
+  const delta = direction === 'down' ? 1 : -1;
+  const fallbackIndex = direction === 'down' ? 0 : items.length - 1;
+  const nextIndex =
+    currentIndex === -1
+      ? fallbackIndex
+      : (currentIndex + delta + items.length) % items.length;
+
+  const nextItem = items[nextIndex];
+  if (!nextItem) {
+    return false;
+  }
+  nextItem.focus({ preventScroll: true });
+  return true;
+}
+
+function moveTooltipFocusFromEditor(
+  view: EditorView,
+  direction: 'up' | 'down',
+): boolean {
+  const tooltipElement = getTooltipElement(view);
+  if (!tooltipElement) {
+    return false;
+  }
+  return moveTooltipFocus(tooltipElement, direction);
+}
+
 // Class that implements TooltipView to manage spellcheck tooltip content
 class SpellcheckTooltipView implements TooltipView {
   public readonly dom: HTMLElement;
@@ -51,6 +96,16 @@ class SpellcheckTooltipView implements TooltipView {
   readonly #fetchSuggestions:
     | ((word: string) => Promise<Suggestion[]>)
     | undefined;
+  readonly #onTooltipKeydown = (event: KeyboardEvent): void => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
+      return;
+    }
+    const direction = event.key === 'ArrowDown' ? 'down' : 'up';
+    if (moveTooltipFocus(this.dom, direction)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
 
   constructor(
     issue: SpellcheckIssue,
@@ -66,6 +121,7 @@ class SpellcheckTooltipView implements TooltipView {
 
     this.dom = document.createElement('div');
     this.dom.className = 'cm-spellcheck-tooltip';
+    this.dom.addEventListener('keydown', this.#onTooltipKeydown);
 
     this.#initializeContent(view);
   }
@@ -245,6 +301,10 @@ class SpellcheckTooltipView implements TooltipView {
     // Close tooltip
     view.dispatch({ effects: setTooltip.of(null) });
   }
+
+  destroy(): void {
+    this.dom.removeEventListener('keydown', this.#onTooltipKeydown);
+  }
 }
 
 export const tooltipState = StateField.define<Tooltip | null>({
@@ -348,6 +408,26 @@ export const closeTooltipHandlers = [
     },
   }),
   keymap.of([
+    {
+      key: 'ArrowDown',
+      run: (view) => {
+        const tooltip = view.state.field(tooltipState);
+        if (!tooltip) {
+          return false;
+        }
+        return moveTooltipFocusFromEditor(view, 'down');
+      },
+    },
+    {
+      key: 'ArrowUp',
+      run: (view) => {
+        const tooltip = view.state.field(tooltipState);
+        if (!tooltip) {
+          return false;
+        }
+        return moveTooltipFocusFromEditor(view, 'up');
+      },
+    },
     {
       key: 'Escape',
       run: (view) => {
