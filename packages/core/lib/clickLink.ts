@@ -8,30 +8,6 @@ import { eventHandlersWithClass, iterChildren } from './utils';
 import { markdownTags } from './markdown/tags';
 import { Facet } from '@codemirror/state';
 
-const appendDebugLog = (payload: {
-  hypothesisId: string;
-  location: string;
-  message: string;
-  data: Record<string, unknown>;
-  timestamp: number;
-}): void => {
-  const req = (
-    globalThis as {
-      require?: (moduleId: string) => unknown;
-    }
-  ).require;
-  if (!req) return;
-  try {
-    (
-      req('fs') as {
-        appendFileSync: (path: string, text: string) => void;
-      }
-    ).appendFileSync('/opt/cursor/logs/debug.log', `${JSON.stringify(payload)}\n`);
-  } catch {
-    // ignore logging failures
-  }
-};
-
 function getUrlFromLink(view: EditorView, pos: number): string | undefined {
   const tree = syntaxTree(view.state);
 
@@ -159,165 +135,55 @@ const clickRawUrlExtension = EditorView.domEventHandlers(
   }),
 );
 
+function getRenderedLinkElementForRange(
+  view: EditorView,
+  range: { from: number; to: number },
+): HTMLElement | undefined {
+  const renderedLinks = view.dom.querySelectorAll<HTMLElement>('.cm-rendered-link');
+  for (const renderedLink of renderedLinks) {
+    const pos = view.posAtDOM(renderedLink, 0);
+    const linkRange = getLinkRange(view, pos);
+    if (!linkRange) continue;
+    if (linkRange.from === range.from && linkRange.to === range.to) {
+      return renderedLink;
+    }
+  }
+  return undefined;
+}
+
 /**
  * Fixes a folded-link edge case where clicking right of a line-ending link
  * can place the cursor inside hidden URL syntax.
  */
 const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
   mousedown: (e: MouseEvent, view: EditorView) => {
-    // #region agent log
-    appendDebugLog({
-      hypothesisId: 'A',
-      location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
-      message: 'mousedown entry',
-      data: {
-        clientX: e.clientX,
-        clientY: e.clientY,
-        button: e.button,
-        defaultPrevented: e.defaultPrevented,
-        targetTag: e.target instanceof Element ? e.target.tagName : 'non-element',
-        targetClass: e.target instanceof Element ? e.target.className : '',
-      },
-      timestamp: Date.now(),
-    });
-    // #endregion
     if (e.defaultPrevented || e.button !== 0) return false;
     if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return false;
 
-    const target = e.target;
-    if (!(target instanceof Element)) {
-      // #region agent log
-      appendDebugLog({
-        hypothesisId: 'A',
-        location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
-        message: 'return false: target not Element',
-        data: {},
-        timestamp: Date.now(),
-      });
-      // #endregion
-      return false;
-    }
-
     const clickPos = view.posAtCoords({ x: e.clientX, y: e.clientY });
-    // #region agent log
-    appendDebugLog({
-      hypothesisId: 'B',
-      location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
-      message: 'resolved target line and click pos',
-      data: {
-        hasLineFromTarget: target.closest('.cm-line') instanceof HTMLElement,
-        clickPos,
-        clickLineFromPos: clickPos === null ? null : view.state.doc.lineAt(clickPos).number,
-      },
-      timestamp: Date.now(),
-    });
-    // #endregion
-    const renderedLinks = [
-      ...view.dom.querySelectorAll<HTMLElement>('.cm-rendered-link'),
-    ];
-    if (renderedLinks.length === 0) {
-      // #region agent log
-      appendDebugLog({
-        hypothesisId: 'B',
-        location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
-        message: 'return false: no rendered links in viewport',
-        data: {
-          targetClass: target.className,
-        },
-        timestamp: Date.now(),
-      });
-      // #endregion
-      return false;
-    }
+    if (clickPos === null) return false;
 
-    const yTolerance = view.defaultLineHeight * 0.75;
-    let rightmostLinkToLeftOfClick: HTMLElement | undefined;
-    let smallestVerticalDistance = Number.POSITIVE_INFINITY;
-    let rightmostBoundary = -Infinity;
-    for (const link of renderedLinks) {
-      const { top, bottom, right } = link.getBoundingClientRect();
-      if (e.clientX <= right) continue;
-      const verticalDistance =
-        e.clientY < top ? top - e.clientY : e.clientY > bottom ? e.clientY - bottom : 0;
-      if (verticalDistance > yTolerance) continue;
-      if (
-        verticalDistance < smallestVerticalDistance ||
-        (verticalDistance === smallestVerticalDistance && right > rightmostBoundary)
-      ) {
-        smallestVerticalDistance = verticalDistance;
-        rightmostBoundary = right;
-        rightmostLinkToLeftOfClick = link;
-      }
-    }
-    // #region agent log
-    appendDebugLog({
-      hypothesisId: 'C',
-      location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
-      message: 'candidate link scan result',
-      data: {
-        renderedLinks: renderedLinks.length,
-        yTolerance,
-        smallestVerticalDistance:
-          smallestVerticalDistance === Number.POSITIVE_INFINITY
-            ? null
-            : smallestVerticalDistance,
-        rightmostBoundary,
-        candidateFound: !!rightmostLinkToLeftOfClick,
-      },
-      timestamp: Date.now(),
-    });
-    // #endregion
-    if (!rightmostLinkToLeftOfClick) return false;
-
-    const pos = view.posAtDOM(rightmostLinkToLeftOfClick, 0);
-    const linkRange = getLinkRange(view, pos);
-    if (!linkRange) {
-      // #region agent log
-      appendDebugLog({
-        hypothesisId: 'D',
-        location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
-        message: 'return false: no link range at posAtDOM',
-        data: {
-          posAtDOM: pos,
-        },
-        timestamp: Date.now(),
-      });
-      // #endregion
-      return false;
-    }
+    const linkRange = getLinkRange(view, clickPos);
+    if (!linkRange) return false;
 
     // Only snap when that folded link reaches the end of the visual line.
     const lineTo = view.state.doc.lineAt(linkRange.to).to;
-    // #region agent log
-    appendDebugLog({
-      hypothesisId: 'E',
-      location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
-      message: 'link range + eol check',
-      data: {
-        posAtDOM: pos,
-        linkFrom: linkRange.from,
-        linkTo: linkRange.to,
-        lineTo,
-        isLineEnding: lineTo === linkRange.to,
-      },
-      timestamp: Date.now(),
-    });
-    // #endregion
     if (lineTo !== linkRange.to) return false;
 
-    view.dispatch({ selection: { anchor: linkRange.to } });
-    // #region agent log
-    appendDebugLog({
-      hypothesisId: 'E',
-      location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
-      message: 'selection dispatched',
-      data: {
-        anchor: view.state.selection.main.anchor,
-      },
-      timestamp: Date.now(),
-    });
-    // #endregion
-    return true;
+    // Folded links are marked with `cm-rendered-link`. If no matching rendered
+    // element exists, this click is on an unfolded link and should be ignored.
+    const renderedLink = getRenderedLinkElementForRange(view, linkRange);
+    if (!renderedLink) return false;
+
+    // Only snap for clicks on the right side of the rendered link.
+    if (e.clientX <= renderedLink.getBoundingClientRect().right) return false;
+
+    // Run after native click selection to ensure our correction isn't overwritten.
+    setTimeout(() => {
+      view.dispatch({ selection: { anchor: linkRange.to } });
+    }, 0);
+
+    return false;
   },
 });
 
