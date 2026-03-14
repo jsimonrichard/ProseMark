@@ -137,7 +137,7 @@ function getLineEndingLinkRangeFromHiddenUrlHit(
 
       // In folded links, clicks just to the right of visible label text often
       // map into the hidden closing mark / URL zone near `](...)`.
-      if (pos < urlFrom - 1) return;
+      if (pos < urlFrom - 2) return;
 
       range = { from: node.from, to: node.to };
       return true;
