@@ -139,6 +139,14 @@ const clickRawUrlExtension = EditorView.domEventHandlers(
  * Fixes a folded-link edge case where clicking right of a line-ending link
  * can place the cursor inside hidden URL syntax.
  */
+const pendingFoldedLinkCorrection = new WeakMap<
+  EditorView,
+  {
+    clickX: number;
+    renderedLinks: { linkRange: { from: number; to: number }; right: number }[];
+  }
+>();
+
 const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
   mousedown: (e: MouseEvent, view: EditorView) => {
     if (e.defaultPrevented || e.button !== 0) return false;
@@ -156,27 +164,36 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
 
     if (renderedLinksAtMouseDown.length === 0) return false;
 
-    // Run after native click selection to ensure our correction isn't overwritten.
-    setTimeout(() => {
-      const pos = view.state.selection.main.head;
-      const linkRange = getLinkRange(view, pos);
-      if (!linkRange) return;
+    pendingFoldedLinkCorrection.set(view, {
+      clickX,
+      renderedLinks: renderedLinksAtMouseDown,
+    });
+    return false;
+  },
+  mouseup: (_e: MouseEvent, view: EditorView) => {
+    const pending = pendingFoldedLinkCorrection.get(view);
+    if (!pending) return false;
+    pendingFoldedLinkCorrection.delete(view);
 
-      // Only snap when that folded link reaches the end of the visual line.
-      if (view.state.doc.lineAt(linkRange.to).to !== linkRange.to) return;
+    const selection = view.state.selection.main;
+    if (selection.anchor !== selection.head) return false;
 
-      const renderedLinkAtMouseDown = renderedLinksAtMouseDown.find(
-        ({ linkRange: range }) =>
-          range.from === linkRange.from && range.to === linkRange.to,
-      );
-      if (!renderedLinkAtMouseDown) return;
+    const linkRange = getLinkRange(view, selection.head);
+    if (!linkRange) return false;
 
-      // Only snap for clicks on the right side of the rendered link.
-      if (clickX <= renderedLinkAtMouseDown.right) return;
+    // Only snap when that folded link reaches the end of the visual line.
+    if (view.state.doc.lineAt(linkRange.to).to !== linkRange.to) return false;
 
-      view.dispatch({ selection: { anchor: linkRange.to } });
-    }, 0);
+    const renderedLinkAtMouseDown = pending.renderedLinks.find(
+      ({ linkRange: range }) =>
+        range.from === linkRange.from && range.to === linkRange.to,
+    );
+    if (!renderedLinkAtMouseDown) return false;
 
+    // Only snap for clicks on the right side of the rendered link.
+    if (pending.clickX <= renderedLinkAtMouseDown.right) return false;
+
+    view.dispatch({ selection: { anchor: linkRange.to } });
     return false;
   },
 });
