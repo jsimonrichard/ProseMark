@@ -46,6 +46,10 @@ if (!(editorParent instanceof HTMLDivElement)) {
   throw new Error('Could not find editor container');
 }
 
+window.__PM_DEBUG_LOG__ = (entry: unknown) => {
+  console.log(`__PM_DEBUG__${JSON.stringify(entry)}`);
+};
+
 const editor = new EditorView({
   extensions: [
     markdown({
@@ -71,10 +75,6 @@ const editor = new EditorView({
   doc: initDoc,
   parent: editorParent,
 });
-
-window.__PM_DEBUG_LOG__ = (entry: unknown) => {
-  console.log(`__PM_DEBUG__${JSON.stringify(entry)}`);
-};
 
 editorParent.addEventListener('click', (event) => {
   const clickTarget = event.target;
