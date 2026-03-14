@@ -8,6 +8,30 @@ import { eventHandlersWithClass, iterChildren } from './utils';
 import { markdownTags } from './markdown/tags';
 import { Facet } from '@codemirror/state';
 
+const appendDebugLog = (payload: {
+  hypothesisId: string;
+  location: string;
+  message: string;
+  data: Record<string, unknown>;
+  timestamp: number;
+}): void => {
+  const req = (
+    globalThis as {
+      require?: (moduleId: string) => unknown;
+    }
+  ).require;
+  if (!req) return;
+  try {
+    (
+      req('fs') as {
+        appendFileSync: (path: string, text: string) => void;
+      }
+    ).appendFileSync('/opt/cursor/logs/debug.log', `${JSON.stringify(payload)}\n`);
+  } catch {
+    // ignore logging failures
+  }
+};
+
 function getUrlFromLink(view: EditorView, pos: number): string | undefined {
   const tree = syntaxTree(view.state);
 
@@ -141,17 +165,71 @@ const clickRawUrlExtension = EditorView.domEventHandlers(
  */
 const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
   mousedown: (e: MouseEvent, view: EditorView) => {
+    // #region agent log
+    appendDebugLog({
+      hypothesisId: 'A',
+      location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
+      message: 'mousedown entry',
+      data: {
+        clientX: e.clientX,
+        clientY: e.clientY,
+        button: e.button,
+        defaultPrevented: e.defaultPrevented,
+        targetTag: e.target instanceof Element ? e.target.tagName : 'non-element',
+        targetClass: e.target instanceof Element ? e.target.className : '',
+      },
+      timestamp: Date.now(),
+    });
+    // #endregion
     if (e.defaultPrevented || e.button !== 0) return false;
     if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return false;
 
     const target = e.target;
-    if (!(target instanceof Element)) return false;
+    if (!(target instanceof Element)) {
+      // #region agent log
+      appendDebugLog({
+        hypothesisId: 'A',
+        location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
+        message: 'return false: target not Element',
+        data: {},
+        timestamp: Date.now(),
+      });
+      // #endregion
+      return false;
+    }
 
     const line = target.closest('.cm-line');
+    const clickPos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+    // #region agent log
+    appendDebugLog({
+      hypothesisId: 'B',
+      location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
+      message: 'resolved target line and click pos',
+      data: {
+        hasLineFromTarget: line instanceof HTMLElement,
+        clickPos,
+        clickLineFromPos: clickPos === null ? null : view.state.doc.lineAt(clickPos).number,
+      },
+      timestamp: Date.now(),
+    });
+    // #endregion
     if (!(line instanceof HTMLElement)) return false;
 
     const renderedLinks = [...line.querySelectorAll<HTMLElement>('.cm-rendered-link')];
-    if (renderedLinks.length === 0) return false;
+    if (renderedLinks.length === 0) {
+      // #region agent log
+      appendDebugLog({
+        hypothesisId: 'B',
+        location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
+        message: 'return false: no rendered links on target line',
+        data: {
+          targetLineText: line.textContent,
+        },
+        timestamp: Date.now(),
+      });
+      // #endregion
+      return false;
+    }
 
     let rightmostLinkToLeftOfClick: HTMLElement | undefined;
     let rightmostBoundary = -Infinity;
@@ -163,17 +241,69 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
         rightmostLinkToLeftOfClick = link;
       }
     }
+    // #region agent log
+    appendDebugLog({
+      hypothesisId: 'C',
+      location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
+      message: 'candidate link scan result',
+      data: {
+        renderedLinks: renderedLinks.length,
+        rightmostBoundary,
+        candidateFound: !!rightmostLinkToLeftOfClick,
+      },
+      timestamp: Date.now(),
+    });
+    // #endregion
     if (!rightmostLinkToLeftOfClick) return false;
 
     const pos = view.posAtDOM(rightmostLinkToLeftOfClick, 0);
     const linkRange = getLinkRange(view, pos);
-    if (!linkRange) return false;
+    if (!linkRange) {
+      // #region agent log
+      appendDebugLog({
+        hypothesisId: 'D',
+        location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
+        message: 'return false: no link range at posAtDOM',
+        data: {
+          posAtDOM: pos,
+        },
+        timestamp: Date.now(),
+      });
+      // #endregion
+      return false;
+    }
 
     // Only snap when that folded link reaches the end of the visual line.
     const lineTo = view.state.doc.lineAt(linkRange.to).to;
+    // #region agent log
+    appendDebugLog({
+      hypothesisId: 'E',
+      location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
+      message: 'link range + eol check',
+      data: {
+        posAtDOM: pos,
+        linkFrom: linkRange.from,
+        linkTo: linkRange.to,
+        lineTo,
+        isLineEnding: lineTo === linkRange.to,
+      },
+      timestamp: Date.now(),
+    });
+    // #endregion
     if (lineTo !== linkRange.to) return false;
 
     view.dispatch({ selection: { anchor: linkRange.to } });
+    // #region agent log
+    appendDebugLog({
+      hypothesisId: 'E',
+      location: 'clickLink.ts:cursorAtEndOfLineEndingFoldedLinkExtension',
+      message: 'selection dispatched',
+      data: {
+        anchor: view.state.selection.main.anchor,
+      },
+      timestamp: Date.now(),
+    });
+    // #endregion
     return true;
   },
 });
