@@ -66,6 +66,10 @@ export default defineConfig({
   resolve: {
     alias: {
       buffer: 'buffer',
+      '@prosemark/spellcheck-frontend': resolve(
+        process.cwd(),
+        '../../packages/spellcheck-frontend/lib/main.ts',
+      ),
     },
   },
   optimizeDeps: {
