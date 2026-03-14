@@ -194,22 +194,25 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = Prec.highest(
       if (!pending) return false;
       pendingFoldedLinkRanges.delete(view);
 
-      const selection = view.state.selection.main;
-      if (selection.anchor !== selection.head) return false;
+      setTimeout(() => {
+        const selection = view.state.selection.main;
+        if (selection.anchor !== selection.head) return;
 
-      const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(
-        view,
-        selection.head,
-      );
-      if (!linkRange) return false;
+        const linkRange = getLineEndingLinkRangeFromHiddenUrlHit(
+          view,
+          selection.head,
+        );
+        if (!linkRange) return;
 
-      const wasFoldedAtMouseDown = pending.some(
-        (range) => range.from === linkRange.from && range.to === linkRange.to,
-      );
-      if (!wasFoldedAtMouseDown) return false;
+        const wasFoldedAtMouseDown = pending.some(
+          (range) => range.from === linkRange.from && range.to === linkRange.to,
+        );
+        if (!wasFoldedAtMouseDown) return;
 
-      view.dispatch({ selection: { anchor: linkRange.to } });
-      return true;
+        view.dispatch({ selection: { anchor: linkRange.to } });
+      }, 0);
+
+      return false;
     },
   }),
 );
