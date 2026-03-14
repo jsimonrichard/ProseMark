@@ -252,8 +252,7 @@ const cursorAtEndOfLineEndingFoldedLinkExtension = EditorView.domEventHandlers({
     let rightmostLinkToLeftOfClick: HTMLElement | undefined;
     let rightmostBoundary = -Infinity;
     for (const link of renderedLinks) {
-      const { top, bottom, right } = link.getBoundingClientRect();
-      if (e.clientY < top || e.clientY > bottom) continue;
+      const { right } = link.getBoundingClientRect();
       if (e.clientX <= right) continue;
       if (right > rightmostBoundary) {
         rightmostBoundary = right;
