@@ -44,32 +44,6 @@ export const setTooltip = StateEffect.define<Tooltip | null>();
 
 const spellcheckTooltipItemSelector = '.cm-spellcheck-tooltip-item';
 
-function emitDebugLog(
-  hypothesisId: string,
-  location: string,
-  message: string,
-  data: Record<string, unknown>,
-): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  const payload = {
-    hypothesisId,
-    location,
-    message,
-    data,
-    timestamp: Date.now(),
-  };
-  void fetch('/__spellcheck_debug_log', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-    keepalive: true,
-  }).catch(() => {
-    // Debug logging should not affect editor behavior.
-  });
-}
-
 function getTooltipElement(view: EditorView): HTMLElement | null {
   const localTooltip = view.dom
     .closest('.cm-editor')
@@ -89,21 +63,11 @@ function moveTooltipFocus(
   const items = Array.from(
     container.querySelectorAll<HTMLButtonElement>(spellcheckTooltipItemSelector),
   );
-  const activeElement = container.ownerDocument.activeElement as HTMLElement | null;
-  const activeElementClass = activeElement?.className;
-  // #region agent log
-  emitDebugLog('H3', 'tooltip.ts:moveTooltipFocus:entry', 'focus-move-entry', {
-    direction,
-    itemsCount: items.length,
-    activeTag: activeElement?.tagName ?? null,
-    activeClass:
-      typeof activeElementClass === 'string' ? activeElementClass : null,
-  });
-  // #endregion
   if (items.length === 0) {
     return false;
   }
 
+  const activeElement = container.ownerDocument.activeElement;
   const currentIndex = items.findIndex((item) => item === activeElement);
   const delta = direction === 'down' ? 1 : -1;
   const fallbackIndex = direction === 'down' ? 0 : items.length - 1;
@@ -117,15 +81,6 @@ function moveTooltipFocus(
     return false;
   }
   nextItem.focus({ preventScroll: true });
-  // #region agent log
-  emitDebugLog('H3', 'tooltip.ts:moveTooltipFocus:exit', 'focus-move-exit', {
-    direction,
-    currentIndex,
-    nextIndex,
-    focusedText: nextItem.textContent ?? null,
-    activeTagAfter: container.ownerDocument.activeElement?.tagName ?? null,
-  });
-  // #endregion
   return true;
 }
 
@@ -134,19 +89,6 @@ function moveTooltipFocusFromEditor(
   direction: 'up' | 'down',
 ): boolean {
   const tooltipElement = getTooltipElement(view);
-  // #region agent log
-  emitDebugLog(
-    'H2',
-    'tooltip.ts:moveTooltipFocusFromEditor',
-    'editor-to-tooltip-lookup',
-    {
-      direction,
-      tooltipFound: Boolean(tooltipElement),
-      tooltipStatePresent: Boolean(view.state.field(tooltipState)),
-      activeTag: view.dom.ownerDocument.activeElement?.tagName ?? null,
-    },
-  );
-  // #endregion
   if (!tooltipElement) {
     return false;
   }
@@ -163,13 +105,6 @@ class SpellcheckTooltipView implements TooltipView {
     | ((word: string) => Promise<Suggestion[]>)
     | undefined;
   readonly #onTooltipKeydown = (event: KeyboardEvent): void => {
-    // #region agent log
-    emitDebugLog('H4', 'tooltip.ts:onTooltipKeydown', 'tooltip-dom-keydown', {
-      key: event.key,
-      defaultPrevented: event.defaultPrevented,
-      activeTag: this.dom.ownerDocument.activeElement?.tagName ?? null,
-    });
-    // #endregion
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
       return;
     }
@@ -453,14 +388,6 @@ export const contextMenuHandler = EditorView.domEventHandlers({
 // Ctrl+. keyboard shortcut handler
 const showSuggestionsCommand: Command = (view) => {
   const pos = view.state.selection.main.head;
-  // #region agent log
-  emitDebugLog(
-    'H5',
-    'tooltip.ts:showSuggestionsCommand',
-    'ctrl-dot-invoked',
-    { selectionHead: pos },
-  );
-  // #endregion
   return showSpellcheckTooltip(view, pos);
 };
 
@@ -474,21 +401,6 @@ export const spellcheckKeymap = keymap.of([
 // Close tooltip on click outside or escape key
 export const closeTooltipHandlers = [
   EditorView.domEventHandlers({
-    keydown(event, view) {
-      const tooltip = view.state.field(tooltipState);
-      if (!tooltip) {
-        return false;
-      }
-      // #region agent log
-      emitDebugLog('H1', 'tooltip.ts:editorDomKeydown', 'editor-dom-keydown', {
-        key: event.key,
-        defaultPrevented: event.defaultPrevented,
-        eventTargetTag: (event.target as HTMLElement | null)?.tagName ?? null,
-        activeTag: view.dom.ownerDocument.activeElement?.tagName ?? null,
-      });
-      // #endregion
-      return false;
-    },
     mousedown(event, view) {
       // Don't close if clicking inside the tooltip
       const target = event.target as HTMLElement;
@@ -509,12 +421,6 @@ export const closeTooltipHandlers = [
       key: 'ArrowDown',
       run: (view) => {
         const tooltip = view.state.field(tooltipState);
-        // #region agent log
-        emitDebugLog('H1', 'tooltip.ts:keymapArrowDown', 'keymap-arrow-down', {
-          tooltipPresent: Boolean(tooltip),
-          selectionHead: view.state.selection.main.head,
-        });
-        // #endregion
         if (!tooltip) {
           return false;
         }
@@ -525,12 +431,6 @@ export const closeTooltipHandlers = [
       key: 'ArrowUp',
       run: (view) => {
         const tooltip = view.state.field(tooltipState);
-        // #region agent log
-        emitDebugLog('H1', 'tooltip.ts:keymapArrowUp', 'keymap-arrow-up', {
-          tooltipPresent: Boolean(tooltip),
-          selectionHead: view.state.selection.main.head,
-        });
-        // #endregion
         if (!tooltip) {
           return false;
         }
