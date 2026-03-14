@@ -13,13 +13,19 @@ class ImageWidget extends WidgetType {
     super();
   }
 
+  eq(other: ImageWidget): boolean {
+    return this.url === other.url && this.block === other.block;
+  }
+
   toDOM() {
     const elem = document.createElement(this.block ? 'div' : 'span');
     elem.className = 'cm-image';
     if (this.block) {
       elem.className += ' cm-image-block';
     }
-    elem.innerHTML = `<img src="${this.url}" />`;
+    const image = document.createElement('img');
+    image.src = this.url;
+    elem.appendChild(image);
     return elem;
   }
 
