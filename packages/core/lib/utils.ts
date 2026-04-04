@@ -6,11 +6,27 @@ import {
   findClusterBreak,
 } from '@codemirror/state';
 import {
+  type Decoration,
   type DOMEventHandlers,
   type DOMEventMap,
   type EditorView,
+  type WidgetType,
 } from '@codemirror/view';
 import type { TreeCursor } from '@lezer/common';
+
+function isWidgetType(value: unknown): value is WidgetType {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'toDOM' in value &&
+    typeof (value as { toDOM: unknown }).toDOM === 'function'
+  );
+}
+
+/** True when this is a replace decoration that shows a widget (not hide-only replace). */
+export function decorationHasReplaceWidget(deco: Decoration): boolean {
+  return isWidgetType((deco.spec as { widget?: unknown }).widget);
+}
 
 /* This is a reference to vim's WORD: a "word" including any non-whitespace character */
 export function stateWORDAt(

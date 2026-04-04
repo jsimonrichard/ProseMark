@@ -13,6 +13,7 @@ import {
   EditorView,
 } from '@codemirror/view';
 import {
+  decorationHasReplaceWidget,
   eventHandlersWithClass,
   type RangeLike,
   selectionTouchesRange,
@@ -135,16 +136,16 @@ export const selectAllDecorationsOnSelectExtension = (
           if (ranges.length === 0 || ranges[0]?.anchor !== ranges[0]?.head)
             return;
 
-          const target = e.target as HTMLElement;
-          const pos = view.posAtDOM(target);
+          const pos =
+            view.posAtCoords({ x: e.clientX, y: e.clientY }) ??
+            view.posAtCoords({ x: e.clientX, y: e.clientY }, false);
 
           const decorations = view.state.field(foldExtension);
-          decorations.between(pos, pos, (from: number, to: number) => {
-            setTimeout(() => {
-              view.dispatch({
-                selection: EditorSelection.single(to, from),
-              });
-            }, 0);
+          decorations.between(pos, pos, (from: number, to: number, deco) => {
+            if (!decorationHasReplaceWidget(deco)) return;
+            view.dispatch({
+              selection: EditorSelection.single(to, from),
+            });
             return false;
           });
         },
