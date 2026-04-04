@@ -13,7 +13,7 @@ const topLevelBlockNames = (node: SyntaxNode): string[] => {
   return names;
 };
 
-describe('html block continuation across blank lines', () => {
+describe('MultiParHTMLBlock behavior across blank lines', () => {
   test('keeps an unclosed html tag in one block across double line breaks', () => {
     const input = `<details>
 <summary>Summary</summary>
