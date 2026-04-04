@@ -4,6 +4,15 @@ import { hideExtension } from './hide';
 import { EditorSelection, type StateField } from '@codemirror/state';
 import { decorationHasReplaceWidget } from './utils';
 
+const onlyWhitespaceBetween = (
+  view: EditorView,
+  from: number,
+  to: number,
+): boolean => {
+  if (from >= to) return false;
+  return /^[\t \n\r]+$/.test(view.state.doc.sliceString(from, to));
+};
+
 const maybeReveal = (
   decorationField: StateField<DecorationSet>,
   view: EditorView,
@@ -11,6 +20,8 @@ const maybeReveal = (
 ): boolean => {
   const decorations = view.state.field(decorationField);
   const cursorAt = view.state.selection.main.head;
+  const lineAtCursor = view.state.doc.lineAt(cursorAt);
+  let nearestRevealUpTo: number | null = null;
 
   // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
   for (let iter = decorations.iter(); iter.value; iter.next()) {
@@ -28,7 +39,24 @@ const maybeReveal = (
         selection: EditorSelection.single(iter.to),
       });
       return true;
+    } else if (
+      direction === 'up' &&
+      cursorAt > iter.to &&
+      lineAtCursor.from === cursorAt &&
+      onlyWhitespaceBetween(view, iter.to, cursorAt)
+    ) {
+      nearestRevealUpTo =
+        nearestRevealUpTo == null || iter.to > nearestRevealUpTo
+          ? iter.to
+          : nearestRevealUpTo;
     }
+  }
+
+  if (direction === 'up' && nearestRevealUpTo != null) {
+    view.dispatch({
+      selection: EditorSelection.single(nearestRevealUpTo),
+    });
+    return true;
   }
 
   return false;
