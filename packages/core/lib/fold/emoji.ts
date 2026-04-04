@@ -42,6 +42,10 @@ class EmojiWidget extends WidgetType {
     super();
   }
 
+  eq(other: EmojiWidget): boolean {
+    return this.emoji === other.emoji;
+  }
+
   toDOM() {
     const span = document.createElement('span');
     span.className = 'cm-emoji';

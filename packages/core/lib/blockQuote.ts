@@ -14,6 +14,10 @@ class NestedBlockQuoteBorder extends WidgetType {
     super();
   }
 
+  eq(other: NestedBlockQuoteBorder): boolean {
+    return this.offset === other.offset;
+  }
+
   toDOM() {
     const span = document.createElement('span');
     span.className = 'cm-nested-blockquote-border';

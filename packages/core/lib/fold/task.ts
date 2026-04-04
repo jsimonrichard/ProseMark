@@ -10,6 +10,10 @@ class Checkbox extends WidgetType {
     this.value = value;
   }
 
+  eq(other: Checkbox): boolean {
+    return this.value === other.value;
+  }
+
   toDOM() {
     const el = document.createElement('input');
     el.type = 'checkbox';

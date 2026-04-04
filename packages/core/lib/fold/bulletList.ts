@@ -2,6 +2,10 @@ import { Decoration, WidgetType } from '@codemirror/view';
 import { foldableSyntaxFacet } from './core';
 
 class BulletPoint extends WidgetType {
+  eq(other: BulletPoint): boolean {
+    return other instanceof BulletPoint;
+  }
+
   toDOM() {
     const span = document.createElement('span');
     span.className = 'cm-rendered-list-mark';
