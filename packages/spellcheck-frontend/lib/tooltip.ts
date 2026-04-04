@@ -95,6 +95,18 @@ function moveTooltipFocusFromEditor(
   return moveTooltipFocus(tooltipElement, direction);
 }
 
+function activateFocusedTooltipItem(container: HTMLElement): boolean {
+  const activeElement = container.ownerDocument.activeElement;
+  if (!(activeElement instanceof HTMLButtonElement)) {
+    return false;
+  }
+  if (!activeElement.matches(spellcheckTooltipItemSelector)) {
+    return false;
+  }
+  activeElement.click();
+  return true;
+}
+
 function focusEditor(view: EditorView): void {
   queueMicrotask(() => {
     view.focus();
@@ -112,6 +124,13 @@ class SpellcheckTooltipView implements TooltipView {
     | undefined;
   readonly #onTooltipKeydown = (event: KeyboardEvent): void => {
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
+      if (event.key !== 'Enter') {
+        return;
+      }
+      if (activateFocusedTooltipItem(this.dom)) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       return;
     }
     const direction = event.key === 'ArrowDown' ? 'down' : 'up';
@@ -425,37 +444,51 @@ export const closeTooltipHandlers = [
   }),
   Prec.highest(
     keymap.of([
-    {
-      key: 'ArrowDown',
-      run: (view) => {
-        const tooltip = view.state.field(tooltipState);
-        if (!tooltip) {
+      {
+        key: 'ArrowDown',
+        run: (view) => {
+          const tooltip = view.state.field(tooltipState);
+          if (!tooltip) {
+            return false;
+          }
+          return moveTooltipFocusFromEditor(view, 'down');
+        },
+      },
+      {
+        key: 'ArrowUp',
+        run: (view) => {
+          const tooltip = view.state.field(tooltipState);
+          if (!tooltip) {
+            return false;
+          }
+          return moveTooltipFocusFromEditor(view, 'up');
+        },
+      },
+      {
+        key: 'Enter',
+        run: (view) => {
+          const tooltip = view.state.field(tooltipState);
+          if (!tooltip) {
+            return false;
+          }
+          const tooltipElement = getTooltipElement(view);
+          if (!tooltipElement) {
+            return false;
+          }
+          return activateFocusedTooltipItem(tooltipElement);
+        },
+      },
+      {
+        key: 'Escape',
+        run: (view) => {
+          const tooltip = view.state.field(tooltipState);
+          if (tooltip) {
+            view.dispatch({ effects: setTooltip.of(null) });
+            return true;
+          }
           return false;
-        }
-        return moveTooltipFocusFromEditor(view, 'down');
+        },
       },
-    },
-    {
-      key: 'ArrowUp',
-      run: (view) => {
-        const tooltip = view.state.field(tooltipState);
-        if (!tooltip) {
-          return false;
-        }
-        return moveTooltipFocusFromEditor(view, 'up');
-      },
-    },
-    {
-      key: 'Escape',
-      run: (view) => {
-        const tooltip = view.state.field(tooltipState);
-        if (tooltip) {
-          view.dispatch({ effects: setTooltip.of(null) });
-          return true;
-        }
-        return false;
-      },
-    },
     ]),
   ),
 ];
