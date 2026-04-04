@@ -2,7 +2,7 @@ import { dashMarkdownSyntaxExtension, emojiMarkdownSyntaxExtension } from '../fo
 import { escapeMarkdownSyntaxExtension } from '../hide';
 import { additionalMarkdownSyntaxTags } from '../syntaxHighlighting';
 import { frontmatterMarkdownSyntaxExtension } from './frontmatter';
-import { htmlBlockContinuationMarkdownSyntaxExtension } from './htmlBlockContinuation';
+import { multiParHTMLBlockMarkdownSyntaxExtension } from './htmlBlockContinuation';
 import { nestedLinkAsPlainText } from './nestedLinkAsPlainText';
 
 export { markdownTags } from './tags';
@@ -15,12 +15,15 @@ export { nestedLinkAsPlainText } from './nestedLinkAsPlainText';
 export { escapeMarkdownSyntaxExtension } from '../hide';
 export { additionalMarkdownSyntaxTags } from '../syntaxHighlighting';
 export { emojiMarkdownSyntaxExtension, dashMarkdownSyntaxExtension } from '../fold';
-export { htmlBlockContinuationMarkdownSyntaxExtension } from './htmlBlockContinuation';
+export {
+  multiParHTMLBlockMarkdownSyntaxExtension,
+  htmlBlockContinuationMarkdownSyntaxExtension,
+} from './htmlBlockContinuation';
 
 export const prosemarkMarkdownSyntaxExtensions = [
   additionalMarkdownSyntaxTags,
   frontmatterMarkdownSyntaxExtension,
-  htmlBlockContinuationMarkdownSyntaxExtension,
+  multiParHTMLBlockMarkdownSyntaxExtension,
   nestedLinkAsPlainText,
   escapeMarkdownSyntaxExtension,
   emojiMarkdownSyntaxExtension,

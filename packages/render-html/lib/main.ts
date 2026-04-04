@@ -67,7 +67,7 @@ export const htmlBlockExtension = [
     buildDecorations: (state: EditorState, node: SyntaxNodeRef) => {
       return Decoration.replace({
         widget: new HTMLWidget(state.doc.sliceString(node.from, node.to)),
-        block: true,
+        block: false,
         inclusive: true,
       }).range(node.from, node.to);
     },

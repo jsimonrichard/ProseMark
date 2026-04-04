@@ -22,6 +22,7 @@ const maybeReveal = (
   const cursorAt = view.state.selection.main.head;
   const lineAtCursor = view.state.doc.lineAt(cursorAt);
   let nearestRevealUpTo: number | null = null;
+  let nearestRevealDownFrom: number | null = null;
 
   // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
   for (let iter = decorations.iter(); iter.value; iter.next()) {
@@ -41,20 +42,33 @@ const maybeReveal = (
       return true;
     } else if (
       direction === 'up' &&
-      cursorAt > iter.to &&
-      lineAtCursor.from === cursorAt &&
-      onlyWhitespaceBetween(view, iter.to, cursorAt)
+      iter.to < lineAtCursor.from &&
+      onlyWhitespaceBetween(view, iter.to, lineAtCursor.from)
     ) {
       nearestRevealUpTo =
         nearestRevealUpTo == null || iter.to > nearestRevealUpTo
           ? iter.to
           : nearestRevealUpTo;
+    } else if (
+      direction === 'down' &&
+      iter.from > lineAtCursor.to &&
+      onlyWhitespaceBetween(view, lineAtCursor.to, iter.from)
+    ) {
+      nearestRevealDownFrom =
+        nearestRevealDownFrom == null || iter.from < nearestRevealDownFrom
+          ? iter.from
+          : nearestRevealDownFrom;
     }
   }
 
   if (direction === 'up' && nearestRevealUpTo != null) {
     view.dispatch({
       selection: EditorSelection.single(nearestRevealUpTo),
+    });
+    return true;
+  } else if (direction === 'down' && nearestRevealDownFrom != null) {
+    view.dispatch({
+      selection: EditorSelection.single(nearestRevealDownFrom),
     });
     return true;
   }

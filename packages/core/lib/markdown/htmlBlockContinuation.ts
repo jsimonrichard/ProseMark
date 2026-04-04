@@ -91,10 +91,10 @@ const leftCurrentCompositeContext = (cx: BlockContext, line: Line): boolean => {
   );
 };
 
-export const htmlBlockContinuationMarkdownSyntaxExtension: MarkdownConfig = {
+export const multiParHTMLBlockMarkdownSyntaxExtension: MarkdownConfig = {
   parseBlock: [
     {
-      name: 'HTMLBlockContinuation',
+      name: 'MultiParHTMLBlock',
       before: 'HTMLBlock',
       parse: (cx: BlockContext, line: Line): boolean => {
         if (line.next !== 60 /* < */) return false;
@@ -141,3 +141,7 @@ export const htmlBlockContinuationMarkdownSyntaxExtension: MarkdownConfig = {
     },
   ],
 };
+
+// Backward compatibility for the earlier internal name.
+export const htmlBlockContinuationMarkdownSyntaxExtension =
+  multiParHTMLBlockMarkdownSyntaxExtension;
