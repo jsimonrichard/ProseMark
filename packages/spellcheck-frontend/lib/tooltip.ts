@@ -95,6 +95,12 @@ function moveTooltipFocusFromEditor(
   return moveTooltipFocus(tooltipElement, direction);
 }
 
+function focusEditor(view: EditorView): void {
+  queueMicrotask(() => {
+    view.focus();
+  });
+}
+
 // Class that implements TooltipView to manage spellcheck tooltip content
 class SpellcheckTooltipView implements TooltipView {
   public readonly dom: HTMLElement;
@@ -243,6 +249,7 @@ class SpellcheckTooltipView implements TooltipView {
           }
         } finally {
           view.dispatch({ effects: setTooltip.of(null) });
+          focusEditor(view);
         }
       };
       actionsList.appendChild(item);
@@ -308,6 +315,7 @@ class SpellcheckTooltipView implements TooltipView {
     });
     // Close tooltip
     view.dispatch({ effects: setTooltip.of(null) });
+    focusEditor(view);
   }
 
   destroy(): void {
