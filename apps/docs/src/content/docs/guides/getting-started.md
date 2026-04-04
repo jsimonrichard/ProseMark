@@ -15,7 +15,7 @@ The main npm package for ProseMark is `@prosemark/core`; install that using your
 
 - `@prosemark/render-html`: renders HTML tags within the markdown content. Supports most standard attributes; sanitized using [DOMPurify](https://github.com/cure53/DOMPurify).
 - `@prosemark/paste-rich-text`: allows pasting rich text as markdown.
-- `@prosemark/spellcheck-frontend`: adds UI for spellchecking.
+- `@prosemark/spellcheck-frontend`: spellcheck **presentation** for CodeMirror—underlines, tooltips, and optional actions. Install a spell engine separately (the [demo](/demo) uses `nspell` and `dictionary-en`), then provide a `StateField` (or similar) that builds a `RangeSet<SpellcheckIssue>` and wire it with `spellcheckIssues.from(...)`, plus `spellcheckExtension`, and optionally `suggestionFetcher` / `spellcheckActions`. API details: [Features](/reference/features/#prosemarkspellcheck-frontend) and [package README](https://github.com/jsimonrichard/ProseMark/blob/main/packages/spellcheck-frontend/README.md).
 
 You will also need to install some standard CodeMirror packages:
 

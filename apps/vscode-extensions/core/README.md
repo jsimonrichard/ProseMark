@@ -14,6 +14,8 @@ The documentation for the ProseMark libraries can be found at https://prosemark.
 - **Live Preview:** Renders your Markdown as you type, giving you a beautiful and clean representation of your document.
 - **Familiar Feel:** If you've used editors like Typora or Obsidian, you'll feel right at home with ProseMark.
 
+Spellcheck in the webview uses the [`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend) UI (underlines and tooltips). For dictionary-backed checking in VS Code, install [**ProseMark - Code Spell Checker (cSpell) Integration**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration) alongside the [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker) extension.
+
 ## How to Use
 
 1.  Open any file with a `.md` extension.
