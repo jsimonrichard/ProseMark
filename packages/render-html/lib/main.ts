@@ -12,6 +12,10 @@ class HTMLWidget extends WidgetType {
     super();
   }
 
+  eq(other: HTMLWidget): boolean {
+    return this.value === other.value;
+  }
+
   toDOM() {
     const el = document.createElement('div');
     el.className = 'cm-html-widget';

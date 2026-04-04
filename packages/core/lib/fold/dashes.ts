@@ -28,6 +28,10 @@ class DashWidget extends WidgetType {
         super();
     }
 
+    eq(other: DashWidget): boolean {
+        return this.dashCount === other.dashCount;
+    }
+
     toDOM() {
         const span = document.createElement("span");
         span.className = "cm-dash";

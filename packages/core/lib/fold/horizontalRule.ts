@@ -5,6 +5,10 @@ import {
 } from './core';
 
 class HorizontalRuleWidget extends WidgetType {
+  eq(other: HorizontalRuleWidget): boolean {
+    return other instanceof HorizontalRuleWidget;
+  }
+
   toDOM() {
     const div = document.createElement('div');
     div.className = 'cm-horizontal-rule-container';
