@@ -154,9 +154,14 @@ class SpellcheckTooltipView implements TooltipView {
 
     this.dom = document.createElement('div');
     this.dom.className = 'cm-spellcheck-tooltip';
+    this.dom.tabIndex = -1;
     this.dom.addEventListener('keydown', this.#onTooltipKeydown);
 
     this.#initializeContent(view);
+    // Ensure keyboard events reach the active tooltip regardless of how it was opened.
+    queueMicrotask(() => {
+      this.dom.focus({ preventScroll: true });
+    });
   }
 
   #initializeContent(view: EditorView): void {
