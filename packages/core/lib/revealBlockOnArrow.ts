@@ -2,94 +2,98 @@ import { type DecorationSet, EditorView, keymap } from '@codemirror/view';
 import { foldExtension } from './fold';
 import { hideExtension } from './hide';
 import { EditorSelection, type StateField } from '@codemirror/state';
+import { cursorLineDown, cursorLineUp } from '@codemirror/commands';
 import { decorationHasReplaceWidget } from './utils';
 
-const onlyWhitespaceBetween = (
-  view: EditorView,
-  from: number,
-  to: number,
-): boolean => {
-  if (from >= to) return false;
-  return /^[\t \n\r]+$/.test(view.state.doc.sliceString(from, to));
-};
+const hideDecorationField = hideExtension;
+const foldDecorationField = foldExtension;
 
-const maybeReveal = (
+/**
+ * When the caret sits immediately outside a block-replace *widget*, jump
+ * inside so the hidden source can be edited. (Hide-only `Decoration.replace`
+ * ranges are ignored — they share spans with visible text and would steal
+ * arrow keys from neighboring lines.)
+ */
+const maybeRevealAtWidgetBoundary = (
   decorationField: StateField<DecorationSet>,
   view: EditorView,
   direction: 'up' | 'down',
 ): boolean => {
   const decorations = view.state.field(decorationField);
   const cursorAt = view.state.selection.main.head;
-  const lineAtCursor = view.state.doc.lineAt(cursorAt);
-  let nearestRevealUpTo: number | null = null;
-  let nearestRevealDownFrom: number | null = null;
 
   // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
   for (let iter = decorations.iter(); iter.value; iter.next()) {
-    // Only block-replace *widgets* (fold/HTML preview, images, etc.). Plain
-    // `Decoration.replace` from hide (no widget) shares the same ranges and
-    // would steal ArrowUp from the line after the hidden syntax.
     if (!decorationHasReplaceWidget(iter.value)) continue;
     if (direction === 'down' && cursorAt == iter.from - 1) {
       view.dispatch({
         selection: EditorSelection.single(iter.from),
       });
       return true;
-    } else if (direction === 'up' && cursorAt == iter.to + 1) {
+    }
+    if (direction === 'up' && cursorAt == iter.to + 1) {
       view.dispatch({
         selection: EditorSelection.single(iter.to),
       });
       return true;
-    } else if (
-      direction === 'up' &&
-      iter.to < lineAtCursor.from &&
-      onlyWhitespaceBetween(view, iter.to, lineAtCursor.from)
-    ) {
-      nearestRevealUpTo =
-        nearestRevealUpTo == null || iter.to > nearestRevealUpTo
-          ? iter.to
-          : nearestRevealUpTo;
-    } else if (
-      direction === 'down' &&
-      iter.from > lineAtCursor.to &&
-      onlyWhitespaceBetween(view, lineAtCursor.to, iter.from)
-    ) {
-      nearestRevealDownFrom =
-        nearestRevealDownFrom == null || iter.from < nearestRevealDownFrom
-          ? iter.from
-          : nearestRevealDownFrom;
     }
-  }
-
-  if (direction === 'up' && nearestRevealUpTo != null) {
-    view.dispatch({
-      selection: EditorSelection.single(nearestRevealUpTo),
-    });
-    return true;
-  } else if (direction === 'down' && nearestRevealDownFrom != null) {
-    view.dispatch({
-      selection: EditorSelection.single(nearestRevealDownFrom),
-    });
-    return true;
   }
 
   return false;
 };
 
-const revealBlockOnArrowExtension_ = (
-  decorationField: StateField<DecorationSet>,
-) =>
-  keymap.of([
-    {
-      key: 'ArrowUp',
-      run: (view) => maybeReveal(decorationField, view, 'up'),
-    },
-    {
-      key: 'ArrowDown',
-      run: (view) => maybeReveal(decorationField, view, 'down'),
-    },
-  ]);
+/**
+ * `cursorLineUp` / `cursorLineDown` use vertical motion; a zero-height blank
+ * line still counts as a “line”, so ArrowUp from a heading can land on the
+ * blank line between headings. Repeat vertical motion until we hit a line
+ * that is not whitespace-only (or vertical motion stalls).
+ */
+const moveVerticallySkipWhitespaceOnlyLines = (
+  view: EditorView,
+  forward: boolean,
+): boolean => {
+  const sel = view.state.selection.main;
+  if (!sel.empty) {
+    return forward ? cursorLineDown(view) : cursorLineUp(view);
+  }
 
-export const revealBlockOnArrowExtension = [hideExtension, foldExtension].map(
-  revealBlockOnArrowExtension_,
-);
+  let range = sel;
+  const maxSteps = view.state.doc.lines + 2;
+
+  for (let step = 0; step < maxSteps; step++) {
+    const moved = view.moveVertically(range, forward);
+    if (moved.head === range.head) {
+      return forward ? cursorLineDown(view) : cursorLineUp(view);
+    }
+    range = moved;
+    const line = view.state.doc.lineAt(moved.head);
+    if (line.text.trim() !== '') {
+      if (moved.eq(sel)) return false;
+      view.dispatch({ selection: moved });
+      return true;
+    }
+  }
+
+  return forward ? cursorLineDown(view) : cursorLineUp(view);
+};
+
+const arrowUp = (view: EditorView): boolean => {
+  if (maybeRevealAtWidgetBoundary(hideDecorationField, view, 'up')) return true;
+  if (maybeRevealAtWidgetBoundary(foldDecorationField, view, 'up')) return true;
+  return moveVerticallySkipWhitespaceOnlyLines(view, false);
+};
+
+const arrowDown = (view: EditorView): boolean => {
+  if (maybeRevealAtWidgetBoundary(hideDecorationField, view, 'down'))
+    return true;
+  if (maybeRevealAtWidgetBoundary(foldDecorationField, view, 'down'))
+    return true;
+  return moveVerticallySkipWhitespaceOnlyLines(view, true);
+};
+
+export const revealBlockOnArrowExtension = [
+  keymap.of([
+    { key: 'ArrowUp', run: arrowUp },
+    { key: 'ArrowDown', run: arrowDown },
+  ]),
+];
