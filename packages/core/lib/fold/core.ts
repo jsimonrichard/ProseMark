@@ -141,13 +141,17 @@ export const selectAllDecorationsOnSelectExtension = (
             view.posAtCoords({ x: e.clientX, y: e.clientY }, false);
 
           const decorations = view.state.field(foldExtension);
+          let handled = false;
           decorations.between(pos, pos, (from: number, to: number, deco) => {
             if (!decorationHasReplaceWidget(deco)) return;
+            e.preventDefault();
             view.dispatch({
               selection: EditorSelection.single(to, from),
             });
+            handled = true;
             return false;
           });
+          return handled;
         },
       },
     }),
