@@ -2,7 +2,7 @@ import { dashMarkdownSyntaxExtension, emojiMarkdownSyntaxExtension } from '../fo
 import { escapeMarkdownSyntaxExtension } from '../hide';
 import { additionalMarkdownSyntaxTags } from '../syntaxHighlighting';
 import { frontmatterMarkdownSyntaxExtension } from './frontmatter';
-import { multiParHTMLBlockMarkdownSyntaxExtension } from './htmlBlockContinuation';
+import { multiParHTMLBlockMarkdownSyntaxExtension } from './multiParHTMLBlock';
 import { nestedLinkAsPlainText } from './nestedLinkAsPlainText';
 
 export { markdownTags } from './tags';
@@ -18,7 +18,7 @@ export { emojiMarkdownSyntaxExtension, dashMarkdownSyntaxExtension } from '../fo
 export {
   multiParHTMLBlockMarkdownSyntaxExtension,
   htmlBlockContinuationMarkdownSyntaxExtension,
-} from './htmlBlockContinuation';
+} from './multiParHTMLBlock';
 
 export const prosemarkMarkdownSyntaxExtensions = [
   additionalMarkdownSyntaxTags,
