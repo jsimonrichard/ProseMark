@@ -5,9 +5,6 @@ import { EditorSelection, type StateField } from '@codemirror/state';
 import { cursorLineDown, cursorLineUp } from '@codemirror/commands';
 import { decorationHasReplaceWidget } from './utils';
 
-const hideDecorationField = hideExtension;
-const foldDecorationField = foldExtension;
-
 /**
  * When the caret sits immediately outside a block-replace *widget*, jump
  * inside so the hidden source can be edited. (Hide-only `Decoration.replace`
@@ -67,27 +64,24 @@ const moveVerticallySkipWhitespaceOnlyLines = (
     }
     range = moved;
     const line = view.state.doc.lineAt(moved.head);
-    if (line.text.trim() !== '') {
-      if (moved.eq(sel)) return false;
-      view.dispatch({ selection: moved });
-      return true;
-    }
+    if (line.text.trim() === '') continue;
+    if (moved.eq(sel)) return false;
+    view.dispatch({ selection: moved });
+    return true;
   }
 
   return forward ? cursorLineDown(view) : cursorLineUp(view);
 };
 
 const arrowUp = (view: EditorView): boolean => {
-  if (maybeRevealAtWidgetBoundary(hideDecorationField, view, 'up')) return true;
-  if (maybeRevealAtWidgetBoundary(foldDecorationField, view, 'up')) return true;
+  if (maybeRevealAtWidgetBoundary(hideExtension, view, 'up')) return true;
+  if (maybeRevealAtWidgetBoundary(foldExtension, view, 'up')) return true;
   return moveVerticallySkipWhitespaceOnlyLines(view, false);
 };
 
 const arrowDown = (view: EditorView): boolean => {
-  if (maybeRevealAtWidgetBoundary(hideDecorationField, view, 'down'))
-    return true;
-  if (maybeRevealAtWidgetBoundary(foldDecorationField, view, 'down'))
-    return true;
+  if (maybeRevealAtWidgetBoundary(hideExtension, view, 'down')) return true;
+  if (maybeRevealAtWidgetBoundary(foldExtension, view, 'down')) return true;
   return moveVerticallySkipWhitespaceOnlyLines(view, true);
 };
 
