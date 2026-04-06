@@ -4,15 +4,6 @@ import { defineConfig } from 'eslint/config';
 export default defineConfig([
   ...baseConfig,
   {
-    languageOptions: {
-      parserOptions: {
-        projectService: {
-          allowDefaultProject: ['*.config.ts', 'packages/core/tests/*.ts'],
-        },
-      },
-    },
-  },
-  {
     files: ['tests/*.ts', 'tests/**/*.ts'],
     rules: {
       '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
