@@ -1,8 +1,6 @@
-import { type DecorationSet, EditorView, keymap } from '@codemirror/view';
+import { EditorView, keymap } from '@codemirror/view';
 import { foldExtension } from './fold';
-import { hideExtension } from './hide';
-import { EditorSelection, type StateField } from '@codemirror/state';
-import { cursorLineDown, cursorLineUp } from '@codemirror/commands';
+import { EditorSelection } from '@codemirror/state';
 import { decorationHasReplaceWidget } from './utils';
 
 /**
@@ -12,11 +10,10 @@ import { decorationHasReplaceWidget } from './utils';
  * arrow keys from neighboring lines.)
  */
 const maybeRevealAtWidgetBoundary = (
-  decorationField: StateField<DecorationSet>,
   view: EditorView,
   direction: 'up' | 'down',
 ): boolean => {
-  const decorations = view.state.field(decorationField);
+  const decorations = view.state.field(foldExtension);
   const cursorAt = view.state.selection.main.head;
 
   // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
@@ -39,50 +36,57 @@ const maybeRevealAtWidgetBoundary = (
   return false;
 };
 
-/**
- * `cursorLineUp` / `cursorLineDown` use vertical motion; a zero-height blank
- * line still counts as a “line”, so ArrowUp from a heading can land on the
- * blank line between headings. Repeat vertical motion until we hit a line
- * that is not whitespace-only (or vertical motion stalls).
- */
-const moveVerticallySkipWhitespaceOnlyLines = (
+const revealWidgetOnAdjacentLine = (
   view: EditorView,
-  forward: boolean,
-): boolean => {
-  const sel = view.state.selection.main;
-  if (!sel.empty) {
-    return forward ? cursorLineDown(view) : cursorLineUp(view);
-  }
+  direction: 'up' | 'down',
+): number | null => {
+  const decorations = view.state.field(foldExtension);
+  const cursorAt = view.state.selection.main.head;
+  const line = view.state.doc.lineAt(cursorAt);
+  const docText = view.state.doc;
+  let candidate: number | null = null;
 
-  let range = sel;
-  const maxSteps = view.state.doc.lines + 2;
+  // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
+  for (let iter = decorations.iter(); iter.value; iter.next()) {
+    if (!decorationHasReplaceWidget(iter.value)) continue;
 
-  for (let step = 0; step < maxSteps; step++) {
-    const moved = view.moveVertically(range, forward);
-    if (moved.head === range.head) {
-      return forward ? cursorLineDown(view) : cursorLineUp(view);
+    if (
+      direction === 'up' &&
+      iter.to < line.from &&
+      /^[\t \n\r]+$/.test(docText.sliceString(iter.to, line.from))
+    ) {
+      candidate =
+        candidate == null || iter.to > candidate ? iter.to : candidate;
+      continue;
     }
-    range = moved;
-    const line = view.state.doc.lineAt(moved.head);
-    if (line.text.trim() === '') continue;
-    if (moved.eq(sel)) return false;
-    view.dispatch({ selection: moved });
-    return true;
+
+    if (
+      direction === 'down' &&
+      iter.from > line.to &&
+      /^[\t \n\r]+$/.test(docText.sliceString(line.to, iter.from))
+    ) {
+      candidate =
+        candidate == null || iter.from < candidate ? iter.from : candidate;
+    }
   }
 
-  return forward ? cursorLineDown(view) : cursorLineUp(view);
+  return candidate;
 };
 
 const arrowUp = (view: EditorView): boolean => {
-  if (maybeRevealAtWidgetBoundary(hideExtension, view, 'up')) return true;
-  if (maybeRevealAtWidgetBoundary(foldExtension, view, 'up')) return true;
-  return moveVerticallySkipWhitespaceOnlyLines(view, false);
+  if (maybeRevealAtWidgetBoundary(view, 'up')) return true;
+  const adjacentWidgetBoundary = revealWidgetOnAdjacentLine(view, 'up');
+  if (adjacentWidgetBoundary == null) return false;
+  view.dispatch({ selection: EditorSelection.single(adjacentWidgetBoundary) });
+  return true;
 };
 
 const arrowDown = (view: EditorView): boolean => {
-  if (maybeRevealAtWidgetBoundary(hideExtension, view, 'down')) return true;
-  if (maybeRevealAtWidgetBoundary(foldExtension, view, 'down')) return true;
-  return moveVerticallySkipWhitespaceOnlyLines(view, true);
+  if (maybeRevealAtWidgetBoundary(view, 'down')) return true;
+  const adjacentWidgetBoundary = revealWidgetOnAdjacentLine(view, 'down');
+  if (adjacentWidgetBoundary == null) return false;
+  view.dispatch({ selection: EditorSelection.single(adjacentWidgetBoundary) });
+  return true;
 };
 
 export const revealBlockOnArrowExtension = [
