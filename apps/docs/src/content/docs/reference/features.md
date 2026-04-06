@@ -43,4 +43,4 @@ These features are illustrated in our [Demo](/demo).
 
 - Shows a tooltip on interaction (including keyboard shortcuts from `spellcheckKeymap`): suggestions from the issue and/or from an async `suggestionFetcher` facet, plus custom actions via `spellcheckActions` (for example “add to word list”).
 
-- [Spellcheck styling](/reference/spellcheck-styling/) lists the CSS variables for underlines and tooltips.
+- [Styling](/reference/styling/) lists the CSS variables for underlines and tooltips.
