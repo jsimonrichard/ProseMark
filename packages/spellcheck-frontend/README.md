@@ -19,7 +19,7 @@ Underline:
 - `--pm-spellcheck-issue-underline-color`
 - `--pm-spellcheck-issue-background-color`
 
-Tooltip (see the [getting started guide](https://prosemark.com/guides/getting-started/) for a full list):
+Tooltip (see [Spellcheck styling](https://prosemark.com/reference/spellcheck-styling/) for demo values and a full list):
 
 - `--pm-spellcheck-tooltip-background`, `--pm-spellcheck-tooltip-border`, `--pm-spellcheck-tooltip-text`, `--pm-spellcheck-tooltip-error`, `--pm-spellcheck-tooltip-hover`, `--pm-spellcheck-tooltip-actions-border`, `--pm-spellcheck-tooltip-font-size`
 

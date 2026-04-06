@@ -37,10 +37,10 @@ These features are illustrated in our [Demo](/demo).
 
 ## `@prosemark/spellcheck-frontend`
 
-- Optional add-on for CodeMirror 6. It does **not** include a dictionary or spelling engine; you compute `SpellcheckIssue` ranges (for example with [nspell](https://github.com/wooorm/nspell) or a remote API) and expose them through the `spellcheckIssues` facet.
+- Does **not** include a dictionary or spelling engine; you compute `SpellcheckIssue` ranges (for example with [nspell](https://github.com/wooorm/nspell) or a remote API) and expose them through the `spellcheckIssues` facet.
 
 - Renders wavy underlines for misspelled ranges and keeps decorations mapped across document edits so ranges stay valid.
 
-- Shows a tooltip on interaction (including keyboard shortcuts from `spellcheckKeymap`): suggestions from the issue and/or from an async `suggestionFetcher` facet, plus optional custom actions via `spellcheckActions` (for example “add to word list”).
+- Shows a tooltip on interaction (including keyboard shortcuts from `spellcheckKeymap`): suggestions from the issue and/or from an async `suggestionFetcher` facet, plus custom actions via `spellcheckActions` (for example “add to word list”).
 
-- Theme hooks via CSS variables for underline and tooltip colors; see the [getting started](/guides/getting-started/) guide for variable names used in the demo.
+- [Spellcheck styling](/reference/spellcheck-styling/) lists the CSS variables for underlines and tooltips.
