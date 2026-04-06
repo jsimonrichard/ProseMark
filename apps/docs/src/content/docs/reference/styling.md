@@ -13,7 +13,7 @@ Used by `prosemarkBaseThemeSetup()` / `prosemarkLightThemeSetup()` and related t
 
 | Variable | Purpose |
 | -------- | ------- |
-| `--pm-header-mark-color` | ATX `#` heading markers |
+| `--pm-header-mark-color` | ATX (`#`) and Setext (`=====` / `-----`) heading markers |
 | `--pm-link-color` | Links |
 | `--pm-muted-color` | Muted / secondary text |
 | `--pm-code-background-color` | Inline code and code-fence background |
