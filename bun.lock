@@ -140,7 +140,6 @@
         "@lezer/markdown": "^1.2.1",
         "@prosemark/spellcheck-frontend": "workspace:*",
         "@prosemark/vscode-extension-integrator": "workspace:*",
-        "vite": "^8.0.5",
       },
       "devDependencies": {
         "@types/mocha": "^10.0.10",
@@ -154,6 +153,7 @@
         "eslint": "^9.32.0",
         "tsdown": "^0.14.1",
         "typescript": "^5.9.2",
+        "vite": "^8.0.5",
       },
     },
     "packages/core": {
