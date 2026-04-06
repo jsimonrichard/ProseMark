@@ -40,11 +40,11 @@ export class Core implements SubExtension<
   }
 
   getWebviewScriptUri(): vscode.Uri {
-    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'main.iife.js');
+    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'webview.js');
   }
 
   getWebviewStyleUri(): vscode.Uri {
-    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'main.css');
+    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'vscode-prosemark.css');
   }
 
   getLocalResourceRoots(): vscode.Uri[] {
@@ -59,8 +59,8 @@ export class Core implements SubExtension<
 
   #getInitConfig() {
     const editorConfig = vscode.workspace.getConfiguration('editor');
-    const tabSize = editorConfig.get<number>('tabSize', 2);
-    const insertSpaces = editorConfig.get<boolean>('insertSpaces', true);
+    const tabSize = editorConfig.get('tabSize', 2);
+    const insertSpaces = editorConfig.get('insertSpaces', true);
 
     // const config = vscode.workspace.getConfiguration('prosemark');
     // const vimModeEnabled = config.get<boolean>('vimModeEnabled', false);

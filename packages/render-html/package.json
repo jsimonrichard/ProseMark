@@ -36,5 +36,8 @@
     "@prosemark/core": "workspace:*",
     "@lezer/common": "^1.4.0",
     "dompurify": "^3.3.1"
+  },
+  "devDependencies": {
+    "@lezer/markdown": "^1.6.3"
   }
 }
