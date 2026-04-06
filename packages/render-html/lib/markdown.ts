@@ -145,3 +145,7 @@ export const multiParHTMLBlockMarkdownSyntaxExtension: MarkdownConfig = {
 // Backward compatibility for the earlier internal name.
 export const htmlBlockContinuationMarkdownSyntaxExtension =
   multiParHTMLBlockMarkdownSyntaxExtension;
+
+export const renderHtmlMarkdownSyntaxExtensions = [
+  multiParHTMLBlockMarkdownSyntaxExtension,
+];

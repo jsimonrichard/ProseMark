@@ -5,10 +5,12 @@ import { languages } from '@codemirror/language-data';
 import {
   prosemarkBasicSetup,
   prosemarkLightThemeSetup,
-  prosemarkMarkdownSyntaxExtensions,
 } from '@prosemark/core';
 import * as ProseMark from '@prosemark/core';
-import { htmlBlockExtension } from '@prosemark/render-html';
+import {
+  htmlBlockExtension,
+  renderHtmlMarkdownSyntaxExtensions,
+} from '@prosemark/render-html';
 import { GFM } from '@lezer/markdown';
 import {
   pastePlainTextExtension,
@@ -49,7 +51,7 @@ const editor = new EditorView({
   extensions: [
     markdown({
       codeLanguages: languages,
-      extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
+      extensions: [GFM, renderHtmlMarkdownSyntaxExtensions],
     }),
     prosemarkBasicSetup(),
     prosemarkLightThemeSetup(),

@@ -1,9 +1,19 @@
 import { describe, expect, test } from 'bun:test';
 import { GFM, parser } from '@lezer/markdown';
 import type { SyntaxNode } from '@lezer/common';
-import { prosemarkMarkdownSyntaxExtensions } from '../lib/markdown/index.ts';
+import {
+  prosemarkMarkdownSyntaxExtensions,
+} from '../lib/markdown/index.ts';
+import {
+  multiParHTMLBlockMarkdownSyntaxExtension,
+  renderHtmlMarkdownSyntaxExtensions,
+} from '../../render-html/lib/markdown.ts';
 
-const markdownParser = parser.configure([GFM, prosemarkMarkdownSyntaxExtensions]);
+const markdownParser = parser.configure([
+  GFM,
+  prosemarkMarkdownSyntaxExtensions,
+  renderHtmlMarkdownSyntaxExtensions,
+]);
 
 const topLevelBlockNames = (node: SyntaxNode): string[] => {
   const names: string[] = [];
@@ -14,6 +24,15 @@ const topLevelBlockNames = (node: SyntaxNode): string[] => {
 };
 
 describe('MultiParHTMLBlock behavior across blank lines', () => {
+  test('is no longer exported by core markdown syntax bundle', () => {
+    expect(prosemarkMarkdownSyntaxExtensions).not.toContain(
+      multiParHTMLBlockMarkdownSyntaxExtension,
+    );
+    expect(renderHtmlMarkdownSyntaxExtensions).toContain(
+      multiParHTMLBlockMarkdownSyntaxExtension,
+    );
+  });
+
   test('keeps an unclosed html tag in one block across double line breaks', () => {
     const input = `<details>
 <summary>Summary</summary>

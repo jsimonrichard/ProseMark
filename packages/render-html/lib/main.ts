@@ -7,6 +7,12 @@ import type { EditorState } from '@codemirror/state';
 import DOMPurify from 'dompurify';
 import type { SyntaxNodeRef } from '@lezer/common';
 
+export {
+  multiParHTMLBlockMarkdownSyntaxExtension,
+  htmlBlockContinuationMarkdownSyntaxExtension,
+  renderHtmlMarkdownSyntaxExtensions,
+} from './markdown';
+
 class HTMLWidget extends WidgetType {
   constructor(public value: string) {
     super();

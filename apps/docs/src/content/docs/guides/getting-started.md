@@ -45,7 +45,10 @@ import {
   prosemarkBaseThemeSetup,
   prosemarkMarkdownSyntaxExtensions,
 } from '@prosemark/core';
-import { htmlBlockExtension } from '@prosemark/render-html';
+import {
+  htmlBlockExtension,
+  renderHtmlMarkdownSyntaxExtensions,
+} from '@prosemark/render-html';
 
 const editor = new EditorView({
   doc: "# Hello World",
@@ -60,6 +63,8 @@ const editor = new EditorView({
         GFM,
         // additional parsing tags for existing markdown features, backslash escapes, emojis
         prosemarkMarkdownSyntaxExtensions,
+        // html block continuation parsing for rendered HTML widgets
+        renderHtmlMarkdownSyntaxExtensions,
       ]
     }),
     // Basic prosemark extensions
