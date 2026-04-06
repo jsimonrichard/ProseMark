@@ -117,6 +117,7 @@ export {
   contextMenuHandler,
   spellcheckKeymap,
   closeTooltipHandlers,
+  tooltipHandlers,
   type SpellcheckAction,
   type SpellcheckActionsConfig,
   suggestionFetcher,

@@ -61,7 +61,9 @@ function moveTooltipFocus(
   direction: 'up' | 'down',
 ): boolean {
   const items = Array.from(
-    container.querySelectorAll<HTMLButtonElement>(spellcheckTooltipItemSelector),
+    container.querySelectorAll<HTMLButtonElement>(
+      spellcheckTooltipItemSelector,
+    ),
   );
   if (items.length === 0) {
     return false;
@@ -431,7 +433,7 @@ export const spellcheckKeymap = keymap.of([
 ]);
 
 // Close tooltip on click outside or escape key
-export const closeTooltipHandlers = [
+export const tooltipHandlers = [
   EditorView.domEventHandlers({
     mousedown(event, view) {
       // Don't close if clicking inside the tooltip
@@ -497,6 +499,9 @@ export const closeTooltipHandlers = [
     ]),
   ),
 ];
+
+// @deprecated use tooltipHandlers instead
+export const closeTooltipHandlers = tooltipHandlers;
 
 export const spellcheckTooltipTheme = EditorView.theme({
   '.cm-spellcheck-tooltip': {
@@ -586,6 +591,6 @@ export const spellcheckTooltipExtension = [
   tooltipState,
   contextMenuHandler,
   spellcheckKeymap,
-  ...closeTooltipHandlers,
+  ...tooltipHandlers,
   spellcheckTooltipTheme,
 ];
