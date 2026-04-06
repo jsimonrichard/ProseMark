@@ -9,6 +9,7 @@ This project is structured as a set of extensions for [CodeMirror 6](https://cod
 - **[`@prosemark/core`](https://www.npmjs.com/package/@prosemark/core):** the core functionality needed for the WYSIWYM editor.
 - **[`@prosemark/render-html`](https://www.npmjs.com/package/@prosemark/render-html):** renders blocks of HTML code inside code fences.
 - **[`@prosemark/paste-rich-text`](https://www.npmjs.com/package/@prosemark/paste-rich-text):** enables pasting formatted rich text into the editor.
+- **[`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend):** CodeMirror UI for spellcheck (underlines, suggestion tooltips, optional custom actions). You plug in your own spell engine and issue source; see the package README and [demo](https://prosemark.com/demo/).
 
 ## Features
 
@@ -21,6 +22,11 @@ This project is structured as a set of extensions for [CodeMirror 6](https://cod
 - Block quotes
 - Code fences with syntax highlighting
 - Rendered HTML
+- Spellcheck UI when using `@prosemark/spellcheck-frontend` (you supply the dictionary / engine)
+
+## VS Code spellcheck
+
+The marketplace extension [**ProseMark - Code Spell Checker (cSpell) Integration**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration) works alongside the main ProseMark extension and the [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker) extension to drive the same spellcheck UI in the editor.
 
 ## Getting Starting
 

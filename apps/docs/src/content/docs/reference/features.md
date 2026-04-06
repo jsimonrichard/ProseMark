@@ -37,6 +37,8 @@ These features are illustrated in our [Demo](/demo).
 
 ## `@prosemark/spellcheck-frontend`
 
-- Provides tools for managing spellcheck issue state inside CodeMirror.
+- Does **not** include a dictionary or spelling engine; you compute `SpellcheckIssue` ranges (for example with [nspell](https://github.com/wooorm/nspell) or a remote API) and expose them through the `spellcheckIssues` facet.
 
-- Provides an underline decoration and a spellcheck suggestion tooltip
+- Renders wavy underlines for misspelled ranges and keeps decorations mapped across document edits so ranges stay valid.
+
+- Shows a tooltip on interaction (including keyboard shortcuts from `spellcheckKeymap`): suggestions from the issue and/or from an async `suggestionFetcher` facet, plus custom actions via `spellcheckActions` (for example “add to word list”).
