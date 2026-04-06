@@ -16,7 +16,10 @@
     prosemarkMarkdownSyntaxExtensions,
     defaultClickLinkHandler,
   } from '@prosemark/core';
-  import { htmlBlockExtension } from '@prosemark/render-html';
+  import {
+    htmlBlockExtension,
+    renderHtmlMarkdownSyntaxExtensions,
+  } from '@prosemark/render-html';
   import {
     pasteRichTextExtension,
     pastePlainTextExtension,
@@ -32,7 +35,11 @@
     extensions: [
       markdown({
         codeLanguages: languages,
-        extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
+        extensions: [
+          GFM,
+          prosemarkMarkdownSyntaxExtensions,
+          renderHtmlMarkdownSyntaxExtensions,
+        ],
       }),
       prosemarkBasicSetup(),
       prosemarkBaseThemeSetup(),

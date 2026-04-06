@@ -9,7 +9,10 @@ import {
   prosemarkMarkdownSyntaxExtensions,
 } from '@prosemark/core';
 import * as ProseMark from '@prosemark/core';
-import { htmlBlockExtension } from '@prosemark/render-html';
+import {
+  htmlBlockExtension,
+  renderHtmlMarkdownSyntaxExtensions,
+} from '@prosemark/render-html';
 import { indentWithTab } from '@codemirror/commands';
 import { GFM } from '@lezer/markdown';
 import { indentUnit, syntaxTree } from '@codemirror/language';
@@ -32,7 +35,11 @@ const editor = new EditorView({
   extensions: [
     markdown({
       codeLanguages: languages,
-      extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
+      extensions: [
+        GFM,
+        prosemarkMarkdownSyntaxExtensions,
+        renderHtmlMarkdownSyntaxExtensions,
+      ],
     }),
     prosemarkBasicSetup(),
     prosemarkLightThemeSetup(),

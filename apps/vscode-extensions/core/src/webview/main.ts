@@ -7,7 +7,10 @@ import {
   prosemarkMarkdownSyntaxExtensions,
   clickLinkHandler,
 } from '@prosemark/core';
-import { htmlBlockExtension } from '@prosemark/render-html';
+import {
+  htmlBlockExtension,
+  renderHtmlMarkdownSyntaxExtensions,
+} from '@prosemark/render-html';
 import {
   pastePlainTextExtension,
   pasteRichTextExtension,
@@ -253,7 +256,11 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
       vimModeEnabled ? [] : [], // A no-op for now
       markdown({
         codeLanguages: languages,
-        extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
+        extensions: [
+          GFM,
+          prosemarkMarkdownSyntaxExtensions,
+          renderHtmlMarkdownSyntaxExtensions,
+        ],
       }),
       prosemarkBasicSetup(),
       prosemarkBaseThemeSetup(),

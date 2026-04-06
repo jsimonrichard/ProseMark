@@ -7,6 +7,12 @@ import type { EditorState } from '@codemirror/state';
 import DOMPurify from 'dompurify';
 import type { SyntaxNodeRef } from '@lezer/common';
 
+export {
+  multiParHTMLBlockMarkdownSyntaxExtension,
+  htmlBlockContinuationMarkdownSyntaxExtension,
+  renderHtmlMarkdownSyntaxExtensions,
+} from './markdown';
+
 class HTMLWidget extends WidgetType {
   constructor(public value: string) {
     super();
@@ -71,7 +77,7 @@ export const htmlBlockExtension = [
     buildDecorations: (state: EditorState, node: SyntaxNodeRef) => {
       return Decoration.replace({
         widget: new HTMLWidget(state.doc.sliceString(node.from, node.to)),
-        block: true,
+        block: false,
         inclusive: true,
       }).range(node.from, node.to);
     },

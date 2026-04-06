@@ -47,7 +47,7 @@
     "publish": "vsce publish",
     "ci:publish": "bash ../../../scripts/ci-publish-vscode-extension.sh",
     "ci:publish:dry-run": "DRY_RUN=1 bash ../../../scripts/ci-publish-vscode-extension.sh",
-    "build": "bun run check-types && bun run lint && tsdown",
+    "build": "bun run check-types && bun run lint && tsdown && vite build",
     "dev": "tsc --noEmit && concurrently \"tsc -w\" \"tsdown --watch\"",
     "build-tests": "tsc -p . --outDir out",
     "dev-tests": "tsc -p . -w --outDir out",
@@ -81,6 +81,7 @@
     "concurrently": "^9.2.1",
     "eslint": "^9.39.2",
     "tsdown": "^0.14.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^8.0.5"
   }
 }

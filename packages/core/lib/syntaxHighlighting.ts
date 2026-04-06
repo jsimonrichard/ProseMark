@@ -6,12 +6,13 @@ import {
   syntaxHighlighting,
   type TagStyle,
 } from '@codemirror/language';
+import type { MarkdownConfig } from '@lezer/markdown';
 
 const fallbackMonospaceCodeFont =
   "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
 const codeFontFamily = `var(--pm-code-font, ${fallbackMonospaceCodeFont})`;
 
-export const additionalMarkdownSyntaxTags = {
+export const additionalMarkdownSyntaxTags: MarkdownConfig = {
   // Define new nodes with tags here
   defineNodes: [],
   props: [
