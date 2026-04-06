@@ -91,7 +91,11 @@ export const foldExtension = StateField.define<DecorationSet>({
   },
 
   update(deco, tr) {
-    if (tr.docChanged || tr.selection) {
+    if (
+      tr.docChanged ||
+      tr.selection ||
+      syntaxTree(tr.startState) !== syntaxTree(tr.state)
+    ) {
       return buildDecorations(tr.state);
     }
     return deco.map(tr.changes);
