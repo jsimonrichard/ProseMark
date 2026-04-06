@@ -22,7 +22,7 @@ This project is structured as a set of extensions for [CodeMirror 6](https://cod
 - Block quotes
 - Code fences with syntax highlighting
 - Rendered HTML
-- Optional spellcheck UI when using `@prosemark/spellcheck-frontend` (dictionary / engine not included)
+- Spellcheck UI when using `@prosemark/spellcheck-frontend` (you supply the dictionary / engine)
 
 ## VS Code spellcheck
 

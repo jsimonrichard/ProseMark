@@ -42,5 +42,3 @@ These features are illustrated in our [Demo](/demo).
 - Renders wavy underlines for misspelled ranges and keeps decorations mapped across document edits so ranges stay valid.
 
 - Shows a tooltip on interaction (including keyboard shortcuts from `spellcheckKeymap`): suggestions from the issue and/or from an async `suggestionFetcher` facet, plus custom actions via `spellcheckActions` (for example “add to word list”).
-
-- [Styling](/reference/styling/) lists the CSS variables for underlines and tooltips.

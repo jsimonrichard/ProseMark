@@ -7,9 +7,9 @@ ProseMark themes use **`--pm-*` CSS variables**. Set them on `:root`, on a `[dat
 
 ## `@prosemark/core`
 
-Used by `prosemarkBaseThemeSetup()` / `prosemarkLightThemeSetup()` and related themes for chrome, prose, and syntax highlighting inside the editor.
+Used by `prosemarkBaseThemeSetup()` / `prosemarkLightThemeSetup()` and related themes for prose, editor controls, and syntax highlighting inside the editor.
 
-### Prose and UI chrome
+### Prose and editor controls
 
 | Variable | Purpose |
 | -------- | ------- |
