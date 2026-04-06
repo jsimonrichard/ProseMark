@@ -1,5 +1,13 @@
 # vscode-prosemark-cspell-integration
 
+## 0.0.3
+
+### Patch Changes
+
+- 6d9c326: Updated build system to use vite instead of tsdown for the webviews
+- Updated dependencies [ce2ce1a]
+  - @prosemark/spellcheck-frontend@0.0.3
+
 ## 0.0.2
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@prosemark/spellcheck-frontend",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "repository": {
     "url": "https://github.com/jsimonrichard/ProseMark",
     "type": "github"

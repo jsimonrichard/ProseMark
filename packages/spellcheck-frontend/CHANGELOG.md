@@ -1,5 +1,14 @@
 # @prosemark/spellcheck-frontend
 
+## 0.0.3
+
+### Patch Changes
+
+- ce2ce1a: Fix spellcheck tooltip keyboard interactions by improving ArrowUp/ArrowDown navigation reliability, ensuring Enter activates the focused item, and restoring editor focus after selection.
+- Updated dependencies [14c9eff]
+- Updated dependencies [0208c90]
+  - @prosemark/core@0.0.6
+
 ## 0.0.2
 
 ### Patch Changes
