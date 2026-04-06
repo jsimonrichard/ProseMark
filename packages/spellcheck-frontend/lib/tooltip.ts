@@ -44,6 +44,8 @@ export const setTooltip = StateEffect.define<Tooltip | null>();
 
 const spellcheckTooltipItemSelector = '.cm-spellcheck-tooltip-item';
 
+// Resolve the active tooltip element for the current editor.
+// Tooltip DOM can live outside the main editor content subtree.
 function getTooltipElement(view: EditorView): HTMLElement | null {
   const localTooltip = view.dom
     .closest('.cm-editor')
@@ -56,6 +58,7 @@ function getTooltipElement(view: EditorView): HTMLElement | null {
   );
 }
 
+// Cycle focus across interactive tooltip items (actions + suggestions).
 function moveTooltipFocus(
   container: HTMLElement,
   direction: 'up' | 'down',
@@ -86,6 +89,7 @@ function moveTooltipFocus(
   return true;
 }
 
+// Let editor keybindings drive tooltip focus while tooltip is open.
 function moveTooltipFocusFromEditor(
   view: EditorView,
   direction: 'up' | 'down',
@@ -97,6 +101,7 @@ function moveTooltipFocusFromEditor(
   return moveTooltipFocus(tooltipElement, direction);
 }
 
+// Activate the currently focused tooltip item (Enter behavior).
 function activateFocusedTooltipItem(container: HTMLElement): boolean {
   const activeElement = container.ownerDocument.activeElement;
   if (!(activeElement instanceof HTMLButtonElement)) {
@@ -109,6 +114,7 @@ function activateFocusedTooltipItem(container: HTMLElement): boolean {
   return true;
 }
 
+// Return focus to the editor so typing resumes after tooltip interaction.
 function focusEditor(view: EditorView): void {
   queueMicrotask(() => {
     view.focus();
@@ -124,6 +130,7 @@ class SpellcheckTooltipView implements TooltipView {
   readonly #fetchSuggestions:
     | ((word: string) => Promise<Suggestion[]>)
     | undefined;
+  // Keyboard handling when focus is already inside the tooltip.
   readonly #onTooltipKeydown = (event: KeyboardEvent): void => {
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
       if (event.key !== 'Enter') {
@@ -156,11 +163,12 @@ class SpellcheckTooltipView implements TooltipView {
 
     this.dom = document.createElement('div');
     this.dom.className = 'cm-spellcheck-tooltip';
+    // Make the tooltip focusable so navigation can start immediately on open.
     this.dom.tabIndex = -1;
     this.dom.addEventListener('keydown', this.#onTooltipKeydown);
 
     this.#initializeContent(view);
-    // Ensure keyboard events reach the active tooltip regardless of how it was opened.
+    // Ensure keyboard events reach the active tooltip regardless of open path.
     queueMicrotask(() => {
       this.dom.focus({ preventScroll: true });
     });
@@ -432,7 +440,11 @@ export const spellcheckKeymap = keymap.of([
   },
 ]);
 
-// Close tooltip on click outside or escape key
+// Shared tooltip behavior while open:
+// - close when clicking outside
+// - ArrowUp/ArrowDown navigation from editor keymap
+// - Enter activation of focused item
+// - Escape close
 export const tooltipHandlers = [
   EditorView.domEventHandlers({
     mousedown(event, view) {
