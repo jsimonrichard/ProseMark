@@ -54,7 +54,7 @@ const editor = new EditorView({
     indentUnit.of('\t'),
     // traverseTreePlugin,
   ],
-  doc: "- Howdy",// initDoc,
+  doc: initDoc,
   parent: document.getElementById('codemirror-container')!,
 });
 
