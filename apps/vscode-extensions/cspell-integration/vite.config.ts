@@ -5,7 +5,7 @@ import proseMarkVSCodeExtensionIntegratorPlugin from "@prosemark/vscode-extensio
 export default defineConfig({
   plugins: [proseMarkVSCodeExtensionIntegratorPlugin()],
   build: {
-    outDir: "dist",
+    outDir: "dist/webview",
     target: "es2020",
     lib: {
       entry: resolve(__dirname, "src/webview/main.ts"),

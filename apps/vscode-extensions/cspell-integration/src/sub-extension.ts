@@ -41,11 +41,11 @@ export class CSpellIntegration implements SubExtension<
   }
 
   getWebviewScriptUri(): vscode.Uri {
-    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'webview.js');
+    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'webview', 'webview.js');
   }
 
   getWebviewStyleUri(): vscode.Uri {
-    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'vscode-prosemark-cspell-integration.css');
+    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'webview', 'vscode-prosemark-cspell-integration.css');
   }
 
   getLocalResourceRoots(): vscode.Uri[] {

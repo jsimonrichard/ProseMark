@@ -22,7 +22,7 @@
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./dist/extension.js",
+  "main": "./dist/extension/extension.js",
   "extensionDependencies": [
     "jsimonrichard.vscode-prosemark",
     "streetsidesoftware.code-spell-checker"
