@@ -1,5 +1,15 @@
 # vscode-prosemark
 
+## 0.0.7
+
+### Patch Changes
+
+- 6d9c326: Updated build system to use vite instead of tsdown for the webviews
+- Updated dependencies [14c9eff]
+- Updated dependencies [0208c90]
+  - @prosemark/core@0.0.6
+  - @prosemark/render-html@0.0.7
+
 ## 0.0.6
 
 ### Patch Changes

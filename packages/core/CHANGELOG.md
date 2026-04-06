@@ -1,5 +1,15 @@
 # @prosemark/core
 
+## 0.0.6
+
+### Patch Changes
+
+- 14c9eff: Move HTML-specific markdown parsing for multi-line-break HTML blocks from `@prosemark/core` into `@prosemark/render-html`.
+
+  `@prosemark/render-html` now exports `renderHtmlMarkdownSyntaxExtensions` for use alongside core markdown extensions, and integrations were updated to include both extension arrays.
+
+- 0208c90: Add `eq()` methods to widget classes so unchanged widgets can reuse existing DOM nodes instead of re-rendering on unrelated editor updates. This reduces unnecessary widget churn and avoids repeated failed-image reload attempts when cursor movement does not change widget content.
+
 ## 0.0.5
 
 ### Patch Changes
