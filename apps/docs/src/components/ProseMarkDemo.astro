@@ -13,6 +13,7 @@
   import {
     prosemarkBasicSetup,
     prosemarkBaseThemeSetup,
+    prosemarkMarkdownSyntaxExtensions,
     defaultClickLinkHandler,
   } from '@prosemark/core';
   import {
@@ -34,7 +35,11 @@
     extensions: [
       markdown({
         codeLanguages: languages,
-        extensions: [GFM, renderHtmlMarkdownSyntaxExtensions],
+        extensions: [
+          GFM,
+          prosemarkMarkdownSyntaxExtensions,
+          renderHtmlMarkdownSyntaxExtensions,
+        ],
       }),
       prosemarkBasicSetup(),
       prosemarkBaseThemeSetup(),

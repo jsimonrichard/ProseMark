@@ -5,6 +5,7 @@ import { languages } from '@codemirror/language-data';
 import {
   prosemarkBasicSetup,
   prosemarkLightThemeSetup,
+  prosemarkMarkdownSyntaxExtensions,
 } from '@prosemark/core';
 import * as ProseMark from '@prosemark/core';
 import {
@@ -51,7 +52,11 @@ const editor = new EditorView({
   extensions: [
     markdown({
       codeLanguages: languages,
-      extensions: [GFM, renderHtmlMarkdownSyntaxExtensions],
+      extensions: [
+        GFM,
+        prosemarkMarkdownSyntaxExtensions,
+        renderHtmlMarkdownSyntaxExtensions,
+      ],
     }),
     prosemarkBasicSetup(),
     prosemarkLightThemeSetup(),

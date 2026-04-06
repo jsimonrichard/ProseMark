@@ -99,7 +99,7 @@ export syntaxHighlighting(
 )
 ```
 
-The `@prosemark/core` library provides `markdownTags`, which has some tags corresponding to markdown-specific syntax nodes like `HeaderMark` (represented by `markdownTags.headerMark`). For this to work, [`additionalMarkdownSyntaxTags`](/api/prosemark/core/variables/additionalmarkdownsyntaxtags/) from `@prosemark/core` must be provided as a _markdown_ extension (it's included in [`prosemarkMarkdownSyntaxExtensions`](/api/prosemark/core/variables/prosemarkmarkdownsyntaxextensions/), as shown on our [Getting Started](/guides/getting-started) page). If you also render HTML blocks, include [`renderHtmlMarkdownSyntaxExtensions`](/api/prosemark/render-html/variables/renderhtmlmarkdownsyntaxextensions/) from `@prosemark/render-html`.
+The `@prosemark/core` library provides `markdownTags`, which has some tags corresponding to markdown-specific syntax nodes like `HeaderMark` (represented by `markdownTags.headerMark`). For this to work, [`additionalMarkdownSyntaxTags`](/api/prosemark/core/variables/additionalmarkdownsyntaxtags/) from `@prosemark/core` must be provided as a _markdown_ extension (it's included in [`prosemarkMarkdownSyntaxExtensions`](/api/prosemark/core/variables/prosemarkmarkdownsyntaxextensions/), as shown on our [Getting Started](/guides/getting-started) page). If you also render HTML blocks, include [`renderHtmlMarkdownSyntaxExtensions`](/api/prosemark/render-html/variables/renderhtmlmarkdownsyntaxextensions/) from `@prosemark/render-html` to keep HTML blocks with multi-line breaks parsed as a single HTML block.
 
 ### Theme Extensions
 
