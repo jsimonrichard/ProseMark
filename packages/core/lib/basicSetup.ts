@@ -36,6 +36,7 @@ import {
 import { softIndentExtension } from './softIndentExtension';
 import { fixedTabWidthExtension } from './tabWidthExtension';
 import { revealBlockOnArrowExtension } from './revealBlockOnArrow';
+import { prosemarkMarkdownFormattingKeymap } from './markdownFormattingKeymap';
 export { prosemarkMarkdownSyntaxExtensions } from './markdown';
 
 export const prosemarkBasicSetup = (): Extension => [
@@ -57,6 +58,7 @@ export const prosemarkBasicSetup = (): Extension => [
   closeBrackets(),
   autocompletion(),
   keymap.of([
+    ...prosemarkMarkdownFormattingKeymap,
     ...closeBracketsKeymap,
     ...defaultKeymap,
     ...searchKeymap,
