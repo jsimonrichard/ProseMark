@@ -107,70 +107,21 @@ const toggleEmphasis = makeToggleInlineCommand('Emphasis', '*', '*');
 const toggleInlineCode = makeToggleInlineCommand('InlineCode', '`', '`');
 const toggleStrikethrough = makeToggleInlineCommand('Strikethrough', '~~', '~~');
 
-function toggleUnderlineMarkup(
-  state: EditorState,
-  range: SelectionRange,
-): { range: SelectionRange; changes: ChangeSpec } | null {
-  if (!isMarkdownContext(state, range.from)) return null;
-  const text = state.sliceDoc(range.from, range.to);
-  const open = '<u>';
-  const close = '</u>';
-  if (
-    text.startsWith(open) &&
-    text.endsWith(close) &&
-    text.length >= open.length + close.length
-  ) {
-    const inner = text.slice(open.length, text.length - close.length);
-    return {
-      changes: { from: range.from, to: range.to, insert: inner },
-      range: EditorSelection.range(range.from, range.from + inner.length),
-    };
-  }
-  const innerLen = text.length;
-  return {
-    changes: { from: range.from, to: range.to, insert: open + text + close },
-    range: EditorSelection.range(
-      range.from + open.length,
-      range.from + open.length + innerLen,
-    ),
-  };
-}
-
-const toggleHtmlUnderline: Command = (view) => {
-  const { state } = view;
-  const specs: { range: SelectionRange; changes: ChangeSpec }[] = [];
-  for (const range of state.selection.ranges) {
-    if (!isMarkdownContext(state, range.from)) return false;
-    const spec = toggleUnderlineMarkup(state, range);
-    if (!spec) return false;
-    specs.push(spec);
-  }
-  let i = 0;
-  view.dispatch({
-    ...state.changeByRange(() => specs[i++] as { range: SelectionRange; changes: ChangeSpec }),
-    scrollIntoView: true,
-    userEvent: 'input',
-  });
-  return true;
-};
-
 const insertLink: Command = (view) => {
   const { state } = view;
   for (const range of state.selection.ranges) {
-    if (range.empty || !isMarkdownContext(state, range.from)) return false;
+    if (!isMarkdownContext(state, range.from)) return false;
   }
-  const url =
-    typeof globalThis.prompt === 'function'
-      ? globalThis.prompt('Link URL', 'https://')
-      : null;
-  if (url == null) return false;
   view.dispatch({
     ...state.changeByRange((range) => {
       const label = state.sliceDoc(range.from, range.to);
-      const insert = `[${label}](${url})`;
+      const insert = range.empty ? `[]()` : `[${label}]()`;
+      const head = range.empty
+        ? range.from + 1
+        : range.from + 1 + label.length + 2;
       return {
         changes: { from: range.from, to: range.to, insert },
-        range: EditorSelection.cursor(range.from + insert.length),
+        range: EditorSelection.cursor(head),
       };
     }),
     scrollIntoView: true,
@@ -182,15 +133,13 @@ const insertLink: Command = (view) => {
 /**
  * Key bindings for common rich-text shortcuts in Markdown (Mod = Ctrl on
  * Windows/Linux, Cmd on macOS). Placed ahead of CodeMirror defaults so
- * **Mod-i** and **Mod-u** apply formatting instead of syntax selection /
- * selection undo.
+ * **Mod-i** applies emphasis instead of `selectParentSyntax`.
  */
 export const prosemarkMarkdownFormattingKeymap: readonly KeyBinding[] = [
   { key: 'Mod-b', run: toggleStrongEmphasis, preventDefault: true },
   { key: 'Mod-i', run: toggleEmphasis, preventDefault: true },
   { key: 'Mod-`', run: toggleInlineCode, preventDefault: true },
   { key: 'Mod-k', run: insertLink, preventDefault: true },
-  { key: 'Mod-u', run: toggleHtmlUnderline, preventDefault: true },
   { key: 'Mod-Shift-x', run: toggleStrikethrough, preventDefault: true },
 ];
 
