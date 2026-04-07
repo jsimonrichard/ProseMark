@@ -200,6 +200,24 @@
         "@lezer/highlight": "^1.2.0",
       },
     },
+    "packages/markdown-latex": {
+      "name": "@prosemark/markdown-latex",
+      "version": "0.0.1",
+      "dependencies": {
+        "@codemirror/state": "^6.5.2",
+        "@codemirror/view": "^6.39.4",
+        "@lezer/markdown": "^1.6.3",
+        "@prosemark/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@eslint/js": "^9.39.2",
+        "@types/node": "^24.10.4",
+        "eslint": "^9.39.2",
+        "tsdown": "^0.15.6",
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.50.0",
+      },
+    },
     "packages/paste-rich-text": {
       "name": "@prosemark/paste-rich-text",
       "version": "0.0.3",
@@ -675,6 +693,8 @@
     "@pkgjs/parseargs": ["@pkgjs/parseargs@0.11.0", "", {}, "sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg=="],
 
     "@prosemark/core": ["@prosemark/core@workspace:packages/core"],
+
+    "@prosemark/markdown-latex": ["@prosemark/markdown-latex@workspace:packages/markdown-latex"],
 
     "@prosemark/paste-rich-text": ["@prosemark/paste-rich-text@workspace:packages/paste-rich-text"],
 
