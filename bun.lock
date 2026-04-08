@@ -30,6 +30,7 @@
         "@codemirror/view": "^6.39.4",
         "@lezer/markdown": "^1.6.1",
         "@prosemark/core": "workspace:*",
+        "@prosemark/latex": "workspace:*",
         "@prosemark/paste-rich-text": "workspace:*",
         "@prosemark/render-html": "workspace:*",
         "@prosemark/spellcheck-frontend": "workspace:*",
@@ -53,6 +54,7 @@
         "@lezer-unofficial/printer": "^1.0.1",
         "@lezer/markdown": "^1.5.1",
         "@prosemark/core": "workspace:*",
+        "@prosemark/latex": "workspace:*",
         "@prosemark/paste-rich-text": "workspace:*",
         "@prosemark/render-html": "workspace:*",
         "@prosemark/spellcheck-frontend": "workspace:*",
@@ -82,6 +84,7 @@
         "@lezer/highlight": "^1.2.0",
         "@lezer/markdown": "^1.5.1",
         "@prosemark/core": "workspace:*",
+        "@prosemark/latex": "workspace:*",
         "@prosemark/paste-rich-text": "workspace:*",
         "@prosemark/render-html": "workspace:*",
         "@prosemark/spellcheck-frontend": "workspace:*",
@@ -107,6 +110,7 @@
         "@lezer-unofficial/printer": "^1.0.1",
         "@lezer/markdown": "^1.6.1",
         "@prosemark/core": "workspace:*",
+        "@prosemark/latex": "workspace:*",
         "@prosemark/paste-rich-text": "workspace:*",
         "@prosemark/render-html": "workspace:*",
         "@prosemark/vscode-extension-integrator": "workspace:*",
@@ -200,12 +204,14 @@
         "@lezer/highlight": "^1.2.0",
       },
     },
-    "packages/markdown-latex": {
-      "name": "@prosemark/markdown-latex",
+    "packages/latex": {
+      "name": "@prosemark/latex",
       "version": "0.0.1",
       "dependencies": {
+        "@codemirror/language": "^6.11.3",
         "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.39.4",
+        "@lezer/highlight": "^1.2.3",
         "@lezer/markdown": "^1.6.3",
         "@prosemark/core": "workspace:*",
       },
@@ -694,7 +700,7 @@
 
     "@prosemark/core": ["@prosemark/core@workspace:packages/core"],
 
-    "@prosemark/markdown-latex": ["@prosemark/markdown-latex@workspace:packages/markdown-latex"],
+    "@prosemark/latex": ["@prosemark/latex@workspace:packages/latex"],
 
     "@prosemark/paste-rich-text": ["@prosemark/paste-rich-text@workspace:packages/paste-rich-text"],
 

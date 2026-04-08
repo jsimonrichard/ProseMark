@@ -21,6 +21,11 @@
     renderHtmlMarkdownSyntaxExtensions,
   } from '@prosemark/render-html';
   import {
+    latexMarkdownEditorExtensions,
+    latexMarkdownSyntaxTheme,
+    latexMathMarkdownSyntaxExtension,
+  } from '@prosemark/latex';
+  import {
     pasteRichTextExtension,
     pastePlainTextExtension,
   } from '@prosemark/paste-rich-text';
@@ -39,10 +44,13 @@
           GFM,
           prosemarkMarkdownSyntaxExtensions,
           renderHtmlMarkdownSyntaxExtensions,
+          latexMathMarkdownSyntaxExtension,
         ],
       }),
       prosemarkBasicSetup(),
       prosemarkBaseThemeSetup(),
+      ...latexMarkdownSyntaxTheme,
+      ...latexMarkdownEditorExtensions(),
       defaultClickLinkHandler,
       htmlBlockExtension,
       pasteRichTextExtension(),

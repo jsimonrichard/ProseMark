@@ -41,6 +41,16 @@ export default function MyComponent() {
   Some centered text
 </div>
 
+### LaTeX math
+
+Inline: Euler's identity $e^{i\pi} + 1 = 0$.
+
+Display:
+
+$$
+\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}
+$$
+
 ## Credits
 
 Made by Simon Richard (https://jsimonrichard.com)

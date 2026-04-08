@@ -12,6 +12,11 @@ import {
   renderHtmlMarkdownSyntaxExtensions,
 } from '@prosemark/render-html';
 import {
+  latexMarkdownEditorExtensions,
+  latexMarkdownSyntaxTheme,
+  latexMathMarkdownSyntaxExtension,
+} from '@prosemark/latex';
+import {
   pastePlainTextExtension,
   pasteRichTextExtension,
 } from '@prosemark/paste-rich-text';
@@ -260,10 +265,13 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
           GFM,
           prosemarkMarkdownSyntaxExtensions,
           renderHtmlMarkdownSyntaxExtensions,
+          latexMathMarkdownSyntaxExtension,
         ],
       }),
       prosemarkBasicSetup(),
       prosemarkBaseThemeSetup(),
+      ...latexMarkdownSyntaxTheme,
+      ...latexMarkdownEditorExtensions(),
       clickLinkHandler.of((url) => {
         callProcAndForget('linkClick', url);
       }),

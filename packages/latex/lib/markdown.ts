@@ -1,4 +1,11 @@
 import type { InlineContext, MarkdownConfig } from '@lezer/markdown';
+import { styleTags, Tag } from '@lezer/highlight';
+
+/** Highlight tag for `$` / `$$` delimiters (folded when rendered). */
+export const latexMathDelimiterTag = Tag.define();
+
+/** Highlight tag for raw TeX between delimiters. */
+export const latexMathFormulaTag = Tag.define();
 
 const isEscapedDollar = (cx: InlineContext, pos: number): boolean => {
   let backslashes = 0;
@@ -28,14 +35,23 @@ const findClosingSingleDollar = (cx: InlineContext, from: number): number => {
 };
 
 /**
- * Parses `$...$` inline math and optional `$$...$$` display math in Markdown
- * (TeX-style delimiters). A literal dollar is written as `\$`.
+ * Parses `$...$` inline math and `$$...$$` display math in Markdown (TeX-style
+ * delimiters). A literal dollar is written as `\$`.
+ *
+ * Typst or other math syntax should live in separate `@prosemark/*` packages
+ * so delimiter rules stay isolated.
  */
-export const markdownLatexMathSyntaxExtension: MarkdownConfig = {
+export const latexMathMarkdownSyntaxExtension: MarkdownConfig = {
   defineNodes: [
     { name: 'LatexMath' },
     { name: 'LatexMathMark' },
     { name: 'LatexMathFormula' },
+  ],
+  props: [
+    styleTags({
+      LatexMathMark: latexMathDelimiterTag,
+      LatexMathFormula: latexMathFormulaTag,
+    }),
   ],
   parseInline: [
     {

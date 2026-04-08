@@ -3,16 +3,23 @@ import {
   foldableSyntaxFacet,
   selectAllDecorationsOnSelectExtension,
 } from '@prosemark/core';
-import type { EditorState } from '@codemirror/state';
+import type { EditorState, Extension } from '@codemirror/state';
 import type { SyntaxNodeRef } from '@lezer/common';
+import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 
-export { markdownLatexMathSyntaxExtension } from './markdown';
+import { latexMathDelimiterTag, latexMathFormulaTag } from './markdown';
+
+export {
+  latexMathDelimiterTag,
+  latexMathFormulaTag,
+  latexMathMarkdownSyntaxExtension,
+} from './markdown';
 
 const WIDGET_CLASS = 'cm-latex-math';
 
 export type LatexMathOutput = 'svg' | 'html';
 
-export interface MarkdownLatexOptions {
+export interface LatexMarkdownEditorOptions {
   /**
    * How formulas are rendered. `svg` uses MathJax SVG output (`tex-svg.js`).
    * `html` uses MathJax CHTML output (`tex-chtml.js`) for environments where
@@ -64,7 +71,7 @@ let mathJaxReady: Promise<void> | null = null;
 const ensureMathJax = (scriptUrl: string): Promise<void> => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     throw new Error(
-      '@prosemark/markdown-latex requires a browser environment (window/document).',
+      '@prosemark/latex requires a browser environment (window/document).',
     );
   }
 
@@ -141,6 +148,8 @@ const renderPromise = (
   return mj.tex2svgPromise(tex, { display });
 };
 
+const blockMathEstimatedHeightPx = 56;
+
 class LatexMathWidget extends WidgetType {
   constructor(
     public readonly tex: string,
@@ -160,22 +169,33 @@ class LatexMathWidget extends WidgetType {
     );
   }
 
-  toDOM(): HTMLElement {
+  get estimatedHeight(): number {
+    return this.display ? blockMathEstimatedHeightPx : -1;
+  }
+
+  toDOM(view: EditorView): HTMLElement {
     const wrap = document.createElement(this.display ? 'div' : 'span');
     wrap.className = WIDGET_CLASS;
     wrap.setAttribute('data-latex', this.tex);
     wrap.setAttribute('data-display', this.display ? 'block' : 'inline');
 
+    const requestLayoutMeasure = () => {
+      if (!this.display) return;
+      view.requestMeasure({ read: () => undefined });
+    };
+
     void ensureMathJax(this.scriptUrl)
       .then(() => renderPromise(this.tex, this.display, this.output))
       .then((node) => {
         wrap.replaceChildren(node);
+        requestLayoutMeasure();
       })
       .catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
         wrap.textContent = this.tex;
         wrap.title = msg;
         wrap.classList.add(`${WIDGET_CLASS}-error`);
+        requestLayoutMeasure();
       });
 
     return wrap;
@@ -190,7 +210,49 @@ class LatexMathWidget extends WidgetType {
   }
 }
 
-const latexMathTheme = EditorView.theme({
+const latexMathSourceTheme = EditorView.theme({
+  '.cm-latex-math-delimiter': {
+    color: 'var(--pm-latex-math-delimiter-color, var(--pm-muted-color))',
+  },
+  '.cm-latex-math-formula': {
+    color: 'var(--pm-latex-math-formula-color, var(--pm-syntax-atom))',
+    fontFamily: `var(
+      --pm-latex-math-formula-font,
+      var(
+        --pm-code-font,
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        'Liberation Mono',
+        'Courier New',
+        monospace
+      )
+    )`,
+    fontSize: '0.92em',
+  },
+});
+
+/**
+ * Syntax highlighting for raw `$...$` / `$$...$$` spans before they are replaced
+ * by rendered math widgets. Add next to {@link prosemarkBaseThemeSetup} or your
+ * editor theme so delimiter and formula regions pick up theme variables.
+ */
+export const latexMathSyntaxHighlighting = syntaxHighlighting(
+  HighlightStyle.define([
+    {
+      tag: latexMathDelimiterTag,
+      class: 'cm-latex-math-delimiter',
+    },
+    {
+      tag: latexMathFormulaTag,
+      class: 'cm-latex-math-formula',
+    },
+  ]),
+);
+
+const latexMathWidgetTheme = EditorView.theme({
   [`.${WIDGET_CLASS}`]: {
     display: 'inline-block',
     verticalAlign: 'middle',
@@ -207,12 +269,13 @@ const latexMathTheme = EditorView.theme({
 });
 
 /**
- * CodeMirror decorations that replace `LatexMath` syntax nodes with rendered
- * formulas. Pair with {@link markdownLatexMathSyntaxExtension} on the Markdown
- * parser configuration.
+ * CodeMirror extensions that replace `LatexMath` syntax nodes with rendered
+ * formulas. Pair with {@link latexMathMarkdownSyntaxExtension} on the Markdown
+ * parser configuration, and add {@link latexMathSyntaxHighlighting} for source
+ * coloring.
  */
-export function markdownLatexExtension(
-  options: MarkdownLatexOptions = {},
+export function latexMarkdownEditorExtensions(
+  options: LatexMarkdownEditorOptions = {},
 ): ReturnType<typeof foldableSyntaxFacet.of>[] {
   const output: LatexMathOutput = options.output ?? 'svg';
   const scriptUrl = options.mathJaxScriptUrl ?? defaultScriptUrl(output);
@@ -235,7 +298,16 @@ export function markdownLatexExtension(
         }).range(node.from, node.to);
       },
     }),
-    latexMathTheme,
+    latexMathWidgetTheme,
     selectAllDecorationsOnSelectExtension(WIDGET_CLASS),
   ];
 }
+
+/**
+ * Convenience bundle: source highlighting theme + delimiter/formula tag
+ * styles. Does not include {@link latexMarkdownEditorExtensions} (widgets).
+ */
+export const latexMarkdownSyntaxTheme: Extension[] = [
+  latexMathSyntaxHighlighting,
+  latexMathSourceTheme,
+];

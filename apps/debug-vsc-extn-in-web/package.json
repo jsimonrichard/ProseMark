@@ -22,6 +22,7 @@
     "@codemirror/view": "^6.39.4",
     "@lezer/markdown": "^1.6.1",
     "@prosemark/core": "workspace:*",
+    "@prosemark/latex": "workspace:*",
     "@prosemark/paste-rich-text": "workspace:*",
     "@prosemark/render-html": "workspace:*",
     "@prosemark/spellcheck-frontend": "workspace:*",

@@ -1,5 +1,5 @@
 ---
-'@prosemark/markdown-latex': patch
+'@prosemark/latex': patch
 ---
 
-Add `@prosemark/markdown-latex` with Lezer `$...$` / `$$...$$` math syntax and MathJax-based rendering (SVG default, HTML optional).
+Add `@prosemark/latex` with Lezer `$...$` / `$$...$$` LaTeX math syntax, delimiter/formula highlighting, MathJax rendering (SVG default, HTML optional), and `requestMeasure` for display math.

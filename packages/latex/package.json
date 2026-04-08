@@ -1,5 +1,5 @@
 {
-  "name": "@prosemark/markdown-latex",
+  "name": "@prosemark/latex",
   "version": "0.0.1",
   "repository": {
     "url": "https://github.com/jsimonrichard/ProseMark",
@@ -38,8 +38,10 @@
     "mathjax"
   ],
   "dependencies": {
+    "@codemirror/language": "^6.11.3",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.39.4",
+    "@lezer/highlight": "^1.2.3",
     "@lezer/markdown": "^1.6.3",
     "@prosemark/core": "workspace:*"
   },

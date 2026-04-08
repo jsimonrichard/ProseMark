@@ -16,6 +16,7 @@
     "@lezer/highlight": "^1.2.0",
     "@lezer/markdown": "^1.5.1",
     "@prosemark/core": "workspace:*",
+    "@prosemark/latex": "workspace:*",
     "@prosemark/paste-rich-text": "workspace:*",
     "@prosemark/render-html": "workspace:*",
     "@prosemark/spellcheck-frontend": "workspace:*",
