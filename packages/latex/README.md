@@ -62,3 +62,23 @@ MathJax already caches font paths (SVG `fontCache: 'global'`). This package adds
 - **One output mode per page** — the first successful load picks `svg` or `html`; switching modes in the same tab is not supported.
 
 Block widgets use `ResizeObserver` (where available) so the editor remeasures line heights after MathJax updates the DOM; without it, folded display math could keep a stale height until the next edit.
+
+After MathJax renders, the package sets `viewState.mustMeasureContent` and calls CodeMirror’s internal **`EditorView#measure(true)`** (with a double `requestAnimationFrame` and a layout read on the wrapper). Relying only on `requestMeasure()` can leave the height map stale because the outer measure loop may not re-run `measureVisibleLineHeights` in the same way.
+
+**Debugging in the browser:** in devtools, after `window.editor` exists:
+
+```js
+const Ev = window.editor.constructor;
+const _m = Ev.prototype.measure;
+Ev.prototype.measure = function (f) {
+  console.log('measure', { mmc: this.viewState.mustMeasureContent, flush: f });
+  return _m.call(this, f);
+};
+const _r = Ev.prototype.requestMeasure;
+Ev.prototype.requestMeasure = function (req) {
+  console.log('requestMeasure', { mmc: this.viewState.mustMeasureContent, hasReq: !!req });
+  return _r.call(this, req);
+};
+```
+
+Then fold math and watch the log order. `ViewState.measure` (inner) returning flag `4` (viewport) defers custom `MeasureRequest` reads to the next cycle—see `@codemirror/view`’s `EditorView.measure` implementation.
