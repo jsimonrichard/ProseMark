@@ -27,10 +27,11 @@ export interface LatexMarkdownEditorOptions {
    */
   output?: LatexMathOutput;
   /**
-   * URL of the MathJax combined component script to load. If omitted, a
-   * pinned jsDelivr URL matching `output` is used.
+   * Max entries for the in-memory render cache (cloned DOM per hit). Helps when
+   * the same formula is re-folded while moving the caret. Set to `0` to disable.
+   * @default 128
    */
-  mathJaxScriptUrl?: string;
+  renderCacheSize?: number;
 }
 
 interface MathJaxReady {
@@ -58,38 +59,28 @@ declare global {
   }
 }
 
-const MATHJAX_SCRIPT_ID = 'prosemark-mathjax';
-
-const defaultScriptUrl = (output: LatexMathOutput): string =>
-  output === 'svg'
-    ? 'https://cdn.jsdelivr.net/npm/mathjax@4.1.1/tex-svg.js'
-    : 'https://cdn.jsdelivr.net/npm/mathjax@4.1.1/tex-chtml.js';
-
-let activeMathJaxScriptUrl: string | null = null;
+let loadedOutput: LatexMathOutput | null = null;
 let mathJaxReady: Promise<void> | null = null;
 
-const ensureMathJax = (scriptUrl: string): Promise<void> => {
+const ensureMathJax = (output: LatexMathOutput): Promise<void> => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     throw new Error(
       '@prosemark/latex requires a browser environment (window/document).',
     );
   }
 
-  if (activeMathJaxScriptUrl === scriptUrl && mathJaxReady) {
+  if (loadedOutput === output && mathJaxReady) {
     return mathJaxReady;
   }
 
-  if (
-    activeMathJaxScriptUrl !== null &&
-    activeMathJaxScriptUrl !== scriptUrl
-  ) {
-    document.getElementById(MATHJAX_SCRIPT_ID)?.remove();
-    delete window.MathJax;
-    mathJaxReady = null;
+  if (loadedOutput !== null && loadedOutput !== output) {
+    throw new Error(
+      'MathJax output mode is fixed after the first load; do not mix svg and html in one page.',
+    );
   }
 
-  activeMathJaxScriptUrl = scriptUrl;
-  mathJaxReady = new Promise<void>((resolve, reject) => {
+  loadedOutput = output;
+  mathJaxReady = (async () => {
     window.MathJax = {
       options: {
         skipStartupTypeset: true,
@@ -101,51 +92,89 @@ const ensureMathJax = (scriptUrl: string): Promise<void> => {
       svg: { fontCache: 'global' },
     };
 
-    const script = document.createElement('script');
-    script.id = MATHJAX_SCRIPT_ID;
-    script.src = scriptUrl;
-    script.async = true;
-    script.onload = () => {
-      const mj = window.MathJax as MathJaxReady | undefined;
-      const ready = mj?.startup.promise;
-      if (!ready) {
-        reject(new Error('MathJax failed to initialize'));
-        return;
-      }
-      void ready
-        .then(() => {
-          resolve();
-        })
-        .catch(reject);
-    };
-    script.onerror = () => {
-      reject(new Error(`Failed to load MathJax from ${scriptUrl}`));
-    };
-    document.head.append(script);
-  });
+    if (output === 'svg') {
+      await import('mathjax/tex-svg.js');
+    } else {
+      await import('mathjax/tex-chtml.js');
+    }
+
+    const mj = window.MathJax as MathJaxReady | undefined;
+    const ready = mj?.startup.promise;
+    if (!ready) {
+      throw new Error('MathJax failed to initialize');
+    }
+    await ready;
+  })();
 
   return mathJaxReady;
 };
 
-const renderPromise = (
+interface RenderCacheEntry {
+  node: HTMLElement;
+}
+
+/** Move key to MRU end in O(1) using a Map as insertion-ordered list. */
+class RenderLru {
+  private readonly max: number;
+  private readonly map = new Map<string, RenderCacheEntry>();
+
+  constructor(max: number) {
+    this.max = max;
+  }
+
+  get(key: string): HTMLElement | undefined {
+    const ent = this.map.get(key);
+    if (!ent) return undefined;
+    this.map.delete(key);
+    this.map.set(key, ent);
+    return ent.node;
+  }
+
+  set(key: string, node: HTMLElement): void {
+    if (this.map.has(key)) this.map.delete(key);
+    this.map.set(key, { node });
+    while (this.map.size > this.max) {
+      const iter = this.map.keys().next();
+      if (iter.done) break;
+      this.map.delete(iter.value);
+    }
+  }
+}
+
+let renderCache: RenderLru | null = null;
+
+const cacheKey = (output: LatexMathOutput, display: boolean, tex: string): string =>
+  `${output}\n${display ? '1' : '0'}\n${tex}`;
+
+const renderOrCloneFromCache = async (
   tex: string,
   display: boolean,
   output: LatexMathOutput,
 ): Promise<HTMLElement> => {
+  const key = cacheKey(output, display, tex);
+  const cached = renderCache?.get(key);
+  if (cached) {
+    return cached.cloneNode(true) as HTMLElement;
+  }
+
   const mj = window.MathJax as MathJaxReady | undefined;
   if (!mj) {
-    return Promise.reject(new Error('MathJax is not loaded'));
+    throw new Error('MathJax is not loaded');
   }
+
+  let node: HTMLElement;
   if (output === 'html') {
     const fn = mj.tex2chtmlPromise;
     if (!fn) {
-      return Promise.reject(
-        new Error('MathJax HTML output is not loaded (use tex-chtml.js).'),
-      );
+      throw new Error('MathJax HTML output is not loaded (tex-chtml bundle).');
     }
-    return fn.call(mj, tex, { display });
+    node = await fn.call(mj, tex, { display });
+  } else {
+    node = await mj.tex2svgPromise(tex, { display });
   }
-  return mj.tex2svgPromise(tex, { display });
+
+  renderCache?.set(key, node);
+  return node.cloneNode(true) as HTMLElement;
 };
 
 const blockMathEstimatedHeightPx = 56;
@@ -155,7 +184,6 @@ class LatexMathWidget extends WidgetType {
     public readonly tex: string,
     public readonly display: boolean,
     public readonly output: LatexMathOutput,
-    public readonly scriptUrl: string,
   ) {
     super();
   }
@@ -164,8 +192,7 @@ class LatexMathWidget extends WidgetType {
     return (
       this.tex === other.tex &&
       this.display === other.display &&
-      this.output === other.output &&
-      this.scriptUrl === other.scriptUrl
+      this.output === other.output
     );
   }
 
@@ -184,8 +211,8 @@ class LatexMathWidget extends WidgetType {
       view.requestMeasure({ read: () => undefined });
     };
 
-    void ensureMathJax(this.scriptUrl)
-      .then(() => renderPromise(this.tex, this.display, this.output))
+    void ensureMathJax(this.output)
+      .then(() => renderOrCloneFromCache(this.tex, this.display, this.output))
       .then((node) => {
         wrap.replaceChildren(node);
         requestLayoutMeasure();
@@ -278,7 +305,8 @@ export function latexMarkdownEditorExtensions(
   options: LatexMarkdownEditorOptions = {},
 ): ReturnType<typeof foldableSyntaxFacet.of>[] {
   const output: LatexMathOutput = options.output ?? 'svg';
-  const scriptUrl = options.mathJaxScriptUrl ?? defaultScriptUrl(output);
+  const cacheSize = options.renderCacheSize ?? 128;
+  renderCache = cacheSize > 0 ? new RenderLru(cacheSize) : null;
 
   return [
     foldableSyntaxFacet.of({
@@ -292,7 +320,7 @@ export function latexMarkdownEditorExtensions(
         if (!tex) return;
 
         return Decoration.replace({
-          widget: new LatexMathWidget(tex, display, output, scriptUrl),
+          widget: new LatexMathWidget(tex, display, output),
           block: display,
           inclusive: true,
         }).range(node.from, node.to);
