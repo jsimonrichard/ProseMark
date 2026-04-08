@@ -60,3 +60,5 @@ MathJax already caches font paths (SVG `fontCache: 'global'`). This package adds
 
 - **Browser only** — needs `window` and `document`.
 - **One output mode per page** — the first successful load picks `svg` or `html`; switching modes in the same tab is not supported.
+
+Block widgets use `ResizeObserver` (where available) so the editor remeasures line heights after MathJax updates the DOM; without it, folded display math could keep a stale height until the next edit.

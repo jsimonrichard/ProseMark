@@ -215,7 +215,23 @@ const renderOrCloneFromCache = async (
   return node.cloneNode(true) as HTMLElement;
 };
 
-const blockMathEstimatedHeightPx = 56;
+const blockMathEstimatedHeightPx = 72;
+
+/**
+ * Async widget DOM updates do not go through CodeMirror’s doc update path, so
+ * `mustMeasureContent` stays false and `measureVisibleLineHeights` is skipped —
+ * block math keeps the stale `estimatedHeight`. Force a content remeasure
+ * after MathJax paints (and when the wrapper resizes, e.g. font load).
+ */
+const forceEditorContentRemeasure = (view: EditorView): void => {
+  const vs = view as unknown as { viewState?: { mustMeasureContent?: boolean } };
+  if (vs.viewState) {
+    vs.viewState.mustMeasureContent = true;
+  }
+  view.requestMeasure();
+};
+
+const latexWidgetResizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
 
 class LatexMathWidget extends WidgetType {
   constructor(
@@ -246,23 +262,26 @@ class LatexMathWidget extends WidgetType {
     wrap.setAttribute('data-latex', this.tex);
     wrap.setAttribute('data-display', this.display ? 'block' : 'inline');
 
-    const requestLayoutMeasure = () => {
-      if (!this.display) return;
-      view.requestMeasure({ read: () => undefined });
-    };
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => {
+        forceEditorContentRemeasure(view);
+      });
+      ro.observe(wrap);
+      latexWidgetResizeObservers.set(wrap, ro);
+    }
 
     void ensureMathJax(this.output, this.packageUrl)
       .then(() => renderOrCloneFromCache(this.tex, this.display, this.output))
       .then((node) => {
         wrap.replaceChildren(node);
-        requestLayoutMeasure();
+        forceEditorContentRemeasure(view);
       })
       .catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
         wrap.textContent = this.tex;
         wrap.title = msg;
         wrap.classList.add(`${WIDGET_CLASS}-error`);
-        requestLayoutMeasure();
+        forceEditorContentRemeasure(view);
       });
 
     return wrap;
@@ -273,6 +292,8 @@ class LatexMathWidget extends WidgetType {
   }
 
   destroy(dom: HTMLElement): void {
+    latexWidgetResizeObservers.get(dom)?.disconnect();
+    latexWidgetResizeObservers.delete(dom);
     dom.remove();
   }
 }
