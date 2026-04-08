@@ -8,7 +8,7 @@ LaTeX-style math for ProseMark’s Markdown editor: `$...$` inline and `$$...$$`
 bun add @prosemark/latex
 ```
 
-The `mathjax` package is bundled as a dependency; your app’s bundler (Vite, etc.) should include the `mathjax/tex-svg.js` or `mathjax/tex-chtml.js` chunk that gets loaded on first math render.
+The `mathjax` package is bundled as a dependency (`import('mathjax/tex-svg.js')` or `tex-chtml.js`). MathJax’s loader must resolve extra files (inputs, fonts, etc.): when those components are bundled into an app chunk, the default root path is `/`, which makes runtime requests hit your dev server and hang. This package sets `loader.paths.mathjax` to the matching version on **jsDelivr** so those loads succeed. If you need a fully air‑gapped setup, host the `mathjax` npm folder yourself and override that path (or use a Vite alias + `public/` copy).
 
 Before that import runs, this package only sets `window.MathJax = { options: { skipStartupTypeset: true } }`. MathJax’s own startup code must own the full `tex` / `svg` / `chtml` configuration; a richer pre-existing `window.MathJax` without `version` would be merged incorrectly and break rendering.
 
@@ -48,6 +48,7 @@ const extensions = [
 latexMarkdownEditorExtensions({
   output: 'svg', // default; use 'html' for CHTML if SVG is a problem
   renderCacheSize: 128, // default; LRU of rendered trees, 0 to disable
+  // mathJaxPackageUrl: 'https://your.cdn/mathjax@4.1.1', // optional self-host
 });
 ```
 

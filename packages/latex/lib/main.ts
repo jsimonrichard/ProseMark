@@ -17,13 +17,18 @@ export {
 
 const WIDGET_CLASS = 'cm-latex-math';
 
+/** Keep in sync with the `mathjax` dependency in package.json. */
+const MATHJAX_VERSION = '4.1.1';
+
+const mathjaxPackageRoot = (): string =>
+  `https://cdn.jsdelivr.net/npm/mathjax@${MATHJAX_VERSION}`;
+
 export type LatexMathOutput = 'svg' | 'html';
 
 export interface LatexMarkdownEditorOptions {
   /**
-   * How formulas are rendered. `svg` uses MathJax SVG output (`tex-svg.js`).
-   * `html` uses MathJax CHTML output (`tex-chtml.js`) for environments where
-   * SVG is problematic.
+   * How formulas are rendered. `svg` uses MathJax SVG (`tex-svg-nofont.js`).
+   * `html` uses CHTML (`tex-chtml-nofont.js`) when SVG is problematic.
    */
   output?: LatexMathOutput;
   /**
@@ -32,6 +37,12 @@ export interface LatexMarkdownEditorOptions {
    * @default 128
    */
   renderCacheSize?: number;
+  /**
+   * Base URL for MathJax’s dynamic loader (`loader.paths.mathjax`), e.g. a copy
+   * of the `mathjax` package on your own host. Defaults to jsDelivr for the
+   * version pinned in this package.
+   */
+  mathJaxPackageUrl?: string;
 }
 
 interface MathJaxReady {
@@ -48,6 +59,7 @@ interface MathJaxReady {
 
 interface MathJaxConfig {
   options?: { skipStartupTypeset?: boolean };
+  loader?: { paths?: Record<string, string> };
   tex?: Record<string, unknown>;
   svg?: Record<string, unknown>;
   startup?: Record<string, unknown>;
@@ -61,15 +73,23 @@ declare global {
 
 let loadedOutput: LatexMathOutput | null = null;
 let mathJaxReady: Promise<void> | null = null;
+let configuredPackageUrl: string | null = null;
 
-const ensureMathJax = (output: LatexMathOutput): Promise<void> => {
+const ensureMathJax = (
+  output: LatexMathOutput,
+  packageUrl: string,
+): Promise<void> => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     throw new Error(
       '@prosemark/latex requires a browser environment (window/document).',
     );
   }
 
-  if (loadedOutput === output && mathJaxReady) {
+  if (
+    loadedOutput === output &&
+    configuredPackageUrl === packageUrl &&
+    mathJaxReady
+  ) {
     return mathJaxReady;
   }
 
@@ -79,16 +99,34 @@ const ensureMathJax = (output: LatexMathOutput): Promise<void> => {
     );
   }
 
+  if (
+    configuredPackageUrl !== null &&
+    configuredPackageUrl !== packageUrl
+  ) {
+    throw new Error(
+      'mathJaxPackageUrl is fixed after the first MathJax load in this page.',
+    );
+  }
+
   loadedOutput = output;
+  configuredPackageUrl = packageUrl;
   mathJaxReady = (async () => {
-    // MathJax merges a pre-existing `window.MathJax` without `version` into
-    // `config` and replaces the root. If we put `tex` / `svg` only on the
-    // pre-load object, those options end up under `config` and TeX/SVG input
-    // never activates — only set `skipStartupTypeset` here; defaults supply
-    // the rest after the bundle runs.
+    // Pre-load config (no `version`): MathJax moves this object to `config` and
+    // replaces `window.MathJax` with the API. Do not set `tex` / `svg` here —
+    // those would land only under `config` and break input/output jax setup.
+    //
+    // When the combined component is bundled (Vite/Rollup), its default
+    // `loader.paths.mathjax` becomes `/`, so MathJax tries to fetch extra
+    // modules from the app origin (`/input/...`, etc.) and `tex2svgPromise`
+    // never resolves. Point `mathjax` at the published package tree instead.
     window.MathJax = {
       options: {
         skipStartupTypeset: true,
+      },
+      loader: {
+        paths: {
+          mathjax: packageUrl,
+        },
       },
     };
 
@@ -184,6 +222,7 @@ class LatexMathWidget extends WidgetType {
     public readonly tex: string,
     public readonly display: boolean,
     public readonly output: LatexMathOutput,
+    public readonly packageUrl: string,
   ) {
     super();
   }
@@ -192,7 +231,8 @@ class LatexMathWidget extends WidgetType {
     return (
       this.tex === other.tex &&
       this.display === other.display &&
-      this.output === other.output
+      this.output === other.output &&
+      this.packageUrl === other.packageUrl
     );
   }
 
@@ -211,7 +251,7 @@ class LatexMathWidget extends WidgetType {
       view.requestMeasure({ read: () => undefined });
     };
 
-    void ensureMathJax(this.output)
+    void ensureMathJax(this.output, this.packageUrl)
       .then(() => renderOrCloneFromCache(this.tex, this.display, this.output))
       .then((node) => {
         wrap.replaceChildren(node);
@@ -305,6 +345,7 @@ export function latexMarkdownEditorExtensions(
   options: LatexMarkdownEditorOptions = {},
 ): ReturnType<typeof foldableSyntaxFacet.of>[] {
   const output: LatexMathOutput = options.output ?? 'svg';
+  const packageUrl = options.mathJaxPackageUrl ?? mathjaxPackageRoot();
   const cacheSize = options.renderCacheSize ?? 128;
   renderCache = cacheSize > 0 ? new RenderLru(cacheSize) : null;
 
@@ -320,7 +361,7 @@ export function latexMarkdownEditorExtensions(
         if (!tex) return;
 
         return Decoration.replace({
-          widget: new LatexMathWidget(tex, display, output),
+          widget: new LatexMathWidget(tex, display, output, packageUrl),
           block: display,
           inclusive: true,
           // Skipped by revealBlockOnArrowExtension so ↑ through blank lines after math is normal.
