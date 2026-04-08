@@ -17,6 +17,20 @@ function isMarkdownContext(state: EditorState, pos: number): boolean {
   );
 }
 
+/**
+ * Among syntax nodes that match `predicate` and overlap the range `[from, to]`,
+ * return the one that spans the selection most broadly (smallest `from`, largest
+ * `to`).
+ *
+ * We need the **outermost** match so toggling matches user intent in nested
+ * inline markup (e.g. `***bold italic***`: an inner `StrongEmphasis` sits inside
+ * an outer `Emphasis`). If the selection lies inside both, stripping the
+ * innermost delimiter pair first would leave broken markup; preferring the
+ * widest covering node removes the whole construct the user is effectively
+ * “inside.” Scanning every offset in `[from, to]` covers selections that start
+ * or end between Lezer tokens so we still find a node that fully wraps the
+ * selection.
+ */
 function findOutermostCoveringNode(
   state: EditorState,
   from: number,
@@ -38,6 +52,12 @@ function findOutermostCoveringNode(
   return found;
 }
 
+/**
+ * If the selection is already wrapped by a matching node (e.g. `StrongEmphasis`
+ * for `**…**`), remove that wrapper and leave the inner text selected.
+ * Otherwise wrap the selection with `open`/`close` and select the former
+ * selection bounds inside the new delimiters.
+ */
 function toggleInlineMarkup(
   state: EditorState,
   range: SelectionRange,
@@ -78,6 +98,14 @@ function toggleInlineMarkup(
   };
 }
 
+/**
+ * Builds a `Command` that toggles one kind of inline markup for every selection
+ * range. We precompute each range’s `{ changes, range }` from the **initial**
+ * document, then feed them into `EditorState.changeByRange` in order. That API
+ * merges all edits and remaps selections in one transaction; using a counter
+ * closure ties the *i*-th spec to the *i*-th range without recomputing from a
+ * half-updated document (which would break multiple cursors).
+ */
 function makeToggleInlineCommand(
   nodeName: string,
   open: string,
@@ -107,6 +135,12 @@ const toggleEmphasis = makeToggleInlineCommand('Emphasis', '*', '*');
 const toggleInlineCode = makeToggleInlineCommand('InlineCode', '`', '`');
 const toggleStrikethrough = makeToggleInlineCommand('Strikethrough', '~~', '~~');
 
+/**
+ * Wraps the selection as a Markdown link: selected text becomes the **label**
+ * in `[label]()`. Cursor is placed inside the empty parentheses so the URL can
+ * be typed next. With no selection, inserts `[]()` and focuses the label
+ * brackets first.
+ */
 const insertLink: Command = (view) => {
   const { state } = view;
   for (const range of state.selection.ranges) {
@@ -116,6 +150,8 @@ const insertLink: Command = (view) => {
     ...state.changeByRange((range) => {
       const label = state.sliceDoc(range.from, range.to);
       const insert = range.empty ? `[]()` : `[${label}]()`;
+      // Empty: cursor after `[` to type the label. Non-empty: cursor after `](`
+      // so the URL is typed inside `()`.
       const head = range.empty
         ? range.from + 1
         : range.from + 1 + label.length + 2;
