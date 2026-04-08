@@ -1,4 +1,4 @@
-import { keymap, dropCursor, EditorView } from '@codemirror/view';
+import { keymap, dropCursor, EditorView, type ViewUpdate } from '@codemirror/view';
 import { type Extension } from '@codemirror/state';
 import {
   indentOnInput,
@@ -66,7 +66,12 @@ export const prosemarkBasicSetup = (): Extension => [
     ...lintKeymap,
     indentWithTab,
   ]),
-  foldGutter(),
+  foldGutter({
+    // Default fold gutter only rebuilds on doc/viewport/fold changes. Async
+    // block widgets (e.g. LaTeX) change line heights without any of those, so
+    // gutter markers keep stale height/margin and misalign with content.
+    foldingChanged: (update: ViewUpdate) => update.geometryChanged,
+  }),
   EditorView.lineWrapping,
 ];
 
