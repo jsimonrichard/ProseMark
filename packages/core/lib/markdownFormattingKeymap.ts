@@ -131,7 +131,7 @@ function makeToggleInlineCommand(
 }
 
 const toggleStrongEmphasis = makeToggleInlineCommand('StrongEmphasis', '**', '**');
-const toggleEmphasis = makeToggleInlineCommand('Emphasis', '*', '*');
+const toggleEmphasis = makeToggleInlineCommand('Emphasis', '_', '_');
 const toggleInlineCode = makeToggleInlineCommand('InlineCode', '`', '`');
 const toggleStrikethrough = makeToggleInlineCommand('Strikethrough', '~~', '~~');
 
