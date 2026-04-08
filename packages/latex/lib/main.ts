@@ -81,15 +81,15 @@ const ensureMathJax = (output: LatexMathOutput): Promise<void> => {
 
   loadedOutput = output;
   mathJaxReady = (async () => {
+    // MathJax merges a pre-existing `window.MathJax` without `version` into
+    // `config` and replaces the root. If we put `tex` / `svg` only on the
+    // pre-load object, those options end up under `config` and TeX/SVG input
+    // never activates — only set `skipStartupTypeset` here; defaults supply
+    // the rest after the bundle runs.
     window.MathJax = {
       options: {
         skipStartupTypeset: true,
       },
-      tex: {
-        inlineMath: [['\\(', '\\)']],
-        displayMath: [['$$', '$$']],
-      },
-      svg: { fontCache: 'global' },
     };
 
     if (output === 'svg') {
@@ -323,6 +323,8 @@ export function latexMarkdownEditorExtensions(
           widget: new LatexMathWidget(tex, display, output),
           block: display,
           inclusive: true,
+          // Skipped by revealBlockOnArrowExtension so ↑ through blank lines after math is normal.
+          proseMarkSkipAdjacentArrowReveal: true,
         }).range(node.from, node.to);
       },
     }),

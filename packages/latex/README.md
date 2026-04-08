@@ -10,6 +10,8 @@ bun add @prosemark/latex
 
 The `mathjax` package is bundled as a dependency; your app’s bundler (Vite, etc.) should include the `mathjax/tex-svg.js` or `mathjax/tex-chtml.js` chunk that gets loaded on first math render.
 
+Before that import runs, this package only sets `window.MathJax = { options: { skipStartupTypeset: true } }`. MathJax’s own startup code must own the full `tex` / `svg` / `chtml` configuration; a richer pre-existing `window.MathJax` without `version` would be merged incorrectly and break rendering.
+
 ## Usage
 
 ```ts
