@@ -39,7 +39,7 @@ const extensions = [
 ```
 
 - **`latexMathMarkdownSyntaxExtension`** — Lezer parser for the delimiters (put alongside other Markdown extensions).
-- **`latexMarkdownSyntaxTheme`** — Colors `$` / `$$` vs the raw TeX body while the region is unfolded.
+- **`latexMarkdownSyntaxTheme`** — `$` / `$$` use link blue (`--pm-link-color`); the raw TeX body uses normal text color (override with `--pm-latex-math-formula-color`).
 - **`latexMarkdownEditorExtensions()`** — Widgets that replace folded math with MathJax output.
 
 ### Options

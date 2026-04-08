@@ -239,10 +239,10 @@ class LatexMathWidget extends WidgetType {
 
 const latexMathSourceTheme = EditorView.theme({
   '.cm-latex-math-delimiter': {
-    color: 'var(--pm-latex-math-delimiter-color, var(--pm-muted-color))',
+    color: 'var(--pm-latex-math-delimiter-color, var(--pm-link-color))',
   },
   '.cm-latex-math-formula': {
-    color: 'var(--pm-latex-math-formula-color, var(--pm-syntax-atom))',
+    color: 'var(--pm-latex-math-formula-color, inherit)',
     fontFamily: `var(
       --pm-latex-math-formula-font,
       var(
