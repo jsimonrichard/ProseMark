@@ -10,4 +10,9 @@ export * from './codeFenceExtension';
 
 export * from './basicSetup';
 
+export {
+  prosemarkMarkdownFormattingKeymap,
+  prosemarkMarkdownFormattingKeymapExtension,
+} from './markdownFormattingKeymap';
+
 export { eventHandlersWithClass } from './utils';
