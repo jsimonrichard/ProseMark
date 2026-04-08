@@ -61,24 +61,8 @@ MathJax already caches font paths (SVG `fontCache: 'global'`). This package adds
 - **Browser only** — needs `window` and `document`.
 - **One output mode per page** — the first successful load picks `svg` or `html`; switching modes in the same tab is not supported.
 
-Block widgets use `ResizeObserver` (where available) so the editor remeasures line heights after MathJax updates the DOM; without it, folded display math could keep a stale height until the next edit.
+### Block widgets and layout
 
-After MathJax renders, the package sets `viewState.mustMeasureContent` and calls CodeMirror’s internal **`EditorView#measure(true)`** (with a double `requestAnimationFrame` and a layout read on the wrapper). Relying only on `requestMeasure()` can leave the height map stale because the outer measure loop may not re-run `measureVisibleLineHeights` in the same way.
+CodeMirror’s [`Decoration.widget`](https://codemirror.net/docs/ref/#view.Decoration%5Ewidget) / replace specs note that **block-level decorations should not use vertical margins**, and that if the widget’s height changes dynamically you should call [`EditorView.requestMeasure`](https://codemirror.net/docs/ref/#view.EditorView.requestMeasure). This package avoids vertical margins on the block wrapper (spacing uses padding instead), calls `requestMeasure` after MathJax inserts output, and uses `ResizeObserver` (where available) so late layout changes (e.g. fonts) also trigger a remeasure.
 
-**Debugging in the browser:** in devtools, after `window.editor` exists:
-
-```js
-const Ev = window.editor.constructor;
-const _m = Ev.prototype.measure;
-Ev.prototype.measure = function (f) {
-  console.log('measure', { mmc: this.viewState.mustMeasureContent, flush: f });
-  return _m.call(this, f);
-};
-const _r = Ev.prototype.requestMeasure;
-Ev.prototype.requestMeasure = function (req) {
-  console.log('requestMeasure', { mmc: this.viewState.mustMeasureContent, hasReq: !!req });
-  return _r.call(this, req);
-};
-```
-
-Then fold math and watch the log order. `ViewState.measure` (inner) returning flag `4` (viewport) defers custom `MeasureRequest` reads to the next cycle—see `@codemirror/view`’s `EditorView.measure` implementation.
+Community discussion: [Is `view.requestMeasure` required when a block widget changes height?](https://discuss.codemirror.net/t/is-view-requestmeasure-required-when-a-block-widget-changes-height/5604).

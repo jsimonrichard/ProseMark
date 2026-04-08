@@ -217,38 +217,6 @@ const renderOrCloneFromCache = async (
 
 const blockMathEstimatedHeightPx = 72;
 
-/**
- * Async widget DOM updates do not go through CodeMirror’s doc update path, so
- * `mustMeasureContent` stays false and `measureVisibleLineHeights` is skipped —
- * block math keeps the stale `estimatedHeight`.
- *
- * `requestMeasure()` alone is not enough: the outer `EditorView.measure()` loop
- * may run `viewState.measure()` without re-reading line heights unless
- * `mustMeasureContent` is set *and* the full measure pipeline runs. Calling the
- * view’s internal `measure()` performs that loop immediately (same path as
- * resize/scroll handling).
- */
-const forceEditorContentRemeasure = (view: EditorView): void => {
-  const vs = view as unknown as { viewState?: { mustMeasureContent?: boolean } };
-  if (vs.viewState) {
-    vs.viewState.mustMeasureContent = true;
-  }
-  const run = () => {
-    const measure = (
-      view as unknown as { measure?: (flush?: boolean) => void }
-    ).measure;
-    if (typeof measure === 'function') {
-      measure.call(view, true);
-    } else {
-      view.requestMeasure();
-    }
-  };
-  // Double rAF: let the browser apply MathJax’s DOM before getBoundingClientRect.
-  requestAnimationFrame(() => {
-    requestAnimationFrame(run);
-  });
-};
-
 const latexWidgetResizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
 
 class LatexMathWidget extends WidgetType {
@@ -282,7 +250,7 @@ class LatexMathWidget extends WidgetType {
 
     if (typeof ResizeObserver !== 'undefined') {
       const ro = new ResizeObserver(() => {
-        forceEditorContentRemeasure(view);
+        view.requestMeasure();
       });
       ro.observe(wrap);
       latexWidgetResizeObservers.set(wrap, ro);
@@ -292,16 +260,14 @@ class LatexMathWidget extends WidgetType {
       .then(() => renderOrCloneFromCache(this.tex, this.display, this.output))
       .then((node) => {
         wrap.replaceChildren(node);
-        void wrap.offsetHeight;
-        forceEditorContentRemeasure(view);
+        view.requestMeasure();
       })
       .catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
         wrap.textContent = this.tex;
         wrap.title = msg;
         wrap.classList.add(`${WIDGET_CLASS}-error`);
-        void wrap.offsetHeight;
-        forceEditorContentRemeasure(view);
+        view.requestMeasure();
       });
 
     return wrap;
@@ -368,7 +334,8 @@ const latexMathWidgetTheme = EditorView.theme({
   [`.${WIDGET_CLASS}[data-display="block"]`]: {
     display: 'block',
     textAlign: 'center',
-    margin: '0.5em 0',
+    // Block widget docs: no vertical *margins* (they confuse layout); padding is OK.
+    padding: '0.5em 0',
   },
   [`.${WIDGET_CLASS}-error`]: {
     color: '#b00020',
