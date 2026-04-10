@@ -14,7 +14,6 @@ import {
 import {
   latexMarkdownEditorExtensions,
   latexMarkdownSyntaxTheme,
-  latexMathMarkdownSyntaxExtension,
 } from '@prosemark/latex';
 import {
   pastePlainTextExtension,
@@ -265,7 +264,6 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
           GFM,
           prosemarkMarkdownSyntaxExtensions,
           renderHtmlMarkdownSyntaxExtensions,
-          latexMathMarkdownSyntaxExtension,
         ],
       }),
       prosemarkBasicSetup(),

@@ -1,6 +1,8 @@
 # @prosemark/latex
 
-LaTeX-style math for ProseMark’s Markdown editor: `$...$` inline and `$$...$$` display, rendered with [MathJax](https://www.mathjax.org/) from the **`mathjax` npm package** (no CDN).
+LaTeX-style math for ProseMark’s Markdown editor: `$...$` and `$$...$$`, rendered with [MathJax](https://www.mathjax.org/) from the **`mathjax` npm package**.
+
+The **`Math` / `MathMark` / `MathFormula`** Lezer nodes and **`proseMathMarkdownSyntaxExtension`** live in **`@prosemark/core`** and are part of **`prosemarkMarkdownSyntaxExtensions`**. This package adds MathJax **widgets** and theme helpers; it **re-exports** the parser under **`latexMath*`** names if you only depend on `@prosemark/latex`.
 
 ## Install
 
@@ -8,9 +10,9 @@ LaTeX-style math for ProseMark’s Markdown editor: `$...$` inline and `$$...$$`
 bun add @prosemark/latex
 ```
 
-The `mathjax` package is bundled as a dependency (`import('mathjax/tex-svg.js')` or `tex-chtml.js`). MathJax’s loader must resolve extra files (inputs, fonts, etc.): when those components are bundled into an app chunk, the default root path is `/`, which makes runtime requests hit your dev server and hang. This package sets `loader.paths.mathjax` to the matching version on **jsDelivr** so those loads succeed. If you need a fully air‑gapped setup, host the `mathjax` npm folder yourself and override that path (or use a Vite alias + `public/` copy).
+The `mathjax` package is a dependency (`import('mathjax/tex-svg.js')` or `tex-chtml.js`). By default, `loader.paths.mathjax` points at **jsDelivr** for the pinned version so the runtime can load extra components. Override with **`mathJaxPackageUrl`** for self-hosting or another CDN.
 
-Before that import runs, this package only sets `window.MathJax = { options: { skipStartupTypeset: true } }`. MathJax’s own startup code must own the full `tex` / `svg` / `chtml` configuration; a richer pre-existing `window.MathJax` without `version` would be merged incorrectly and break rendering.
+Before that import runs, this package sets `window.MathJax = { options: { skipStartupTypeset: true }, loader: { paths: { … } } }`. MathJax’s startup must own the full `tex` / `svg` / `chtml` configuration.
 
 ## Usage
 
@@ -18,29 +20,36 @@ Before that import runs, this package only sets `window.MathJax = { options: { s
 import { markdown } from '@codemirror/lang-markdown';
 import { GFM } from '@lezer/markdown';
 import { prosemarkMarkdownSyntaxExtensions } from '@prosemark/core';
-import {
-  latexMathMarkdownSyntaxExtension,
-  latexMarkdownSyntaxTheme,
-  latexMarkdownEditorExtensions,
-} from '@prosemark/latex';
+import { latexMarkdownSyntaxTheme, latexMarkdownEditorExtensions } from '@prosemark/latex';
 
 const extensions = [
   markdown({
     extensions: [
       GFM,
-      prosemarkMarkdownSyntaxExtensions,
-      latexMathMarkdownSyntaxExtension,
+      prosemarkMarkdownSyntaxExtensions, // includes proseMathMarkdownSyntaxExtension (Math nodes)
     ],
   }),
-  // After your base / light theme:
   ...latexMarkdownSyntaxTheme,
   ...latexMarkdownEditorExtensions(),
 ];
 ```
 
-- **`latexMathMarkdownSyntaxExtension`** — Lezer parser for the delimiters (put alongside other Markdown extensions).
-- **`latexMarkdownSyntaxTheme`** — `$` / `$$` use link blue (`--pm-link-color`); the raw TeX body uses normal text color (override with `--pm-latex-math-formula-color`).
-- **`latexMarkdownEditorExtensions()`** — Widgets that replace folded math with MathJax output.
+If you **do not** use `prosemarkMarkdownSyntaxExtensions`, add the parser from core (or the latex re-export):
+
+```ts
+import { proseMathMarkdownSyntaxExtension } from '@prosemark/core';
+// or: import { latexMathMarkdownSyntaxExtension } from '@prosemark/latex';
+```
+
+- **`latexMathMarkdownSyntaxExtension`** — same as **`proseMathMarkdownSyntaxExtension`** from core (re-export).
+- **`latexMarkdownSyntaxTheme`** — delimiter and formula highlighting.
+- **`latexMarkdownEditorExtensions()`** — fold widgets with MathJax.
+
+### Block vs inline (hybrid)
+
+- **`$$...$$`** → always **block** (display).
+- **`$ ... $`** with **leading or trailing space** inside the delimiters → **block**.
+- **`$...$`** with no inner padding → **inline**.
 
 ### Options
 
@@ -48,21 +57,21 @@ const extensions = [
 latexMarkdownEditorExtensions({
   output: 'svg', // default; use 'html' for CHTML if SVG is a problem
   renderCacheSize: 128, // default; LRU of rendered trees, 0 to disable
-  // mathJaxPackageUrl: 'https://your.cdn/mathjax@4.1.1', // optional self-host
+  // mathJaxPackageUrl: 'https://cdn.jsdelivr.net/npm/mathjax@4.1.1/',
 });
 ```
 
 ## Caching
 
-MathJax already caches font paths (SVG `fontCache: 'global'`). This package adds a small **LRU cache of rendered DOM trees** keyed by output mode, display flag, and source string. When you move the caret and the same formula folds again, the widget **clones** a cached node instead of calling `tex2svgPromise` / `tex2chtmlPromise`, which removes most of the “tiny delay” on refold. Set `renderCacheSize: 0` if you prefer not to keep rendered nodes in memory.
+MathJax caches font paths (SVG `fontCache: 'global'`). This package adds an **LRU cache of rendered DOM trees**. Set `renderCacheSize: 0` to disable.
 
 ## Limitations
 
 - **Browser only** — needs `window` and `document`.
-- **One output mode per page** — the first successful load picks `svg` or `html`; switching modes in the same tab is not supported.
+- **One output mode per page** — the first successful load picks `svg` or `html`.
 
 ### Block widgets and layout
 
-CodeMirror’s [`Decoration.widget`](https://codemirror.net/docs/ref/#view.Decoration%5Ewidget) / replace specs note that **block-level decorations should not use vertical margins**, and that if the widget’s height changes dynamically you should call [`EditorView.requestMeasure`](https://codemirror.net/docs/ref/#view.EditorView.requestMeasure). This package avoids vertical margins on the block wrapper (spacing uses padding instead), calls `requestMeasure` after MathJax inserts output, and uses `ResizeObserver` (where available) so late layout changes (e.g. fonts) also trigger a remeasure.
+Block replace widgets should not use **vertical margins**; use padding. This package calls **`requestMeasure`** after render and uses **`ResizeObserver`** when available.
 
-Community discussion: [Is `view.requestMeasure` required when a block widget changes height?](https://discuss.codemirror.net/t/is-view-requestmeasure-required-when-a-block-widget-changes-height/5604).
+See [Decoration.widget](https://codemirror.net/docs/ref/#view.Decoration%5Ewidget) and [requestMeasure](https://codemirror.net/docs/ref/#view.EditorView.requestMeasure).

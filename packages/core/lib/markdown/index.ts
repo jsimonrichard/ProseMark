@@ -3,6 +3,7 @@ import { escapeMarkdownSyntaxExtension } from '../hide';
 import { additionalMarkdownSyntaxTags } from '../syntaxHighlighting';
 import { frontmatterMarkdownSyntaxExtension } from './frontmatter';
 import { nestedLinkAsPlainText } from './nestedLinkAsPlainText';
+import { proseMathMarkdownSyntaxExtension } from './proseMath';
 
 export { markdownTags } from './tags';
 export {
@@ -14,6 +15,11 @@ export { nestedLinkAsPlainText } from './nestedLinkAsPlainText';
 export { escapeMarkdownSyntaxExtension } from '../hide';
 export { additionalMarkdownSyntaxTags } from '../syntaxHighlighting';
 export { emojiMarkdownSyntaxExtension, dashMarkdownSyntaxExtension } from '../fold';
+export {
+  proseMathDelimiterTag,
+  proseMathFormulaTag,
+  proseMathMarkdownSyntaxExtension,
+} from './proseMath';
 
 export const prosemarkMarkdownSyntaxExtensions = [
   additionalMarkdownSyntaxTags,
@@ -22,4 +28,5 @@ export const prosemarkMarkdownSyntaxExtensions = [
   escapeMarkdownSyntaxExtension,
   emojiMarkdownSyntaxExtension,
   dashMarkdownSyntaxExtension,
+  proseMathMarkdownSyntaxExtension,
 ];

@@ -16,7 +16,6 @@ import {
 import {
   latexMarkdownEditorExtensions,
   latexMarkdownSyntaxTheme,
-  latexMathMarkdownSyntaxExtension,
 } from '@prosemark/latex';
 import { indentWithTab } from '@codemirror/commands';
 import { GFM } from '@lezer/markdown';
@@ -44,7 +43,6 @@ const editor = new EditorView({
         GFM,
         prosemarkMarkdownSyntaxExtensions,
         renderHtmlMarkdownSyntaxExtensions,
-        latexMathMarkdownSyntaxExtension,
       ],
     }),
     prosemarkBasicSetup(),

@@ -165,6 +165,7 @@
       "version": "0.0.6",
       "dependencies": {
         "@lezer/common": "^1.4.0",
+        "@lezer/highlight": "^1.2.3",
         "@lezer/markdown": "^1.6.1",
         "@lezer/yaml": "^1.0.4",
         "ajv": "^8.17.1",
@@ -201,7 +202,6 @@
         "@codemirror/search": "^6.5.11",
         "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.39.4",
-        "@lezer/highlight": "^1.2.0",
       },
     },
     "packages/latex": {

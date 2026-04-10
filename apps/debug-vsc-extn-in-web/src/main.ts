@@ -15,7 +15,6 @@ import {
 import {
   latexMarkdownEditorExtensions,
   latexMarkdownSyntaxTheme,
-  latexMathMarkdownSyntaxExtension,
 } from '@prosemark/latex';
 import { GFM } from '@lezer/markdown';
 import {
@@ -61,7 +60,6 @@ const editor = new EditorView({
         GFM,
         prosemarkMarkdownSyntaxExtensions,
         renderHtmlMarkdownSyntaxExtensions,
-        latexMathMarkdownSyntaxExtension,
       ],
     }),
     prosemarkBasicSetup(),

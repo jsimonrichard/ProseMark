@@ -344,10 +344,9 @@ const latexMathWidgetTheme = EditorView.theme({
 });
 
 /**
- * CodeMirror extensions that replace `LatexMath` syntax nodes with rendered
- * formulas. Pair with {@link latexMathMarkdownSyntaxExtension} on the Markdown
- * parser configuration, and add {@link latexMathSyntaxHighlighting} for source
- * coloring.
+ * CodeMirror extensions that replace core `Math` syntax nodes (from
+ * {@link latexMathMarkdownSyntaxExtension} / `proseMathMarkdownSyntaxExtension`)
+ * with rendered formulas. Add {@link latexMathSyntaxHighlighting} for source coloring.
  */
 export function latexMarkdownEditorExtensions(
   options: LatexMarkdownEditorOptions = {},
@@ -359,14 +358,18 @@ export function latexMarkdownEditorExtensions(
 
   return [
     foldableSyntaxFacet.of({
-      nodePath: 'LatexMath',
+      nodePath: 'Math',
       buildDecorations: (state: EditorState, node: SyntaxNodeRef) => {
-        const display =
+        const opensDouble =
           state.doc.sliceString(node.from, node.from + 2) === '$$';
-        const innerFrom = display ? node.from + 2 : node.from + 1;
-        const innerTo = display ? node.to - 2 : node.to - 1;
-        const tex = state.doc.sliceString(innerFrom, innerTo).trim();
+        const innerFrom = opensDouble ? node.from + 2 : node.from + 1;
+        const innerTo = opensDouble ? node.to - 2 : node.to - 1;
+        const body = state.doc.sliceString(innerFrom, innerTo);
+        const tex = body.trim();
         if (!tex) return;
+
+        // `$$...$$` always block; `$ ... $` with inner padding block; tight `$...$` inline.
+        const display = opensDouble || /^\s|\s$/.test(body);
 
         return Decoration.replace({
           widget: new LatexMathWidget(tex, display, output, packageUrl),
