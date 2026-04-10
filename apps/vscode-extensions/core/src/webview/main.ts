@@ -12,10 +12,6 @@ import {
   renderHtmlMarkdownSyntaxExtensions,
 } from '@prosemark/render-html';
 import {
-  latexMarkdownEditorExtensions,
-  latexMarkdownSyntaxTheme,
-} from '@prosemark/latex';
-import {
   pastePlainTextExtension,
   pasteRichTextExtension,
 } from '@prosemark/paste-rich-text';
@@ -268,8 +264,6 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
       }),
       prosemarkBasicSetup(),
       prosemarkBaseThemeSetup(),
-      ...latexMarkdownSyntaxTheme,
-      ...latexMarkdownEditorExtensions(),
       clickLinkHandler.of((url) => {
         callProcAndForget('linkClick', url);
       }),

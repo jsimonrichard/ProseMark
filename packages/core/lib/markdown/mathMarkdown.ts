@@ -2,10 +2,10 @@ import type { InlineContext, MarkdownConfig } from '@lezer/markdown';
 import { styleTags, Tag } from '@lezer/highlight';
 
 /** Highlight tag for `$` / `$$` math delimiters. */
-export const proseMathDelimiterTag = Tag.define();
+export const mathDelimiterTag = Tag.define();
 
 /** Highlight tag for raw math source between delimiters. */
-export const proseMathFormulaTag = Tag.define();
+export const mathFormulaTag = Tag.define();
 
 const isEscapedDollar = (cx: InlineContext, pos: number): boolean => {
   let backslashes = 0;
@@ -40,7 +40,7 @@ const findClosingSingleDollar = (cx: InlineContext, from: number): number => {
  * The outer node is **`Math`** so the same tree can be used with LaTeX (MathJax),
  * Typst, or other renderers in `@prosemark/*` packages.
  */
-export const proseMathMarkdownSyntaxExtension: MarkdownConfig = {
+export const mathMarkdownSyntaxExtension: MarkdownConfig = {
   defineNodes: [
     { name: 'Math' },
     { name: 'MathMark' },
@@ -48,8 +48,8 @@ export const proseMathMarkdownSyntaxExtension: MarkdownConfig = {
   ],
   props: [
     styleTags({
-      MathMark: proseMathDelimiterTag,
-      MathFormula: proseMathFormulaTag,
+      MathMark: mathDelimiterTag,
+      MathFormula: mathFormulaTag,
     }),
   ],
   parseInline: [

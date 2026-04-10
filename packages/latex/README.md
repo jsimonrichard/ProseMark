@@ -2,7 +2,7 @@
 
 LaTeX-style math for ProseMark’s Markdown editor: `$...$` and `$$...$$`, rendered with [MathJax](https://www.mathjax.org/) from the **`mathjax` npm package**.
 
-The **`Math` / `MathMark` / `MathFormula`** Lezer nodes and **`proseMathMarkdownSyntaxExtension`** live in **`@prosemark/core`** and are part of **`prosemarkMarkdownSyntaxExtensions`**. This package adds MathJax **widgets** and theme helpers; it **re-exports** the parser under **`latexMath*`** names if you only depend on `@prosemark/latex`.
+The **`Math` / `MathMark` / `MathFormula`** Lezer nodes and **`mathMarkdownSyntaxExtension`** live in **`@prosemark/core`** and are part of **`prosemarkMarkdownSyntaxExtensions`**. This package adds MathJax **widgets** and theme helpers; it **re-exports** the parser under **`latexMath*`** names if you only depend on `@prosemark/latex`.
 
 ## Install
 
@@ -26,7 +26,7 @@ const extensions = [
   markdown({
     extensions: [
       GFM,
-      prosemarkMarkdownSyntaxExtensions, // includes proseMathMarkdownSyntaxExtension (Math nodes)
+      prosemarkMarkdownSyntaxExtensions, // includes mathMarkdownSyntaxExtension (Math nodes)
     ],
   }),
   ...latexMarkdownSyntaxTheme,
@@ -37,11 +37,11 @@ const extensions = [
 If you **do not** use `prosemarkMarkdownSyntaxExtensions`, add the parser from core (or the latex re-export):
 
 ```ts
-import { proseMathMarkdownSyntaxExtension } from '@prosemark/core';
+import { mathMarkdownSyntaxExtension } from '@prosemark/core';
 // or: import { latexMathMarkdownSyntaxExtension } from '@prosemark/latex';
 ```
 
-- **`latexMathMarkdownSyntaxExtension`** — same as **`proseMathMarkdownSyntaxExtension`** from core (re-export).
+- **`latexMathMarkdownSyntaxExtension`** — same as **`mathMarkdownSyntaxExtension`** from core (re-export).
 - **`latexMarkdownSyntaxTheme`** — delimiter and formula highlighting.
 - **`latexMarkdownEditorExtensions()`** — fold widgets with MathJax.
 

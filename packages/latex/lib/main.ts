@@ -345,7 +345,7 @@ const latexMathWidgetTheme = EditorView.theme({
 
 /**
  * CodeMirror extensions that replace core `Math` syntax nodes (from
- * {@link latexMathMarkdownSyntaxExtension} / `proseMathMarkdownSyntaxExtension`)
+ * {@link latexMathMarkdownSyntaxExtension} / `mathMarkdownSyntaxExtension`)
  * with rendered formulas. Add {@link latexMathSyntaxHighlighting} for source coloring.
  */
 export function latexMarkdownEditorExtensions(

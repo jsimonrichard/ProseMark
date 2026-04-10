@@ -4,7 +4,7 @@
  * `latex*` names for consumers who only install `@prosemark/latex`.
  */
 export {
-  proseMathDelimiterTag as latexMathDelimiterTag,
-  proseMathFormulaTag as latexMathFormulaTag,
-  proseMathMarkdownSyntaxExtension as latexMathMarkdownSyntaxExtension,
+  mathDelimiterTag as latexMathDelimiterTag,
+  mathFormulaTag as latexMathFormulaTag,
+  mathMarkdownSyntaxExtension as latexMathMarkdownSyntaxExtension,
 } from '@prosemark/core';
