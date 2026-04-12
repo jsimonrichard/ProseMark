@@ -14,9 +14,13 @@ The documentation for the ProseMark libraries can be found at https://prosemark.
 - **Live Preview:** Renders your Markdown as you type, giving you a beautiful and clean representation of your document.
 - **Familiar Feel:** If you've used editors like Typora or Obsidian, you'll feel right at home with ProseMark.
 
-Spellcheck in the webview uses the [`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend) UI (underlines and tooltips). For dictionary-backed checking in VS Code, install [**ProseMark - Code Spell Checker (cSpell) Integration**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration) alongside the [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker) extension.
+### Companion extensions (extension pack)
 
-Rendered LaTeX math (`$...$` / `$$...$$`) uses [**ProseMark - LaTeX math (MathJax) integration**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration) ([`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex)); the core extension pack includes it so MathJax loads when you open ProseMark.
+The published **ProseMark** extension lists companion extensions so installs get common features by default:
+
+- **Spellcheck:** webview UI from [`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend). Dictionary-backed checking uses [**ProseMark - Code Spell Checker (cSpell) Integration**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration) with [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker).
+
+- **LaTeX math:** [**ProseMark - LaTeX math (MathJax) integration**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration) loads [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) in the webview so folded `$...$` / `$$...$$` renders with MathJax.
 
 ## How to Use
 
