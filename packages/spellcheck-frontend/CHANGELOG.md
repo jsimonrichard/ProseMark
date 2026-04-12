@@ -1,5 +1,13 @@
 # @prosemark/spellcheck-frontend
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies [182818f]
+- Updated dependencies [40ad801]
+  - @prosemark/core@0.1.0
+
 ## 0.0.3
 
 ### Patch Changes
