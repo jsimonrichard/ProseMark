@@ -3,23 +3,58 @@ import {
   Decoration,
   EditorView,
   ViewPlugin,
+  WidgetType,
   type DecorationSet,
+  type Rect,
   type ViewUpdate,
 } from '@codemirror/view';
 
 // Issue #96 ("Text Vibrating like crazy"):
 // Native tab rendering can vary enough to throw off softIndentExtension's pixel
-// measurements. Wrapping each tab in a fixed-width mark keeps the rendered width
-// deterministic while leaving the `\t` in the document so horizontal cursor motion
-// (`moveVisually`) still visits both sides of the character — unlike
-// `Decoration.replace`, which removes it from the text layout tree.
+// measurements. Replacing each tab with a fixed-width span keeps width
+// deterministic. The span still contains a real `\t` so `moveVisually` visits
+// both sides of the character (unlike an empty widget). We override `coordsAt`
+// so caret coordinates use the box edges — wrapping + `overflow: hidden` would
+// otherwise clip the tab glyph’s rects and make `coordsAtPos` return an empty
+// range (disappearing drawSelection caret).
 
 const TAB_CHARACTER = '\t';
 const TAB_WIDTH_CH = 4;
 
-const fixedTabMark = Decoration.mark({
-  tagName: 'span',
-  class: 'cm-fixed-tab-width',
+function tabWidthPx(view: EditorView): string {
+  const scaleX = view.scaleX || 1;
+  const px = (TAB_WIDTH_CH * view.defaultCharacterWidth) / scaleX;
+  return `${String(px)}px`;
+}
+
+class FixedTabWidthWidget extends WidgetType {
+  eq(other: FixedTabWidthWidget): boolean {
+    return other instanceof FixedTabWidthWidget;
+  }
+
+  toDOM(view: EditorView): HTMLElement {
+    const element = document.createElement('span');
+    element.className = 'cm-fixed-tab-width-widget';
+    element.textContent = TAB_CHARACTER;
+    element.style.width = tabWidthPx(view);
+    return element;
+  }
+
+  updateDOM(dom: HTMLElement, view: EditorView, _prev: this): boolean {
+    dom.style.width = tabWidthPx(view);
+    return true;
+  }
+
+  coordsAt(dom: HTMLElement, _pos: number, side: number): Rect | null {
+    const rect = dom.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return null;
+    const x = side <= 0 ? rect.left : rect.right;
+    return { left: x, right: x, top: rect.top, bottom: rect.bottom };
+  }
+}
+
+const fixedTabDecoration = Decoration.replace({
+  widget: new FixedTabWidthWidget(),
 });
 
 const buildTabWidthDecorations = (view: EditorView): DecorationSet => {
@@ -27,14 +62,12 @@ const buildTabWidthDecorations = (view: EditorView): DecorationSet => {
   const visitedTabPositions = new Set<number>();
 
   for (const { from, to } of view.visibleRanges) {
-    // Scan the whole visible range directly rather than iterating line-by-line.
-    // Visible ranges can overlap, so dedupe by absolute tab position.
     const visibleText = view.state.doc.sliceString(from, to);
     let tabOffset = visibleText.indexOf(TAB_CHARACTER);
     while (tabOffset !== -1) {
       const tabPos = from + tabOffset;
       if (!visitedTabPositions.has(tabPos)) {
-        builder.add(tabPos, tabPos + 1, fixedTabMark);
+        builder.add(tabPos, tabPos + 1, fixedTabDecoration);
         visitedTabPositions.add(tabPos);
       }
       tabOffset = visibleText.indexOf(TAB_CHARACTER, tabOffset + 1);
@@ -53,7 +86,11 @@ const fixedTabWidthDecorations = ViewPlugin.fromClass(
     }
 
     update(update: ViewUpdate) {
-      if (update.docChanged || update.viewportChanged) {
+      if (
+        update.docChanged ||
+        update.viewportChanged ||
+        update.geometryChanged
+      ) {
         this.decorations = buildTabWidthDecorations(update.view);
       }
     }
@@ -64,16 +101,14 @@ const fixedTabWidthDecorations = ViewPlugin.fromClass(
 );
 
 const fixedTabWidthTheme = EditorView.baseTheme({
-  '.cm-fixed-tab-width': {
+  '.cm-fixed-tab-width-widget': {
     display: 'inline-block',
-    // Pin line box height (see prior fix for empty inline-block baseline issues).
     verticalAlign: 'text-top',
     height: '1em',
-    width: `${TAB_WIDTH_CH.toString()}ch`,
     overflow: 'hidden',
-    // Hide the glyph; width comes from the box, not the engine’s tab stops.
     color: 'transparent',
     caretColor: 'currentColor',
+    pointerEvents: 'none',
   },
 });
 

@@ -2,4 +2,4 @@
 "@prosemark/core": patch
 ---
 
-Render tabs with a fixed-width mark (not a replace widget) so soft-indent measurements stay stable, the drawn caret keeps a consistent height, and default horizontal motion still steps through the real `\t` in the document.
+Replace each tab with a fixed-pixel-width span that still contains a real `\t` (for `moveVisually`), and override `WidgetType.coordsAt` so `drawSelection` uses the box edges instead of clipped glyph rects next to `overflow: hidden`.
