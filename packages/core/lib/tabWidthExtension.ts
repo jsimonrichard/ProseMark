@@ -45,11 +45,23 @@ class FixedTabWidthWidget extends WidgetType {
     return true;
   }
 
-  coordsAt(dom: HTMLElement, _pos: number, side: number): Rect | null {
+  coordsAt(dom: HTMLElement, pos: number, _side: number): Rect | null {
     const rect = dom.getBoundingClientRect();
     if (rect.width === 0 && rect.height === 0) return null;
-    const x = side <= 0 ? rect.left : rect.right;
-    return { left: x, right: x, top: rect.top, bottom: rect.bottom };
+    // Match WidgetTile.coordsInWidget(..., block: true): offset 0 → left edge,
+    // offset 1 → right edge. Do not use `side` here — it is not the same as
+    // document assoc and misplaces drawSelection when it disagrees with `pos`.
+    const x = pos === 0 ? rect.left : rect.right;
+    const top = rect.top;
+    let bottom = rect.bottom;
+    const parent = dom.parentElement;
+    if (parent) {
+      const lh = parseInt(window.getComputedStyle(parent).lineHeight, 10);
+      if (!Number.isNaN(lh) && bottom - top > lh * 1.5) {
+        bottom = top + lh;
+      }
+    }
+    return { left: x, right: x, top, bottom };
   }
 }
 
