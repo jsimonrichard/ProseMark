@@ -9,6 +9,10 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { $typst } from '@myriaddreamin/typst.ts/contrib/snippet';
 
 import { typstMathDelimiterTag, typstMathFormulaTag } from './markdown';
+import {
+  defaultCompilerWasmUrl,
+  defaultRendererWasmUrl,
+} from './typstWasmUrls';
 
 export {
   typstMathDelimiterTag,
@@ -18,16 +22,6 @@ export {
 
 const WIDGET_CLASS = 'cm-typst-math';
 
-/**
- * WASM shipped next to `dist/main.js` (copied from `@myriaddreamin/typst-ts-*` at build time).
- * Resolves correctly when the package is consumed from `node_modules` or bundled.
- */
-const bundledCompilerWasmUrl = (): string =>
-  new URL('./wasm/typst_ts_web_compiler_bg.wasm', import.meta.url).href;
-
-const bundledRendererWasmUrl = (): string =>
-  new URL('./wasm/typst_ts_renderer_bg.wasm', import.meta.url).href;
-
 export interface TypstMarkdownEditorOptions {
   /**
    * Max entries for the in-memory render cache (cloned SVG roots per hit).
@@ -36,12 +30,12 @@ export interface TypstMarkdownEditorOptions {
   renderCacheSize?: number;
   /**
    * URL for the web compiler `.wasm` (passed to typst.ts `getModule`).
-   * @default Bundled copy shipped in this package (`dist/wasm/…`).
+   * @default Import of `@myriaddreamin/typst-ts-web-compiler`’s `.wasm` (your app bundler should emit a URL, e.g. Vite/webpack).
    */
   compilerWasmUrl?: string;
   /**
    * URL for the renderer `.wasm` (passed to typst.ts `getModule`).
-   * @default Bundled copy shipped in this package (`dist/wasm/…`).
+   * @default Import of `@myriaddreamin/typst-ts-renderer`’s `.wasm` (your app bundler should emit a URL, e.g. Vite/webpack).
    */
   rendererWasmUrl?: string;
 }
@@ -315,9 +309,9 @@ export function typstMarkdownEditorExtensions(
   options: TypstMarkdownEditorOptions = {},
 ): ReturnType<typeof foldableSyntaxFacet.of>[] {
   const compilerWasmUrl =
-    options.compilerWasmUrl ?? bundledCompilerWasmUrl();
+    options.compilerWasmUrl ?? defaultCompilerWasmUrl();
   const rendererWasmUrl =
-    options.rendererWasmUrl ?? bundledRendererWasmUrl();
+    options.rendererWasmUrl ?? defaultRendererWasmUrl();
   const cacheSize = options.renderCacheSize ?? 128;
   renderCache = cacheSize > 0 ? new RenderLru(cacheSize) : null;
 
