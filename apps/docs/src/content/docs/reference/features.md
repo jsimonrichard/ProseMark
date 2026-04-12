@@ -27,6 +27,8 @@ These features are illustrated in our [Demo](/demo).
 
 - HTML Blocks inside markdown can be rendered. HTML content is sanitized using [DOMPurify](https://github.com/cure53/DOMPurify).
 
+- Folded HTML blocks use **block** replace widgets: an outer shell avoids vertical margins (padding only), and an inner `flow-root` wrapper contains margins from rendered elements (for example headings) so CodeMirror’s line layout stays accurate. `requestMeasure` runs after updates and when the widget resizes (`ResizeObserver` where available).
+
 - Inline HTML is not supported yet.
 
 ## `@prosemark/paste-rich-text`

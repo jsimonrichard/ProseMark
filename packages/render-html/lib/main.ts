@@ -13,6 +13,11 @@ export {
   renderHtmlMarkdownSyntaxExtensions,
 } from './markdown';
 
+const WIDGET_ROOT_CLASS = 'cm-html-widget';
+const WIDGET_CONTENT_CLASS = 'cm-html-widget__content';
+
+const htmlWidgetResizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
+
 class HTMLWidget extends WidgetType {
   constructor(public value: string) {
     super();
@@ -22,52 +27,77 @@ class HTMLWidget extends WidgetType {
     return this.value === other.value;
   }
 
-  toDOM() {
-    const el = document.createElement('div');
-    el.className = 'cm-html-widget';
+  toDOM(view: EditorView): HTMLElement {
+    const root = document.createElement('div');
+    root.className = WIDGET_ROOT_CLASS;
+
+    const inner = document.createElement('div');
+    inner.className = WIDGET_CONTENT_CLASS;
+
     const parsed = new DOMParser().parseFromString(
       DOMPurify.sanitize(this.value),
       'text/html',
     );
 
-    const walk = (root: Node) => {
-      for (const node of [...root.childNodes]) {
-        if (node.nodeType === 3) {
-          // this node is a text node
-          if (/^\s*$/.test(node.nodeValue ?? '')) {
-            node.remove();
+    const walk = (n: Node) => {
+      for (const child of [...n.childNodes]) {
+        if (child.nodeType === 3) {
+          if (/^\s*$/.test(child.nodeValue ?? '')) {
+            child.remove();
             continue;
           }
 
-          node.textContent =
-            node.textContent?.replace(/[\t\n\r ]+/g, ' ').trim() ?? null;
+          child.textContent =
+            child.textContent?.replace(/[\t\n\r ]+/g, ' ').trim() ?? null;
         } else {
-          walk(node);
+          walk(child);
         }
       }
     };
 
     walk(parsed.body);
+    inner.append(...parsed.body.childNodes);
+    root.appendChild(inner);
 
-    el.append(...parsed.body.childNodes);
-    return el;
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => {
+        view.requestMeasure();
+      });
+      ro.observe(root);
+      htmlWidgetResizeObservers.set(root, ro);
+    }
+
+    requestAnimationFrame(() => {
+      view.requestMeasure();
+    });
+
+    return root;
   }
 
-  // allows clicks to pass through to the editor
-  ignoreEvent(_event: Event) {
+  ignoreEvent(_event: Event): boolean {
     return false;
-    // return event.type !== 'mousedown'; // don't preventDefault for mousedown
   }
 
   destroy(dom: HTMLElement): void {
+    htmlWidgetResizeObservers.get(dom)?.disconnect();
+    htmlWidgetResizeObservers.delete(dom);
     dom.remove();
   }
 }
 
 const htmlBlockTheme = EditorView.theme({
-  '.cm-html-widget': {
-    padding: '0 2px 0 6px;',
+  [`.${WIDGET_ROOT_CLASS}`]: {
+    // Block replace widgets: no vertical margin on the root (CodeMirror layout).
+    display: 'flow-root',
+    boxSizing: 'border-box',
+    padding: '0 2px 0 6px',
     borderRadius: '0.5rem',
+  },
+  [`.${WIDGET_CONTENT_CLASS}`]: {
+    // Contain margins from rendered HTML (headings, lists, etc.) so they do not
+    // collapse outside the widget box and confuse line-height measurement.
+    display: 'flow-root',
+    minHeight: '1px',
   },
 });
 
@@ -77,11 +107,12 @@ export const htmlBlockExtension = [
     buildDecorations: (state: EditorState, node: SyntaxNodeRef) => {
       return Decoration.replace({
         widget: new HTMLWidget(state.doc.sliceString(node.from, node.to)),
-        block: false,
+        block: true,
         inclusive: true,
+        proseMarkSkipAdjacentArrowReveal: true,
       }).range(node.from, node.to);
     },
   }),
   htmlBlockTheme,
-  selectAllDecorationsOnSelectExtension('cm-html-widget'),
+  selectAllDecorationsOnSelectExtension(WIDGET_ROOT_CLASS),
 ];
