@@ -1,5 +1,5 @@
 import type { EditorView } from '@codemirror/view';
-import type { Compartment } from '@codemirror/state';
+import type { Compartment, Extension } from '@codemirror/state';
 import type {
   AnyProcMap,
   CallbackFromProcMap,
@@ -30,6 +30,38 @@ declare global {
     proseMark?: ProseMarkGlobals;
   }
 }
+
+const asExtensionArray = (ext: Extension): Extension[] => {
+  if (Array.isArray(ext)) {
+    return [...(ext as readonly Extension[])];
+  }
+  return [ext];
+};
+
+/**
+ * Merges extensions into {@link ProseMarkGlobals.extraCodeMirrorExtensions} via
+ * `Compartment.reconfigure`, preserving whatever is already in the compartment
+ * (e.g. spellcheck from another integration). Prefer this over
+ * `StateEffect.appendConfig` for ProseMark sub-extensions.
+ */
+export const appendToExtraCodeMirrorExtensions = (
+  view: EditorView,
+  additions: readonly Extension[],
+): void => {
+  const compartment = window.proseMark?.extraCodeMirrorExtensions;
+  if (!compartment) {
+    return;
+  }
+
+  const add = additions.slice();
+  const current = compartment.get(view.state);
+  const base: Extension[] =
+    current === undefined ? [] : asExtensionArray(current);
+
+  view.dispatch({
+    effects: compartment.reconfigure([...base, ...add]),
+  });
+};
 
 export const registerWebviewMessageHandler = <
   ExtId extends string,
