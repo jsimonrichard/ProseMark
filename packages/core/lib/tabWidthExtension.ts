@@ -1,43 +1,25 @@
-import {
-  EditorSelection,
-  type Extension,
-  Prec,
-  RangeSetBuilder,
-} from '@codemirror/state';
+import { type Extension, RangeSetBuilder } from '@codemirror/state';
 import {
   Decoration,
-  Direction,
   EditorView,
   ViewPlugin,
-  WidgetType,
-  keymap,
   type DecorationSet,
   type ViewUpdate,
 } from '@codemirror/view';
 
 // Issue #96 ("Text Vibrating like crazy"):
 // Native tab rendering can vary enough to throw off softIndentExtension's pixel
-// measurements. Replacing each visible tab with a fixed-width widget keeps
-// indentation width deterministic and prevents jitter.
+// measurements. Wrapping each tab in a fixed-width mark keeps the rendered width
+// deterministic while leaving the `\t` in the document so horizontal cursor motion
+// (`moveVisually`) still visits both sides of the character — unlike
+// `Decoration.replace`, which removes it from the text layout tree.
 
 const TAB_CHARACTER = '\t';
 const TAB_WIDTH_CH = 4;
 
-class FixedTabWidthWidget extends WidgetType {
-  eq(other: FixedTabWidthWidget): boolean {
-    return other instanceof FixedTabWidthWidget;
-  }
-
-  toDOM(): HTMLElement {
-    const element = document.createElement('span');
-    element.className = 'cm-fixed-tab-width-widget';
-    element.setAttribute('aria-hidden', 'true');
-    return element;
-  }
-}
-
-const fixedTabDecoration = Decoration.replace({
-  widget: new FixedTabWidthWidget(),
+const fixedTabMark = Decoration.mark({
+  tagName: 'span',
+  class: 'cm-fixed-tab-width',
 });
 
 const buildTabWidthDecorations = (view: EditorView): DecorationSet => {
@@ -52,7 +34,7 @@ const buildTabWidthDecorations = (view: EditorView): DecorationSet => {
     while (tabOffset !== -1) {
       const tabPos = from + tabOffset;
       if (!visitedTabPositions.has(tabPos)) {
-        builder.add(tabPos, tabPos + 1, fixedTabDecoration);
+        builder.add(tabPos, tabPos + 1, fixedTabMark);
         visitedTabPositions.add(tabPos);
       }
       tabOffset = visibleText.indexOf(TAB_CHARACTER, tabOffset + 1);
@@ -82,87 +64,20 @@ const fixedTabWidthDecorations = ViewPlugin.fromClass(
 );
 
 const fixedTabWidthTheme = EditorView.baseTheme({
-  '.cm-fixed-tab-width-widget': {
+  '.cm-fixed-tab-width': {
     display: 'inline-block',
-    // Empty inline-blocks baseline-align to their bottom edge, which inflates
-    // the line box and makes coordsAtPos (thus drawSelection's cursor) taller
-    // when the caret sits immediately after the tab. Match CodeMirror's own
-    // `.cm-widgetBuffer` approach: pin height and align to the text box.
+    // Pin line box height (see prior fix for empty inline-block baseline issues).
     verticalAlign: 'text-top',
     height: '1em',
     width: `${TAB_WIDTH_CH.toString()}ch`,
-    pointerEvents: 'none',
+    overflow: 'hidden',
+    // Hide the glyph; width comes from the box, not the engine’s tab stops.
+    color: 'transparent',
+    caretColor: 'currentColor',
   },
 });
-
-/** Same “logical forward” sense as defaultKeymap ArrowRight / Shift-ArrowRight. */
-function logicalForwardAt(view: EditorView, head: number): boolean {
-  return view.textDirectionAt(head) === Direction.LTR;
-}
-
-function adjustSelectionForTabMotion(
-  view: EditorView,
-  forward: boolean,
-): EditorSelection | null {
-  const { doc, selection } = view.state;
-  const ranges = selection.ranges.map((range) => {
-    const { anchor, head } = range;
-    const ahead = forward === logicalForwardAt(view, head);
-
-    if (range.empty) {
-      if (ahead && head < doc.length && doc.sliceString(head, head + 1) === TAB_CHARACTER) {
-        return EditorSelection.cursor(head + 1, -1);
-      }
-      if (!ahead && head > 0 && doc.sliceString(head - 1, head) === TAB_CHARACTER) {
-        return EditorSelection.cursor(head - 1, 1);
-      }
-      return range;
-    }
-
-    const goal = range.goalColumn;
-    const bidi = range.bidiLevel ?? undefined;
-
-    if (ahead && head < doc.length && doc.sliceString(head, head + 1) === TAB_CHARACTER) {
-      return EditorSelection.range(anchor, head + 1, goal, bidi, -1);
-    }
-    if (!ahead && head > 0 && doc.sliceString(head - 1, head) === TAB_CHARACTER) {
-      return EditorSelection.range(anchor, head - 1, goal, bidi, 1);
-    }
-    return range;
-  });
-
-  const unchanged = ranges.every((r, i) => {
-    const prev = selection.ranges[i];
-    return prev !== undefined && r.eq(prev, true);
-  });
-  if (unchanged) return null;
-  return EditorSelection.create(ranges, selection.mainIndex);
-}
-
-function tabArrowRight(view: EditorView): boolean {
-  const sel = adjustSelectionForTabMotion(view, true);
-  if (!sel) return false;
-  view.dispatch({ selection: sel, scrollIntoView: true, userEvent: 'select' });
-  return true;
-}
-
-function tabArrowLeft(view: EditorView): boolean {
-  const sel = adjustSelectionForTabMotion(view, false);
-  if (!sel) return false;
-  view.dispatch({ selection: sel, scrollIntoView: true, userEvent: 'select' });
-  return true;
-}
-
-/** Runs before defaultKeymap so we can cross tab columns moveVisually would skip. */
-const fixedTabArrowKeymap = Prec.high(
-  keymap.of([
-    { key: 'ArrowRight', run: tabArrowRight, shift: tabArrowRight },
-    { key: 'ArrowLeft', run: tabArrowLeft, shift: tabArrowLeft },
-  ]),
-);
 
 export const fixedTabWidthExtension: Extension = [
   fixedTabWidthDecorations,
   fixedTabWidthTheme,
-  fixedTabArrowKeymap,
 ];
