@@ -23,3 +23,11 @@ function recieveMessage() {
   return 'accomodate';
 }
 ```
+
+## LaTeX math (layout check)
+
+Inline $a^2 + b^2 = c^2$ and a display block:
+
+$$
+\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}
+$$

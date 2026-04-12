@@ -12,6 +12,10 @@ import {
   htmlBlockExtension,
   renderHtmlMarkdownSyntaxExtensions,
 } from '@prosemark/render-html';
+import {
+  latexMarkdownEditorExtensions,
+  latexMarkdownSyntaxTheme,
+} from '@prosemark/latex';
 import { GFM } from '@lezer/markdown';
 import {
   pastePlainTextExtension,
@@ -60,6 +64,8 @@ const editor = new EditorView({
     }),
     prosemarkBasicSetup(),
     prosemarkLightThemeSetup(),
+    ...latexMarkdownSyntaxTheme,
+    ...latexMarkdownEditorExtensions(),
     htmlBlockExtension,
     pasteRichTextExtension(),
     pastePlainTextExtension(),

@@ -13,6 +13,10 @@ import {
   htmlBlockExtension,
   renderHtmlMarkdownSyntaxExtensions,
 } from '@prosemark/render-html';
+import {
+  latexMarkdownEditorExtensions,
+  latexMarkdownSyntaxTheme,
+} from '@prosemark/latex';
 import { indentWithTab } from '@codemirror/commands';
 import { GFM } from '@lezer/markdown';
 import { indentUnit, syntaxTree } from '@codemirror/language';
@@ -43,6 +47,8 @@ const editor = new EditorView({
     }),
     prosemarkBasicSetup(),
     prosemarkLightThemeSetup(),
+    ...latexMarkdownSyntaxTheme,
+    ...latexMarkdownEditorExtensions(),
     htmlBlockExtension,
     pasteRichTextExtension(),
     pastePlainTextExtension(),

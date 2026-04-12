@@ -21,6 +21,10 @@
     renderHtmlMarkdownSyntaxExtensions,
   } from '@prosemark/render-html';
   import {
+    latexMarkdownEditorExtensions,
+    latexMarkdownSyntaxTheme,
+  } from '@prosemark/latex';
+  import {
     pasteRichTextExtension,
     pastePlainTextExtension,
   } from '@prosemark/paste-rich-text';
@@ -43,6 +47,8 @@
       }),
       prosemarkBasicSetup(),
       prosemarkBaseThemeSetup(),
+      ...latexMarkdownSyntaxTheme,
+      ...latexMarkdownEditorExtensions(),
       defaultClickLinkHandler,
       htmlBlockExtension,
       pasteRichTextExtension(),

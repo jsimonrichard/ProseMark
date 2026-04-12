@@ -49,6 +49,10 @@ const revealWidgetOnAdjacentLine = (
   // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
   for (let iter = decorations.iter(); iter.value; iter.next()) {
     if (!decorationHasReplaceWidget(iter.value)) continue;
+    const spec = iter.value.spec as {
+      proseMarkSkipAdjacentArrowReveal?: boolean;
+    };
+    if (spec.proseMarkSkipAdjacentArrowReveal) continue;
 
     if (
       direction === 'up' &&
