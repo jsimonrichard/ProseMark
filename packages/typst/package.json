@@ -23,8 +23,8 @@
     }
   },
   "scripts": {
-    "dev": "tsdown --watch",
-    "build": "tsdown",
+    "dev": "node scripts/copy-wasm.mjs && tsdown --watch",
+    "build": "tsdown && node scripts/copy-wasm.mjs",
     "lint": "eslint --max-warnings=0",
     "check-types": "tsc",
     "ci:publish": "bash ../../scripts/ci-publish.sh"

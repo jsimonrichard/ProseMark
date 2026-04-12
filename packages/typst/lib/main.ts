@@ -18,14 +18,15 @@ export {
 
 const WIDGET_CLASS = 'cm-typst-math';
 
-/** Keep in sync with typst.ts-related dependencies in package.json. */
-const TYPST_TS_VERSION = '0.7.0-rc2';
+/**
+ * WASM shipped next to `dist/main.js` (copied from `@myriaddreamin/typst-ts-*` at build time).
+ * Resolves correctly when the package is consumed from `node_modules` or bundled.
+ */
+const bundledCompilerWasmUrl = (): string =>
+  new URL('./wasm/typst_ts_web_compiler_bg.wasm', import.meta.url).href;
 
-const defaultCompilerWasmUrl = (): string =>
-  `https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-ts-web-compiler@${TYPST_TS_VERSION}/pkg/typst_ts_web_compiler_bg.wasm`;
-
-const defaultRendererWasmUrl = (): string =>
-  `https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-ts-renderer@${TYPST_TS_VERSION}/pkg/typst_ts_renderer_bg.wasm`;
+const bundledRendererWasmUrl = (): string =>
+  new URL('./wasm/typst_ts_renderer_bg.wasm', import.meta.url).href;
 
 export interface TypstMarkdownEditorOptions {
   /**
@@ -35,10 +36,12 @@ export interface TypstMarkdownEditorOptions {
   renderCacheSize?: number;
   /**
    * URL for the web compiler `.wasm` (passed to typst.ts `getModule`).
+   * @default Bundled copy shipped in this package (`dist/wasm/…`).
    */
   compilerWasmUrl?: string;
   /**
    * URL for the renderer `.wasm` (passed to typst.ts `getModule`).
+   * @default Bundled copy shipped in this package (`dist/wasm/…`).
    */
   rendererWasmUrl?: string;
 }
@@ -311,8 +314,10 @@ const typstMathWidgetTheme = EditorView.theme({
 export function typstMarkdownEditorExtensions(
   options: TypstMarkdownEditorOptions = {},
 ): ReturnType<typeof foldableSyntaxFacet.of>[] {
-  const compilerWasmUrl = options.compilerWasmUrl ?? defaultCompilerWasmUrl();
-  const rendererWasmUrl = options.rendererWasmUrl ?? defaultRendererWasmUrl();
+  const compilerWasmUrl =
+    options.compilerWasmUrl ?? bundledCompilerWasmUrl();
+  const rendererWasmUrl =
+    options.rendererWasmUrl ?? bundledRendererWasmUrl();
   const cacheSize = options.renderCacheSize ?? 128;
   renderCache = cacheSize > 0 ? new RenderLru(cacheSize) : null;
 

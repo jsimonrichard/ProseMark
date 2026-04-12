@@ -12,7 +12,7 @@ Body text inside the delimiters is passed to Typst as math: tight `$...$` uses i
 bun add @prosemark/typst
 ```
 
-Peer-style WASM packages are listed as **dependencies** so bundlers resolve them. By default, **`compilerWasmUrl`** and **`rendererWasmUrl`** point at **jsDelivr** for the same **0.7.0-rc2** versions pinned in this package’s `package.json`.
+The **`@myriaddreamin/typst-ts-web-compiler`** and **`@myriaddreamin/typst-ts-renderer`** packages are **dependencies** (typst.ts loads their WASM). On **`build`**, this package copies both **`.wasm`** files into **`dist/wasm/`** next to **`dist/main.js`**. By default, **`typstMarkdownEditorExtensions()`** uses **`import.meta.url`** so the browser loads those bundled files (no CDN). Override with **`compilerWasmUrl`** / **`rendererWasmUrl`** if you host WASM elsewhere.
 
 ## Usage
 
@@ -46,8 +46,9 @@ import { mathMarkdownSyntaxExtension } from '@prosemark/core';
 ```ts
 typstMarkdownEditorExtensions({
   renderCacheSize: 128,
-  // compilerWasmUrl: 'https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-ts-web-compiler@0.7.0-rc2/pkg/typst_ts_web_compiler_bg.wasm',
-  // rendererWasmUrl: 'https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-ts-renderer@0.7.0-rc2/pkg/typst_ts_renderer_bg.wasm',
+  // Optional: custom WASM URLs (defaults to ./wasm/*.wasm next to this package’s main entry)
+  // compilerWasmUrl: 'https://example.com/typst_ts_web_compiler_bg.wasm',
+  // rendererWasmUrl: 'https://example.com/typst_ts_renderer_bg.wasm',
 });
 ```
 

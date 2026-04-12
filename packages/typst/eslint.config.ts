@@ -1,3 +1,7 @@
 import baseConfig from '../../eslint.config-base.ts';
+import { defineConfig } from 'eslint/config';
 
-export default baseConfig;
+export default defineConfig([
+  { ignores: ['scripts/**'] },
+  ...baseConfig,
+]);

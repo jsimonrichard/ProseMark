@@ -22,8 +22,6 @@
     "@codemirror/view": "^6.38.6",
     "@lezer-unofficial/printer": "^1.0.1",
     "@lezer/markdown": "^1.5.1",
-    "@myriaddreamin/typst-ts-renderer": "0.7.0-rc2",
-    "@myriaddreamin/typst-ts-web-compiler": "0.7.0-rc2",
     "@prosemark/core": "workspace:*",
     "@prosemark/typst": "workspace:*",
     "@prosemark/paste-rich-text": "workspace:*",
