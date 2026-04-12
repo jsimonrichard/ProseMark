@@ -14,9 +14,11 @@ import {
   renderHtmlMarkdownSyntaxExtensions,
 } from '@prosemark/render-html';
 import {
-  latexMarkdownEditorExtensions,
-  latexMarkdownSyntaxTheme,
-} from '@prosemark/latex';
+  typstMarkdownEditorExtensions,
+  typstMarkdownSyntaxTheme,
+} from '@prosemark/typst';
+import compilerWasmUrl from '@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url';
+import rendererWasmUrl from '@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url';
 import { indentWithTab } from '@codemirror/commands';
 import { GFM } from '@lezer/markdown';
 import { indentUnit, syntaxTree } from '@codemirror/language';
@@ -47,8 +49,11 @@ const editor = new EditorView({
     }),
     prosemarkBasicSetup(),
     prosemarkLightThemeSetup(),
-    ...latexMarkdownSyntaxTheme,
-    ...latexMarkdownEditorExtensions(),
+    ...typstMarkdownSyntaxTheme,
+    ...typstMarkdownEditorExtensions({
+      compilerWasmUrl,
+      rendererWasmUrl,
+    }),
     htmlBlockExtension,
     pasteRichTextExtension(),
     pastePlainTextExtension(),
