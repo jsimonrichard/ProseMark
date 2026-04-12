@@ -163,6 +163,7 @@
       "name": "vscode-prosemark-latex-integration",
       "version": "0.0.1",
       "dependencies": {
+        "@codemirror/state": "^6.6.0",
         "@prosemark/latex": "workspace:*",
         "@prosemark/vscode-extension-integrator": "workspace:*",
       },
