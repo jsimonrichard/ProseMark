@@ -1,5 +1,6 @@
 import type { WebviewProcMap, VSCodeExtensionProcMap } from '../common';
 import {
+  appendToExtraCodeMirrorExtensions,
   registerWebviewMessageHandler,
   registerWebviewMessagePoster,
 } from '@prosemark/vscode-extension-integrator/webview';
@@ -21,6 +22,8 @@ import { Compartment, RangeSet } from '@codemirror/state';
 
 const spellcheckIssueCompartment = new Compartment();
 const isDefined = <T>(value: T | undefined): value is T => value !== undefined;
+
+let cspellSetupDone = false;
 
 // Register message poster to call VSCode extension procedures
 const { callProcWithReturnValue } = registerWebviewMessagePoster<
@@ -54,11 +57,15 @@ const getDocOffset = (
 };
 
 const procs: WebviewProcMap = {
-  // eslint-disable-next-line @typescript-eslint/require-await
-  setup: async () => {
-    if (!window.proseMark?.view) {
-      return;
+  setup: () => {
+    const view = window.proseMark?.view;
+    if (!view) {
+      return Promise.resolve();
     }
+    if (cspellSetupDone) {
+      return Promise.resolve();
+    }
+    cspellSetupDone = true;
 
     // Create suggestion fetcher callback
     const fetchSuggestions = async (word: string) => {
@@ -106,15 +113,13 @@ const procs: WebviewProcMap = {
       ],
     });
 
-    window.proseMark.view.dispatch({
-      effects:
-        window.proseMark.extraCodeMirrorExtensions?.reconfigure([
-          spellcheckIssueCompartment.of([]),
-          spellcheckExtension,
-          suggestionFetcher.of(fetchSuggestions),
-          spellcheckActions.of(createActions),
-        ]) ?? [],
-    });
+    appendToExtraCodeMirrorExtensions(view, [
+      spellcheckIssueCompartment.of([]),
+      spellcheckExtension,
+      suggestionFetcher.of(fetchSuggestions),
+      spellcheckActions.of(createActions),
+    ]);
+    return Promise.resolve();
   },
 
   updateInfo: ({ issues }) => {

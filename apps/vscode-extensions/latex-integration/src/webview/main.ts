@@ -1,12 +1,16 @@
 import type { WebviewProcMap } from '../common';
-import { registerWebviewMessageHandler } from '@prosemark/vscode-extension-integrator/webview';
+import {
+  appendToExtraCodeMirrorExtensions,
+  registerWebviewMessageHandler,
+} from '@prosemark/vscode-extension-integrator/webview';
 import type {
   CallbackFromProcMap,
   WebviewVSCodeApiWithPostMessage,
 } from '@prosemark/vscode-extension-integrator/types';
-import { StateEffect } from '@codemirror/state';
 
 import './style.css';
+
+let latexSetupDone = false;
 
 const procs: WebviewProcMap = {
   setup: async () => {
@@ -14,13 +18,16 @@ const procs: WebviewProcMap = {
     if (!view) {
       return;
     }
+    if (latexSetupDone) {
+      return;
+    }
+    latexSetupDone = true;
+
     const latex = await import('@prosemark/latex');
-    view.dispatch({
-      effects: StateEffect.appendConfig.of([
-        ...latex.latexMarkdownSyntaxTheme,
-        ...latex.latexMarkdownEditorExtensions(),
-      ]),
-    });
+    appendToExtraCodeMirrorExtensions(view, [
+      ...latex.latexMarkdownSyntaxTheme,
+      ...latex.latexMarkdownEditorExtensions(),
+    ]);
   },
 };
 
