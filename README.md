@@ -28,6 +28,8 @@ This project is structured as a set of extensions for [CodeMirror 6](https://cod
 
 The marketplace extension [**ProseMark - Code Spell Checker (cSpell) Integration**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration) works alongside the main ProseMark extension and the [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker) extension to drive the same spellcheck UI in the editor.
 
+[**ProseMark - LaTeX math (MathJax) integration**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration) registers [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) in the ProseMark webview so folded math renders with MathJax; it is included in the main ProseMark extension pack.
+
 ## Getting Starting
 
 https://prosemark.com/guides/getting-started/
