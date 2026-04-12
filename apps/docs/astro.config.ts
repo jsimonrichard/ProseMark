@@ -47,6 +47,7 @@ const spellcheckFrontend = buildTypeDocEntry(
   '../../packages/spellcheck-frontend',
 );
 const latex = buildTypeDocEntry('@prosemark/latex', '../../packages/latex');
+const typst = buildTypeDocEntry('@prosemark/typst', '../../packages/typst');
 
 // https://astro.build/config
 export default defineConfig({
@@ -88,6 +89,7 @@ export default defineConfig({
             pasteRichText.sidebarGroup,
             spellcheckFrontend.sidebarGroup,
             latex.sidebarGroup,
+            typst.sidebarGroup,
           ],
         },
       ],
@@ -97,6 +99,7 @@ export default defineConfig({
         pasteRichText.plugin,
         spellcheckFrontend.plugin,
         latex.plugin,
+        typst.plugin,
       ],
 
       editLink: {
