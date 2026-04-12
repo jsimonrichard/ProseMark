@@ -77,6 +77,12 @@ const fixedTabWidthDecorations = ViewPlugin.fromClass(
 const fixedTabWidthTheme = EditorView.baseTheme({
   '.cm-fixed-tab-width-widget': {
     display: 'inline-block',
+    // Empty inline-blocks baseline-align to their bottom edge, which inflates
+    // the line box and makes coordsAtPos (thus drawSelection's cursor) taller
+    // when the caret sits immediately after the tab. Match CodeMirror's own
+    // `.cm-widgetBuffer` approach: pin height and align to the text box.
+    verticalAlign: 'text-top',
+    height: '1em',
     width: `${TAB_WIDTH_CH.toString()}ch`,
     pointerEvents: 'none',
   },
