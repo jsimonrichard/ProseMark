@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProseMark debug-in-web</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="layout">
+        <aside class="controls">
+          <h1>debug-in-web</h1>
+          <p>
+            Minimal browser harness for ProseMark / CodeMirror issues. Uses
+            <code>drawSelection()</code> so caret bugs match editors that hide the
+            native caret.
+          </p>
+
+          <div class="control-group">
+            <button type="button" id="fixture-tab-line">Load line with tabs</button>
+            <button type="button" id="fixture-a-tab-b">Load a + TAB + b</button>
+          </div>
+
+          <div class="control-group">
+            <button type="button" id="caret-before-tab">Caret before tab</button>
+            <button type="button" id="caret-after-tab">Caret after tab</button>
+            <button type="button" id="caret-start-doc">Caret at start</button>
+          </div>
+
+          <div class="control-group">
+            <button type="button" id="measure-caret">Log coords + overlay caret</button>
+            <button type="button" id="clear-log">Clear log</button>
+          </div>
+        </aside>
+
+        <main class="editor-panel">
+          <div id="codemirror-container"></div>
+        </main>
+
+        <section class="log-panel">
+          <h2>Log</h2>
+          <pre id="log-output"></pre>
+        </section>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
