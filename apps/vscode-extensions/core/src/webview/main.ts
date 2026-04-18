@@ -27,6 +27,7 @@ import type {
 import './style.css';
 import { indentUnit } from '@codemirror/language';
 import {
+  PROSEMARK_VIEW_READY_EVENT,
   registerWebviewMessageHandler,
   registerWebviewMessagePoster,
 } from '@prosemark/vscode-extension-integrator/webview';
@@ -311,6 +312,7 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
       view_.focus(); // Explicitly focus the editor view
     }
   });
+  window.dispatchEvent(new CustomEvent(PROSEMARK_VIEW_READY_EVENT));
   return view_;
 };
 

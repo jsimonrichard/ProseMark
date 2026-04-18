@@ -1,5 +1,5 @@
 import type { EditorView } from '@codemirror/view';
-import type { Compartment } from '@codemirror/state';
+import type { Compartment, Extension } from '@codemirror/state';
 import type {
   AnyProcMap,
   CallbackFromProcMap,
@@ -30,6 +30,68 @@ declare global {
     proseMark?: ProseMarkGlobals;
   }
 }
+
+/** Fired on `window` after `window.proseMark.view` is assigned (CodeMirror ready). */
+export const PROSEMARK_VIEW_READY_EVENT = 'prosemark:view-ready';
+
+const asExtensionArray = (ext: Extension): Extension[] => {
+  if (Array.isArray(ext)) {
+    return [...(ext as readonly Extension[])];
+  }
+  return [ext];
+};
+
+/**
+ * Merges extensions into {@link ProseMarkGlobals.extraCodeMirrorExtensions} via
+ * `Compartment.reconfigure`, preserving whatever is already in the compartment
+ * (e.g. another integration). Use after the editor view exists.
+ */
+export const appendToExtraCodeMirrorExtensions = (
+  view: EditorView,
+  additions: readonly Extension[],
+): void => {
+  const compartment = window.proseMark?.extraCodeMirrorExtensions;
+  if (!compartment) {
+    return;
+  }
+
+  const add = additions.slice();
+  const current = compartment.get(view.state);
+  const base: Extension[] =
+    current === undefined ? [] : asExtensionArray(current);
+
+  view.dispatch({
+    effects: compartment.reconfigure([...base, ...add]),
+  });
+};
+
+/**
+ * Runs `fn` once `window.proseMark.view` exists. If the view is already there,
+ * runs on the next microtask. Otherwise waits for {@link PROSEMARK_VIEW_READY_EVENT}.
+ * Use from integration scripts that load before `core:init` finishes.
+ */
+export const runWhenProseMarkViewReady = (fn: () => void | Promise<void>): void => {
+  const run = () => {
+    void Promise.resolve(fn()).catch((e: unknown) => {
+      console.error(e);
+    });
+  };
+
+  if (window.proseMark?.view) {
+    queueMicrotask(run);
+    return;
+  }
+
+  const onReady = () => {
+    if (!window.proseMark?.view) {
+      return;
+    }
+    window.removeEventListener(PROSEMARK_VIEW_READY_EVENT, onReady);
+    run();
+  };
+
+  window.addEventListener(PROSEMARK_VIEW_READY_EVENT, onReady);
+};
 
 export const registerWebviewMessageHandler = <
   ExtId extends string,

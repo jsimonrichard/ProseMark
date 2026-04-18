@@ -1,7 +1,9 @@
 import type { WebviewProcMap, VSCodeExtensionProcMap } from '../common';
 import {
+  appendToExtraCodeMirrorExtensions,
   registerWebviewMessageHandler,
   registerWebviewMessagePoster,
+  runWhenProseMarkViewReady,
 } from '@prosemark/vscode-extension-integrator/webview';
 import {
   SpellcheckIssue,
@@ -21,6 +23,8 @@ import { Compartment, RangeSet } from '@codemirror/state';
 
 const spellcheckIssueCompartment = new Compartment();
 const isDefined = <T>(value: T | undefined): value is T => value !== undefined;
+
+let cspellSetupDone = false;
 
 // Register message poster to call VSCode extension procedures
 const { callProcWithReturnValue } = registerWebviewMessagePoster<
@@ -53,69 +57,73 @@ const getDocOffset = (
   return line.from + safeChar;
 };
 
-const procs: WebviewProcMap = {
-  // eslint-disable-next-line @typescript-eslint/require-await
-  setup: async () => {
-    if (!window.proseMark?.view) {
-      return;
+const installSpellcheckExtensions = (): void => {
+  const view = window.proseMark?.view;
+  if (!view || cspellSetupDone) {
+    return;
+  }
+  cspellSetupDone = true;
+
+  const fetchSuggestions = async (word: string) => {
+    try {
+      const suggestions = await callProcWithReturnValue(
+        'requestSpellcheckSuggestions',
+        word,
+      );
+      return suggestions;
+    } catch (error) {
+      console.error('Failed to fetch suggestions:', error);
+      return [];
     }
+  };
 
-    // Create suggestion fetcher callback
-    const fetchSuggestions = async (word: string) => {
-      try {
-        const suggestions = await callProcWithReturnValue(
-          'requestSpellcheckSuggestions',
-          word,
-        );
-        return suggestions;
-      } catch (error) {
-        console.error('Failed to fetch suggestions:', error);
-        return [];
-      }
-    };
-
-    // Create actions for adding words to dictionaries
-    const createActions = (word: string): SpellcheckActionsConfig => ({
-      actions: [
-        {
-          label: `Add "${word}" to workspace dictionary`,
-          execute: async (word) => {
-            try {
-              await callProcWithReturnValue(
-                'addWordToWorkspaceDictionary',
-                word,
-              );
-            } catch (error) {
-              console.error(
-                'Failed to add word to workspace dictionary:',
-                error,
-              );
-            }
-          },
+  const createActions = (word: string): SpellcheckActionsConfig => ({
+    actions: [
+      {
+        label: `Add "${word}" to workspace dictionary`,
+        execute: async (word) => {
+          try {
+            await callProcWithReturnValue(
+              'addWordToWorkspaceDictionary',
+              word,
+            );
+          } catch (error) {
+            console.error(
+              'Failed to add word to workspace dictionary:',
+              error,
+            );
+          }
         },
-        {
-          label: `Add "${word}" to user dictionary`,
-          execute: async (word) => {
-            try {
-              await callProcWithReturnValue('addWordToUserDictionary', word);
-            } catch (error) {
-              console.error('Failed to add word to user dictionary:', error);
-            }
-          },
+      },
+      {
+        label: `Add "${word}" to user dictionary`,
+        execute: async (word) => {
+          try {
+            await callProcWithReturnValue('addWordToUserDictionary', word);
+          } catch (error) {
+            console.error('Failed to add word to user dictionary:', error);
+          }
         },
-      ],
-    });
+      },
+    ],
+  });
 
-    window.proseMark.view.dispatch({
-      effects:
-        window.proseMark.extraCodeMirrorExtensions?.reconfigure([
-          spellcheckIssueCompartment.of([]),
-          spellcheckExtension,
-          suggestionFetcher.of(fetchSuggestions),
-          spellcheckActions.of(createActions),
-        ]) ?? [],
-    });
-  },
+  appendToExtraCodeMirrorExtensions(view, [
+    spellcheckIssueCompartment.of([]),
+    spellcheckExtension,
+    suggestionFetcher.of(fetchSuggestions),
+    spellcheckActions.of(createActions),
+  ]);
+};
+
+const procs: WebviewProcMap = {
+  setup: () =>
+    new Promise<void>((resolve) => {
+      runWhenProseMarkViewReady(() => {
+        installSpellcheckExtensions();
+        resolve();
+      });
+    }),
 
   updateInfo: ({ issues }) => {
     const view = window.proseMark?.view;
