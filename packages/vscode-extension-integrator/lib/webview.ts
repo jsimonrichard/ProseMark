@@ -50,6 +50,9 @@ export const appendToExtraCodeMirrorExtensions = (
 ): void => {
   const compartment = window.proseMark?.extraCodeMirrorExtensions;
   if (!compartment) {
+    console.error(
+      '[ProseMark] extraCodeMirrorExtensions is not set, so the extensions could not be appended',
+    );
     return;
   }
 

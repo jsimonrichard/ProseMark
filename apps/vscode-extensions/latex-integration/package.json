@@ -33,7 +33,7 @@
     "ci:publish": "bash ../../../scripts/ci-publish-vscode-extension.sh",
     "ci:publish:dry-run": "DRY_RUN=1 bash ../../../scripts/ci-publish-vscode-extension.sh",
     "build": "bun run check-types && bun run lint && tsdown && vite build",
-    "dev": "tsc --noEmit && concurrently \"tsc -w\" \"tsdown --watch\"",
+    "dev": "tsc --noEmit && concurrently \"tsc -w\" \"tsdown --watch\" \"vite build --watch\"",
     "dev-tests": "tsc -p . -w --outDir out",
     "pretest": "bun run build-tests && bun run build && bun run lint",
     "check-types": "tsc --noEmit",

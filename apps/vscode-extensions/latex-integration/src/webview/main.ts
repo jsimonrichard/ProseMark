@@ -16,6 +16,7 @@ const procs: WebviewProcMap = {
   setup: async () => {
     const view = window.proseMark?.view;
     if (!view) {
+      console.warn('[ProseMark] latex-integration setup: no view');
       return;
     }
     if (latexSetupDone) {
