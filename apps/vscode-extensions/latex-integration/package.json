@@ -3,7 +3,7 @@
   "displayName": "ProseMark - LaTeX math (MathJax) integration",
   "description": "Renders $...$ and $$...$$ math in the ProseMark editor using MathJax (@prosemark/latex)",
   "publisher": "jsimonrichard",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "repository": {
     "type": "GitHub",
     "url": "https://github.com/jsimonrichard/ProseMark"
