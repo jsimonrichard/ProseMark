@@ -2,4 +2,4 @@
 'vscode-prosemark': patch
 ---
 
-Ship the main ProseMark extension without built-in LaTeX/MathJax rendering. Install the **ProseMark LaTeX integration** extension (included in the recommended pack) to preview `$...$` and `$$...$$` math again.
+Compatibility update so new companion extensions (like **ProseMark LaTeX integration**) can plug in without needing a new release of the core extension for every integration.
