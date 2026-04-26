@@ -160,9 +160,6 @@ Example base typography plus all variables used on [prosemark.com](/):
   min-height: 100px;
   width: 100%;
   --font: Inter;
-  * {
-    margin-top: 0px;
-  }
 }
 ```
 
