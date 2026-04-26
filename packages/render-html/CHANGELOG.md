@@ -1,5 +1,14 @@
 # @prosemark/render-html
 
+## 0.0.8
+
+### Patch Changes
+
+- 8a09d04: Render folded HTML blocks as **block** replace widgets: outer `.cm-html-widget` uses padding (no vertical margin), inner `.cm-html-widget__content` uses `display: flow-root` to contain margins from rendered content. Call `requestMeasure` after DOM updates and on `ResizeObserver` resize. Set `proseMarkSkipAdjacentArrowReveal` on the decoration so arrow movement through blank lines after a block behaves normally (with `revealBlockOnArrowExtension` in core).
+- Updated dependencies [182818f]
+- Updated dependencies [40ad801]
+  - @prosemark/core@0.0.7
+
 ## 0.0.7
 
 ### Patch Changes
