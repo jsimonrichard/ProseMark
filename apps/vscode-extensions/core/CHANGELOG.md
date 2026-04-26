@@ -1,5 +1,24 @@
 # vscode-prosemark
 
+## 0.0.8
+
+### Patch Changes
+
+- 6600ba2: Added **ProseMark LaTeX integration**: a companion extension that turns on math preview in the editor for `$...$` and `$$...$$` using MathJax.
+
+  The main **ProseMark** extension now recommends this companion by default so a typical install still gets math rendering out of the box.
+
+- 2f5166d: Compatibility update so new companion extensions (like **ProseMark LaTeX integration**) can plug in without needing a new release of the core extension for every integration.
+- 2f5166d: Improved compatibility between the main ProseMark extension and add-ons that extend the editor (for example math rendering): the preview now shares the same internals other integrations expect.
+- Updated dependencies [182818f]
+- Updated dependencies [6600ba2]
+- Updated dependencies [40ad801]
+- Updated dependencies [8a09d04]
+- Updated dependencies [6600ba2]
+  - @prosemark/core@0.0.7
+  - @prosemark/vscode-extension-integrator@0.0.2
+  - @prosemark/render-html@0.0.8
+
 ## 0.0.7
 
 ### Patch Changes

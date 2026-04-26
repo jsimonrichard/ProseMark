@@ -1,5 +1,15 @@
 # vscode-prosemark-cspell-integration
 
+## 0.0.4
+
+### Patch Changes
+
+- 2f5166d: Spell-check integration now layers on top of other editor add-ons instead of replacing them, so ProseMark can keep spell checking alongside math and other features.
+- Updated dependencies [6600ba2]
+- Updated dependencies [6600ba2]
+  - @prosemark/vscode-extension-integrator@0.0.2
+  - @prosemark/spellcheck-frontend@0.0.4
+
 ## 0.0.3
 
 ### Patch Changes
