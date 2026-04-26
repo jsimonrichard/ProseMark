@@ -59,8 +59,7 @@ export const mathMarkdownSyntaxExtension: MarkdownConfig = {
         if (next !== 36 /* $ */) return -1;
         if (isEscapedDollar(cx, pos)) return -1;
 
-        const display =
-          pos + 1 < cx.end && cx.char(pos + 1) === 36 /* $ */;
+        const display = pos + 1 < cx.end && cx.char(pos + 1) === 36; /* $ */
         const contentFrom = display ? pos + 2 : pos + 1;
         const closePos = display
           ? findClosingDoubleDollar(cx, contentFrom)

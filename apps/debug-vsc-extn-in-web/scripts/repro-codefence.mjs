@@ -54,7 +54,8 @@ const server = http.createServer(async (req, res) => {
     const body = await fs.readFile(filePath);
     res.setHeader(
       'Content-Type',
-      contentTypeByExt.get(path.extname(filePath)) ?? 'application/octet-stream',
+      contentTypeByExt.get(path.extname(filePath)) ??
+        'application/octet-stream',
     );
     res.end(body);
   } catch (error) {

@@ -19,16 +19,18 @@ const isFrontmatterDelimiterLine = (line: Line): boolean => {
   );
 };
 
-const hasClosingDelimiterAhead = (cx: BlockContext, afterPos: number): boolean => {
+const hasClosingDelimiterAhead = (
+  cx: BlockContext,
+  afterPos: number,
+): boolean => {
   const input = (cx as unknown as { input?: Input }).input;
   if (!input) return true;
   const rest = input.read(afterPos, input.length);
   return /(?:^|\n)---[ \t]*(?:\n|$)/.test(rest);
 };
 
-export const isFrontmatterNode = (
-  node: Pick<SyntaxNodeRef, 'name'>,
-): boolean => node.name === 'Frontmatter';
+export const isFrontmatterNode = (node: Pick<SyntaxNodeRef, 'name'>): boolean =>
+  node.name === 'Frontmatter';
 
 const frontmatterYamlMixedParser = parseMixed((node) => {
   if (!isFrontmatterNode(node)) return null;
@@ -49,7 +51,8 @@ export const frontmatterMarkdownSyntaxExtension: MarkdownConfig = {
       name: 'Frontmatter',
       before: 'HorizontalRule',
       parse: (cx: BlockContext, line: Line): boolean => {
-        if (cx.lineStart !== 0 || !isFrontmatterDelimiterLine(line)) return false;
+        if (cx.lineStart !== 0 || !isFrontmatterDelimiterLine(line))
+          return false;
         if (!hasClosingDelimiterAhead(cx, cx.lineStart + line.text.length + 1))
           return false;
 
@@ -84,7 +87,9 @@ export const frontmatterMarkdownSyntaxExtension: MarkdownConfig = {
           );
 
           cx.nextLine();
-          cx.addElement(cx.elt('Frontmatter', from, cx.prevLineEnd(), elements));
+          cx.addElement(
+            cx.elt('Frontmatter', from, cx.prevLineEnd(), elements),
+          );
           return true;
         }
 

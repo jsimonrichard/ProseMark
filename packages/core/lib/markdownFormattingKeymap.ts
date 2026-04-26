@@ -44,7 +44,8 @@ function findOutermostCoveringNode(
     while (node) {
       if (node.to < from || node.from > to) break;
       if (predicate(node)) {
-        if (!found || node.from < found.from || node.to > found.to) found = node;
+        if (!found || node.from < found.from || node.to > found.to)
+          found = node;
       }
       node = node.parent;
     }
@@ -122,7 +123,9 @@ function makeToggleInlineCommand(
     }
     let i = 0;
     view.dispatch({
-      ...state.changeByRange(() => specs[i++] as { range: SelectionRange; changes: ChangeSpec }),
+      ...state.changeByRange(
+        () => specs[i++] as { range: SelectionRange; changes: ChangeSpec },
+      ),
       scrollIntoView: true,
       userEvent: 'input',
     });
@@ -130,10 +133,18 @@ function makeToggleInlineCommand(
   };
 }
 
-const toggleStrongEmphasis = makeToggleInlineCommand('StrongEmphasis', '**', '**');
+const toggleStrongEmphasis = makeToggleInlineCommand(
+  'StrongEmphasis',
+  '**',
+  '**',
+);
 const toggleEmphasis = makeToggleInlineCommand('Emphasis', '_', '_');
 const toggleInlineCode = makeToggleInlineCommand('InlineCode', '`', '`');
-const toggleStrikethrough = makeToggleInlineCommand('Strikethrough', '~~', '~~');
+const toggleStrikethrough = makeToggleInlineCommand(
+  'Strikethrough',
+  '~~',
+  '~~',
+);
 
 /**
  * Wraps the selection as a Markdown link: selected text becomes the **label**
