@@ -43,14 +43,14 @@ export default function MyComponent() {
   Some centered text
 </div>
 
-### LaTeX math
+### Typst math
 
-Inline: Euler's identity $e^{i\pi} + 1 = 0$.
+Inline: Euler's identity $e^(i pi) + 1 = 0$ (Typst math syntax inside `$…$`).
 
 Display:
 
 $$
-\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}
+integral_(-infinity)^infinity e^(-x^2) dif x = sqrt(pi)
 $$
 
 ## Credits
