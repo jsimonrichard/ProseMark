@@ -1,6 +1,6 @@
 ---
 'vscode-prosemark': patch
-'vscode-prosemark-latex-integration': minor
+'vscode-prosemark-latex-integration': patch
 ---
 
 Added **ProseMark LaTeX integration**: a companion extension that turns on math preview in the editor for `$...$` and `$$...$$` using MathJax.
