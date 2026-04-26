@@ -30,7 +30,7 @@ function getDifferences(
   newStyles: Map<number, string>,
 ): ChangedLine[] {
   const changedLines: ChangedLine[] = [];
-  
+
   // Compare decorations line by line
   for (const { from, to } of view.visibleRanges) {
     const start = view.state.doc.lineAt(from);
@@ -39,7 +39,7 @@ function getDifferences(
       const line = view.state.doc.line(i);
       const oldStyle = oldStyles.get(i);
       const newStyle = newStyles.get(i);
-      
+
       if (oldStyle !== newStyle) {
         const lineText = view.state.sliceDoc(line.from, line.to);
         changedLines.push({
@@ -51,7 +51,7 @@ function getDifferences(
       }
     }
   }
-  
+
   return changedLines;
 }
 
@@ -73,7 +73,9 @@ export const softIndentExtension = ViewPlugin.fromClass(
         this.requestMeasure(u.view, 0);
       }
 
-      const refreshCount = u.transactions.find((tr) => tr.annotation(softIndentRefresh) !== undefined)?.annotation(softIndentRefresh);
+      const refreshCount = u.transactions
+        .find((tr) => tr.annotation(softIndentRefresh) !== undefined)
+        ?.annotation(softIndentRefresh);
       if (refreshCount !== undefined) {
         this.requestMeasure(u.view, refreshCount);
       }
@@ -129,7 +131,7 @@ export const softIndentExtension = ViewPlugin.fromClass(
         const line = view.state.doc.line(lineNumber);
         const style = `padding-inline-start: ${(indentWidth + 6).toString()}px; text-indent: -${indentWidth.toString()}px;`;
         styles.set(lineNumber, style);
-        
+
         const deco = Decoration.line({
           attributes: {
             style,
@@ -145,19 +147,23 @@ export const softIndentExtension = ViewPlugin.fromClass(
     // This applies new decorations and will dispatch another transaction
     // until the dom layout settles
     applyIndents(indents: IndentData[], view: EditorView, refreshCount = 0) {
-      const { decorations: newDecos, styles: newStyles } = this.buildDecorations(indents, view);
+      const { decorations: newDecos, styles: newStyles } =
+        this.buildDecorations(indents, view);
       const changedLines = getDifferences(view, this.lineStyles, newStyles);
-      
-      if (changedLines.length > 0) {
-        console.log("changedLines", changedLines);
 
+      if (changedLines.length > 0) {
         if (refreshCount < MAX_REFRESH_ROUNDS) {
           queueMicrotask(() => {
-            view.dispatch({ annotations: [softIndentRefresh.of(refreshCount + 1)] });
+            view.dispatch({
+              annotations: [softIndentRefresh.of(refreshCount + 1)],
+            });
           });
         } else {
           const roundNumber = String(refreshCount);
-          console.warn(`Soft indent: indents still changing after ${roundNumber} refresh rounds. Affected lines:`, changedLines);
+          console.warn(
+            `Soft indent: indents still changing after ${roundNumber} refresh rounds. Affected lines:`,
+            changedLines,
+          );
         }
       }
       this.decorations = newDecos;

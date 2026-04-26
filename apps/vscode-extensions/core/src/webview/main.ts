@@ -1,6 +1,7 @@
 import { EditorView } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
+import * as ProseMarkCore from '@prosemark/core';
 import {
   prosemarkBasicSetup,
   prosemarkBaseThemeSetup,
@@ -42,6 +43,7 @@ window.proseMark.extraCodeMirrorExtensions = new Compartment();
 window.proseMark.externalModules = {
   '@codemirror/view': CodeMirrorView,
   '@codemirror/state': CodeMirrorState,
+  '@prosemark/core': ProseMarkCore,
 };
 
 const { callProcAndForget, callProcWithReturnValue } =
@@ -173,7 +175,8 @@ const recoverFromStateMismatch = async (
     reportFrontendError({
       source,
       severity: 'recoverable',
-      message: 'ProseMark detected a state mismatch and automatically re-synced.',
+      message:
+        'ProseMark detected a state mismatch and automatically re-synced.',
       details,
     });
   } catch (recoveryError: unknown) {
@@ -250,6 +253,10 @@ const updateVSCodeExtension = EditorView.updateListener.of((update) => {
 });
 
 const buildEditor = (text: string, vimModeEnabled?: boolean) => {
+  if (!window.proseMark?.extraCodeMirrorExtensions) {
+    console.warn('[ProseMark] extraCodeMirrorExtensions is not set');
+  }
+
   const state = EditorState.create({
     doc: text,
     extensions: [
@@ -341,7 +348,8 @@ const procs: WebviewProcMap = {
       reportFrontendError({
         source: 'core.update',
         severity: 'fatal',
-        message: 'Received a text update before the ProseMark view initialized.',
+        message:
+          'Received a text update before the ProseMark view initialized.',
       });
       return;
     }

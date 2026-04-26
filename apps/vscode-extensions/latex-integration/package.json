@@ -1,9 +1,9 @@
 {
-  "name": "vscode-prosemark-cspell-integration",
-  "displayName": "ProseMark - Code Spell Checker (cSpell) Integration",
-  "description": "A \"What You See Is What You Mean\" editor, like Typora or Obsidian",
+  "name": "vscode-prosemark-latex-integration",
+  "displayName": "ProseMark - LaTeX math (MathJax) integration",
+  "description": "Renders $...$ and $$...$$ math in the ProseMark editor using MathJax (@prosemark/latex)",
   "publisher": "jsimonrichard",
-  "version": "0.0.3",
+  "version": "0.0.0",
   "repository": {
     "type": "GitHub",
     "url": "https://github.com/jsimonrichard/ProseMark"
@@ -24,8 +24,7 @@
   ],
   "main": "./dist/extension/extension.js",
   "extensionDependencies": [
-    "jsimonrichard.vscode-prosemark",
-    "streetsidesoftware.code-spell-checker"
+    "jsimonrichard.vscode-prosemark"
   ],
   "scripts": {
     "vscode:prepublish": "bun run build",
@@ -42,29 +41,22 @@
     "test": "vscode-test"
   },
   "dependencies": {
-    "@codemirror/lang-markdown": "^6.2.5",
-    "@codemirror/language": "^6.10.2",
-    "@codemirror/language-data": "^6.5.1",
-    "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.39.4",
-    "@cspell/cspell-types": "^9.4.0",
-    "@lezer-unofficial/printer": "^1.0.1",
-    "@lezer/markdown": "^1.2.1",
-    "@prosemark/spellcheck-frontend": "workspace:*",
+    "@codemirror/state": "^6.6.0",
+    "@prosemark/latex": "workspace:*",
     "@prosemark/vscode-extension-integrator": "workspace:*"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
-    "@types/node": "^24.3.0",
+    "@types/node": "^24.10.4",
     "@types/vscode": "^1.90.0",
-    "@typescript-eslint/parser": "^8.39.0",
+    "@typescript-eslint/parser": "^8.50.0",
     "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.6.0",
-    "concurrently": "^9.2.0",
-    "eslint": "^9.32.0",
-    "tsdown": "^0.14.1",
-    "typescript": "^5.9.2",
+    "@vscode/vsce": "^3.7.1",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.2",
+    "tsdown": "^0.15.6",
+    "typescript": "^5.9.3",
     "vite": "^8.0.5"
   }
 }

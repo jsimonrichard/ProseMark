@@ -7,7 +7,8 @@
 This project is structured as a set of extensions for [CodeMirror 6](https://codemirror.net/), and is broken up into the following packages:
 
 - **[`@prosemark/core`](https://www.npmjs.com/package/@prosemark/core):** the core functionality needed for the WYSIWYM editor.
-- **[`@prosemark/render-html`](https://www.npmjs.com/package/@prosemark/render-html):** renders blocks of HTML code inside code fences.
+- **[`@prosemark/render-html`](https://www.npmjs.com/package/@prosemark/render-html):** renders raw HTML blocks in Markdown (sanitized with DOMPurify).
+- **[`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex):** renders latex math (inside `$...$` / `$$...$$`) using MathJax.
 - **[`@prosemark/paste-rich-text`](https://www.npmjs.com/package/@prosemark/paste-rich-text):** enables pasting formatted rich text into the editor.
 - **[`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend):** CodeMirror UI for spellcheck (underlines, suggestion tooltips, optional custom actions). You plug in your own spell engine and issue source; see the package README and [demo](https://prosemark.com/demo/).
 
@@ -21,13 +22,20 @@ This project is structured as a set of extensions for [CodeMirror 6](https://cod
 - Images
 - Block quotes
 - Code fences with syntax highlighting
-- Rendered HTML
-- Spellcheck UI when using `@prosemark/spellcheck-frontend` (you supply the dictionary / engine)
+- Rendered HTML when you add [`@prosemark/render-html`](https://www.npmjs.com/package/@prosemark/render-html)
+- Dollar-delimited math (`$...$` / `$$...$$`) when you add [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) (or use the VS Code LaTeX integration below)
+- Spellcheck UI when using [`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend) (you supply the dictionary / engine)
 
-## VS Code spellcheck
+## ProseMark for Visual Studio Code
 
-The marketplace extension [**ProseMark - Code Spell Checker (cSpell) Integration**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration) works alongside the main ProseMark extension and the [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker) extension to drive the same spellcheck UI in the editor.
+The **[ProseMark](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark)** extension is a custom editor for `.md` files: a WYSIWYM Markdown surface built on the same CodeMirror packages as this repo. It lives under `apps/vscode-extensions/core` and is published as **`vscode-prosemark`**.
 
-## Getting Starting
+**Extension pack:** installing ProseMark from the Marketplace also recommends companion extensions so common workflows work out of the box:
+
+- **[Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker)** — spelling engine and dictionaries.
+- **[ProseMark - Code Spell Checker (cSpell) Integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration)** — bridges cSpell into the ProseMark webview using [`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend).
+- **[ProseMark - LaTeX math (MathJax) integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration)** — registers [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) in the webview so folded math renders with MathJax.
+
+## Getting started
 
 https://prosemark.com/guides/getting-started/

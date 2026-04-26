@@ -1,6 +1,10 @@
 import type { ExternalOption, GlobalsFunction, Plugin } from 'rolldown';
 
-export const EXTERNAL_MODULES = ['@codemirror/state', '@codemirror/view'];
+export const EXTERNAL_MODULES = [
+  '@codemirror/state',
+  '@codemirror/view',
+  '@prosemark/core',
+];
 const formatExternalModules = (id: string) =>
   `window.proseMark.externalModules["${id}"]`;
 
