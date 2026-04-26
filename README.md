@@ -22,9 +22,9 @@ This project is structured as a set of extensions for [CodeMirror 6](https://cod
 - Images
 - Block quotes
 - Code fences with syntax highlighting
-- Rendered HTML
+- Rendered HTML when you add [`@prosemark/render-html`](https://www.npmjs.com/package/@prosemark/render-html)
 - Dollar-delimited math (`$...$` / `$$...$$`) when you add [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) (or use the VS Code LaTeX integration below)
-- Spellcheck UI when using `@prosemark/spellcheck-frontend` (you supply the dictionary / engine)
+- Spellcheck UI when using [`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend) (you supply the dictionary / engine)
 
 ## ProseMark for Visual Studio Code
 
