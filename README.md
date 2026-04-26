@@ -8,7 +8,7 @@ This project is structured as a set of extensions for [CodeMirror 6](https://cod
 
 - **[`@prosemark/core`](https://www.npmjs.com/package/@prosemark/core):** the core functionality needed for the WYSIWYM editor.
 - **[`@prosemark/render-html`](https://www.npmjs.com/package/@prosemark/render-html):** renders raw HTML blocks in Markdown (sanitized with DOMPurify).
-- **[`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex):** MathJax rendering for `$...$` / `$$...$$` math in the editor (folded spans become widgets). Dollar math is parsed in core (`mathMarkdownSyntaxExtension`); this package adds the renderer and theme.
+- **[`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex):** renders latex math (inside `$...$` / `$$...$$`) using MathJax.
 - **[`@prosemark/paste-rich-text`](https://www.npmjs.com/package/@prosemark/paste-rich-text):** enables pasting formatted rich text into the editor.
 - **[`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend):** CodeMirror UI for spellcheck (underlines, suggestion tooltips, optional custom actions). You plug in your own spell engine and issue source; see the package README and [demo](https://prosemark.com/demo/).
 
@@ -34,9 +34,7 @@ The **[ProseMark](https://marketplace.visualstudio.com/items?itemName=jsimonrich
 
 - **[Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker)** — spelling engine and dictionaries.
 - **[ProseMark - Code Spell Checker (cSpell) Integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration)** — bridges cSpell into the ProseMark webview using [`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend).
-- **[ProseMark - LaTeX math (MathJax) integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration)** — registers [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) in the webview so folded math renders with MathJax (SVG by default). Published as **`vscode-prosemark-latex-integration`** (`apps/vscode-extensions/latex-integration`).
-
-For **web or other hosts**, add `@prosemark/latex` and `latexMarkdownEditorExtensions()` / `latexMarkdownSyntaxTheme` yourself; the VS Code integration is only the glue that loads those extensions inside the ProseMark editor webview.
+- **[ProseMark - LaTeX math (MathJax) integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration)** — registers [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) in the webview so folded math renders with MathJax.
 
 ## Getting started
 
