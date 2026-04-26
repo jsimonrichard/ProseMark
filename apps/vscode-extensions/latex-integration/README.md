@@ -1,14 +1,13 @@
 # ProseMark for VS Code — LaTeX (MathJax) integration
 
-Companion extension that enables **rendered math** in the [ProseMark](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark) editor for `$...$` and `$$...$$` using [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) (MathJax from the `mathjax` npm package).
-
-**Requirements:** install and enable **ProseMark**. Dollar-delimited math is already parsed by ProseMark’s default markdown setup (`mathMarkdownSyntaxExtension` in `@prosemark/core`); this extension only adds the MathJax **widgets** and **syntax theme** in the webview.
+Companion extension that enables **rendered math** in the [ProseMark](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark) editor for `$...$` and `$$...$$` using [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) (dependent on MathJax from the `mathjax` npm package).
 
 The documentation for the ProseMark libraries can be found at https://prosemark.com.
 
 ## Features
 
-- Inline and display math in the ProseMark WYSIWYM surface (hybrid rules: `$$...$$` always display; padded `$ ... $` display; tight `$...$` inline).
+- Renders LaTeX using MathJax
+- Since parsing is done in the core extension, hybrid rules (based on LaTeX and Typst) are used to decide the render mode: double dollar signs (`$$...$$`) and dollar signs with padding (`$ ... $`) are rendered in display mode; single, unpadded dollar signs `$...$` are rendered in inline mode.
 
 ## How to use
 
@@ -17,7 +16,7 @@ The documentation for the ProseMark libraries can be found at https://prosemark.
 
 ## Extension settings
 
-This extension does not contribute VS Code settings yet. MathJax options (SVG vs HTML, optional `mathJaxPackageUrl`) can be added later via configuration.
+This extension does not contribute VS Code settings yet.
 
 ## Known issues
 
