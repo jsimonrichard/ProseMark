@@ -1,9 +1,9 @@
 {
-  "name": "vscode-prosemark",
-  "displayName": "ProseMark",
-  "description": "A \"What You See Is What You Mean\" editor, like Typora or Obsidian",
+  "name": "vscode-prosemark-latex-integration",
+  "displayName": "ProseMark - LaTeX math (MathJax) integration",
+  "description": "Renders $...$ and $$...$$ math in the ProseMark editor using MathJax (@prosemark/latex)",
   "publisher": "jsimonrichard",
-  "version": "0.0.7",
+  "version": "0.0.0",
   "repository": {
     "type": "GitHub",
     "url": "https://github.com/jsimonrichard/ProseMark"
@@ -17,30 +17,14 @@
     "vscode": "^1.90.0"
   },
   "categories": [
-    "Other",
-    "Extension Packs"
+    "Other"
   ],
   "activationEvents": [
     "onStartupFinished"
   ],
   "main": "./dist/extension/extension.js",
-  "contributes": {
-    "customEditors": [
-      {
-        "viewType": "prosemark.editor",
-        "displayName": "ProseMark",
-        "selector": [
-          {
-            "filenamePattern": "*.md"
-          }
-        ]
-      }
-    ]
-  },
-  "extensionPack": [
-    "streetsidesoftware.code-spell-checker",
-    "jsimonrichard.vscode-prosemark-cspell-integration",
-    "jsimonrichard.vscode-prosemark-latex-integration"
+  "extensionDependencies": [
+    "jsimonrichard.vscode-prosemark"
   ],
   "scripts": {
     "vscode:prepublish": "bun run build",
@@ -50,7 +34,6 @@
     "ci:publish:dry-run": "DRY_RUN=1 bash ../../../scripts/ci-publish-vscode-extension.sh",
     "build": "bun run check-types && bun run lint && tsdown && vite build",
     "dev": "tsc --noEmit && concurrently \"tsc -w\" \"tsdown --watch\"",
-    "build-tests": "tsc -p . --outDir out",
     "dev-tests": "tsc -p . -w --outDir out",
     "pretest": "bun run build-tests && bun run build && bun run lint",
     "check-types": "tsc --noEmit",
@@ -58,17 +41,7 @@
     "test": "vscode-test"
   },
   "dependencies": {
-    "@codemirror/lang-markdown": "^6.5.0",
-    "@codemirror/language": "^6.11.3",
-    "@codemirror/language-data": "^6.5.2",
-    "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.39.4",
-    "@cspell/cspell-types": "^9.5.0",
-    "@lezer-unofficial/printer": "^1.0.1",
-    "@lezer/markdown": "^1.6.1",
-    "@prosemark/core": "workspace:*",
-    "@prosemark/paste-rich-text": "workspace:*",
-    "@prosemark/render-html": "workspace:*",
+    "@prosemark/latex": "workspace:*",
     "@prosemark/vscode-extension-integrator": "workspace:*"
   },
   "devDependencies": {
@@ -81,7 +54,7 @@
     "@vscode/vsce": "^3.7.1",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.2",
-    "tsdown": "^0.14.2",
+    "tsdown": "^0.15.6",
     "typescript": "^5.9.3",
     "vite": "^8.0.5"
   }
