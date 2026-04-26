@@ -11,38 +11,38 @@ Used by `prosemarkBaseThemeSetup()` / `prosemarkLightThemeSetup()` and related t
 
 ### Prose and editor controls
 
-| Variable | Purpose |
-| -------- | ------- |
-| `--pm-header-mark-color` | ATX (`#`) and Setext (`=====` / `-----`) heading markers |
-| `--pm-link-color` | Links |
-| `--pm-muted-color` | Muted / secondary text |
-| `--pm-code-background-color` | Inline code and code-fence background |
-| `--pm-code-font` | Monospace stack for inline code and fenced blocks |
-| `--pm-code-btn-background-color` | Code-fence toolbar button background |
-| `--pm-code-btn-hover-background-color` | Code-fence toolbar button hover |
-| `--pm-blockquote-vertical-line-background-color` | Block quote bar |
-| `--pm-cursor-color` | Caret |
+| Variable                                         | Purpose                                                  |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| `--pm-header-mark-color`                         | ATX (`#`) and Setext (`=====` / `-----`) heading markers |
+| `--pm-link-color`                                | Links                                                    |
+| `--pm-muted-color`                               | Muted / secondary text                                   |
+| `--pm-code-background-color`                     | Inline code and code-fence background                    |
+| `--pm-code-font`                                 | Monospace stack for inline code and fenced blocks        |
+| `--pm-code-btn-background-color`                 | Code-fence toolbar button background                     |
+| `--pm-code-btn-hover-background-color`           | Code-fence toolbar button hover                          |
+| `--pm-blockquote-vertical-line-background-color` | Block quote bar                                          |
+| `--pm-cursor-color`                              | Caret                                                    |
 
 ### Syntax highlighting (code fences)
 
 These follow CodeMirror tag names mapped in the ProseMark theme:
 
-| Variable | Typical use |
-| -------- | ----------- |
-| `--pm-syntax-link` | Links in code |
-| `--pm-syntax-keyword` | Keywords |
-| `--pm-syntax-atom` | Atoms |
-| `--pm-syntax-literal` | Literals |
-| `--pm-syntax-string` | Strings |
-| `--pm-syntax-regexp` | Regex |
-| `--pm-syntax-definition-variable` | Definitions |
-| `--pm-syntax-local-variable` | Locals |
-| `--pm-syntax-type-namespace` | Types / namespaces |
-| `--pm-syntax-class-name` | Class names |
-| `--pm-syntax-special-variable-macro` | Specials / macros |
-| `--pm-syntax-definition-property` | Properties |
-| `--pm-syntax-comment` | Comments |
-| `--pm-syntax-invalid` | Invalid / error |
+| Variable                             | Typical use        |
+| ------------------------------------ | ------------------ |
+| `--pm-syntax-link`                   | Links in code      |
+| `--pm-syntax-keyword`                | Keywords           |
+| `--pm-syntax-atom`                   | Atoms              |
+| `--pm-syntax-literal`                | Literals           |
+| `--pm-syntax-string`                 | Strings            |
+| `--pm-syntax-regexp`                 | Regex              |
+| `--pm-syntax-definition-variable`    | Definitions        |
+| `--pm-syntax-local-variable`         | Locals             |
+| `--pm-syntax-type-namespace`         | Types / namespaces |
+| `--pm-syntax-class-name`             | Class names        |
+| `--pm-syntax-special-variable-macro` | Specials / macros  |
+| `--pm-syntax-definition-property`    | Properties         |
+| `--pm-syntax-comment`                | Comments           |
+| `--pm-syntax-invalid`                | Invalid / error    |
 
 `@prosemark/render-html` and `@prosemark/paste-rich-text` do not define their own `--pm-*` variables; they inherit the same editor surface and code styling from core.
 
@@ -50,22 +50,22 @@ These follow CodeMirror tag names mapped in the ProseMark theme:
 
 ### Underlines
 
-| Variable | Purpose |
-| -------- | ------- |
-| `--pm-spellcheck-issue-underline-color` | Wavy underline on misspelled ranges |
+| Variable                                 | Purpose                                      |
+| ---------------------------------------- | -------------------------------------------- |
+| `--pm-spellcheck-issue-underline-color`  | Wavy underline on misspelled ranges          |
 | `--pm-spellcheck-issue-background-color` | Background on marked text (often left unset) |
 
 ### Tooltip
 
-| Variable | Purpose |
-| -------- | ------- |
-| `--pm-spellcheck-tooltip-background` | Tooltip panel background |
-| `--pm-spellcheck-tooltip-border` | Tooltip border |
-| `--pm-spellcheck-tooltip-text` | Primary text and headings |
-| `--pm-spellcheck-tooltip-error` | Error state text |
-| `--pm-spellcheck-tooltip-hover` | Row hover for suggestions and actions |
+| Variable                                 | Purpose                                   |
+| ---------------------------------------- | ----------------------------------------- |
+| `--pm-spellcheck-tooltip-background`     | Tooltip panel background                  |
+| `--pm-spellcheck-tooltip-border`         | Tooltip border                            |
+| `--pm-spellcheck-tooltip-text`           | Primary text and headings                 |
+| `--pm-spellcheck-tooltip-error`          | Error state text                          |
+| `--pm-spellcheck-tooltip-hover`          | Row hover for suggestions and actions     |
 | `--pm-spellcheck-tooltip-actions-border` | Separator between actions and suggestions |
-| `--pm-spellcheck-tooltip-font-size` | Tooltip font size |
+| `--pm-spellcheck-tooltip-font-size`      | Tooltip font size                         |
 
 In VS Code, `--pm-spellcheck-issue-underline-color` is set from the editor theme in the ProseMark webview; see the extension stylesheet in the repo to align with that behavior.
 
@@ -89,8 +89,8 @@ Example base typography plus all variables used on [prosemark.com](/):
   --pm-muted-color: oklch(37.2% 0.044 257.287);
   --pm-code-background-color: oklch(92.9% 0.013 255.508);
   --pm-code-font:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    'Liberation Mono', 'Courier New', monospace;
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
   --pm-code-btn-background-color: oklch(86.9% 0.022 252.894);
   --pm-code-btn-hover-background-color: oklch(70.4% 0.04 256.788);
   --pm-blockquote-vertical-line-background-color: oklch(70.4% 0.04 256.788);
@@ -126,8 +126,8 @@ Example base typography plus all variables used on [prosemark.com](/):
   --pm-muted-color: oklch(55.4% 0.046 257.417);
   --pm-code-background-color: oklch(27.9% 0.041 260.031);
   --pm-code-font:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    'Liberation Mono', 'Courier New', monospace;
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
   --pm-code-btn-background-color: oklch(37.2% 0.044 257.287);
   --pm-code-btn-hover-background-color: oklch(44.6% 0.043 257.281);
   --pm-blockquote-vertical-line-background-color: oklch(44.6% 0.043 257.281);

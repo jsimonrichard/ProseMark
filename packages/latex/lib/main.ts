@@ -99,10 +99,7 @@ const ensureMathJax = (
     );
   }
 
-  if (
-    configuredPackageUrl !== null &&
-    configuredPackageUrl !== packageUrl
-  ) {
+  if (configuredPackageUrl !== null && configuredPackageUrl !== packageUrl) {
     throw new Error(
       'mathJaxPackageUrl is fixed after the first MathJax load in this page.',
     );
@@ -181,8 +178,11 @@ class RenderLru {
 
 let renderCache: RenderLru | null = null;
 
-const cacheKey = (output: LatexMathOutput, display: boolean, tex: string): string =>
-  `${output}\n${display ? '1' : '0'}\n${tex}`;
+const cacheKey = (
+  output: LatexMathOutput,
+  display: boolean,
+  tex: string,
+): string => `${output}\n${display ? '1' : '0'}\n${tex}`;
 
 const renderOrCloneFromCache = async (
   tex: string,

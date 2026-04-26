@@ -130,7 +130,10 @@ const procs: WebviewProcMap = {
 
     const issueRanges = (issues ?? [])
       .map((is) => {
-        const from = getDocOffset(is.range.start.line, is.range.start.character);
+        const from = getDocOffset(
+          is.range.start.line,
+          is.range.start.character,
+        );
         const to = getDocOffset(is.range.end.line, is.range.end.character);
         if (from === undefined || to === undefined) {
           return undefined;
@@ -153,7 +156,10 @@ const procs: WebviewProcMap = {
           return result;
         });
 
-        return new SpellcheckIssue(is.text, suggestions).range(safeFrom, safeTo);
+        return new SpellcheckIssue(is.text, suggestions).range(
+          safeFrom,
+          safeTo,
+        );
       })
       .filter(isDefined);
 
