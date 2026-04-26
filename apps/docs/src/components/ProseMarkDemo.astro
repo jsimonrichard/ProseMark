@@ -2,8 +2,10 @@
 
 ---
 
-<div id="app">
-  <div id="codemirror-container"></div>
+<div class="not-content prosemark-demo-root">
+  <div id="app">
+    <div id="codemirror-container"></div>
+  </div>
 </div>
 
 <script>
@@ -160,15 +162,12 @@
     padding: 2rem;
   }
 
-  #codemirror-container {
+  .prosemark-demo-root #codemirror-container {
     min-height: 100px;
     width: 100%;
     /* Inter + tailwindcss font-sans*/
     --font:
       Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
       'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-    * {
-      margin-top: 0px;
-    }
   }
 </style>
