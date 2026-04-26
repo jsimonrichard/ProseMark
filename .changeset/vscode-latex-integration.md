@@ -3,6 +3,6 @@
 'vscode-prosemark-latex-integration': minor
 ---
 
-Add **vscode-prosemark-latex-integration**: a ProseMark sub-extension that loads `@prosemark/latex` in the webview (`latexMarkdownSyntaxTheme` + `latexMarkdownEditorExtensions`) so `$...$` / `$$...$$` math renders with MathJax.
+Added **ProseMark LaTeX integration**: a companion extension that turns on math preview in the editor for `$...$` and `$$...$$` using MathJax.
 
-Include it in the **vscode-prosemark** `extensionPack` so installs get math rendering by default.
+The main **ProseMark** extension now recommends this companion by default so a typical install still gets math rendering out of the box.
