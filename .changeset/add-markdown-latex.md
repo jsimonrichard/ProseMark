@@ -1,5 +1,5 @@
 ---
-'@prosemark/core': minor
+'@prosemark/core': patch
 '@prosemark/latex': patch
 ---
 

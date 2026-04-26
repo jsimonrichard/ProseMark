@@ -229,7 +229,7 @@
     },
     "packages/latex": {
       "name": "@prosemark/latex",
-      "version": "0.0.1",
+      "version": "0.0.0",
       "dependencies": {
         "@codemirror/language": "^6.11.3",
         "@codemirror/state": "^6.5.2",
