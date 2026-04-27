@@ -48,6 +48,7 @@
     "@codemirror/view": "^6.39.4"
   },
   "devDependencies": {
+    "@types/node": "^24.10.4",
     "@types/vscode": "^1.107.0",
     "rolldown": "^1.0.0-beta.55"
   }

@@ -11,9 +11,10 @@
     "prettier-plugin-astro": "^0.14.1",
     "tsdown": "^0.15.6",
     "turbo": "^2.5.5",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2"
   },
-  "packageManager": "bun@1.2.17",
+  "packageManager": "bun@1.3.13",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -22,10 +23,9 @@
     "packages/**",
     "!packages/**/node_modules/**"
   ],
-  "dependencies": {
-    "typescript": "^5.9.3"
-  },
   "scripts": {
-    "version": "bun changeset version && bun scripts/patch-lock.ts"
+    "version": "bun changeset version && bun scripts/patch-lock.ts",
+    "format": "prettier --experimental-cli --write .",
+    "format:check": "prettier --experimental-cli --check ."
   }
 }

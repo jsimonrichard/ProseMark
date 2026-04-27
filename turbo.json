@@ -1,19 +1,26 @@
 {
-  "$schema": "https://turborepo.com/schema.json",
+  "$schema": "./node_modules/turbo/schema.json",
   "tasks": {
+    "topo": {
+      "dependsOn": ["^topo"]
+    },
     "build": {
       "outputs": ["dist/**"],
       "dependsOn": ["^build"]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": ["^topo", "^build"]
     },
     "dev": {
       "persistent": true,
       "cache": false
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^topo", "^build"]
+    },
+    "//#format": {},
+    "//#format:check": {
+      "outputs": []
     },
     "ci:publish": {
       "dependsOn": ["^ci:publish"]
