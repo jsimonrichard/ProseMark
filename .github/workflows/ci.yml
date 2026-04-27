@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  # Run on pushes to the default branch.
+  push:
+    branches:
+      - main
+
+  # Run on all PRs.
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+  # Support merge queues.
+  merge_group:
+
+  # Run on a schedule.
+  schedule:
+    - cron: '0 9 * * 1'
+      timezone: 'America/Indiana/Indianapolis'
+
+  # Allow running this workflow manually from the Actions tab.
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5.0.0
+        with:
+          submodules: recursive
+          clean: true
+          persist-credentials: false
+          set-safe-directory: true
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2.2.0
+
+      - name: Setup Turborepo cache
+        uses: rharkor/caching-for-turbo@v2.3.14
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: 🕵️ Merge Checks
+        run: bun run turbo build check-types lint format:check

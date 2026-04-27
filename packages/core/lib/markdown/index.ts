@@ -1,4 +1,7 @@
-import { dashMarkdownSyntaxExtension, emojiMarkdownSyntaxExtension } from '../fold';
+import {
+  dashMarkdownSyntaxExtension,
+  emojiMarkdownSyntaxExtension,
+} from '../fold';
 import { escapeMarkdownSyntaxExtension } from '../hide';
 import { additionalMarkdownSyntaxTags } from '../syntaxHighlighting';
 import { frontmatterMarkdownSyntaxExtension } from './frontmatter';
@@ -14,7 +17,10 @@ export {
 export { nestedLinkAsPlainText } from './nestedLinkAsPlainText';
 export { escapeMarkdownSyntaxExtension } from '../hide';
 export { additionalMarkdownSyntaxTags } from '../syntaxHighlighting';
-export { emojiMarkdownSyntaxExtension, dashMarkdownSyntaxExtension } from '../fold';
+export {
+  emojiMarkdownSyntaxExtension,
+  dashMarkdownSyntaxExtension,
+} from '../fold';
 export {
   mathDelimiterTag,
   mathFormulaTag,

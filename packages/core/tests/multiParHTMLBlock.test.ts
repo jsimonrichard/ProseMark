@@ -1,9 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { GFM, parser } from '@lezer/markdown';
 import type { SyntaxNode } from '@lezer/common';
-import {
-  prosemarkMarkdownSyntaxExtensions,
-} from '../lib/markdown/index.ts';
+import { prosemarkMarkdownSyntaxExtensions } from '../lib/markdown/index.ts';
 import {
   multiParHTMLBlockMarkdownSyntaxExtension,
   renderHtmlMarkdownSyntaxExtensions,

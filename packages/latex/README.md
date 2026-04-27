@@ -20,7 +20,10 @@ Before that import runs, this package sets `window.MathJax = { options: { skipSt
 import { markdown } from '@codemirror/lang-markdown';
 import { GFM } from '@lezer/markdown';
 import { prosemarkMarkdownSyntaxExtensions } from '@prosemark/core';
-import { latexMarkdownSyntaxTheme, latexMarkdownEditorExtensions } from '@prosemark/latex';
+import {
+  latexMarkdownSyntaxTheme,
+  latexMarkdownEditorExtensions,
+} from '@prosemark/latex';
 
 const extensions = [
   markdown({

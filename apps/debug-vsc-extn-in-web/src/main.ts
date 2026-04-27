@@ -41,7 +41,10 @@ if (!(logOutput instanceof HTMLPreElement)) {
 const log = (message: string) => {
   const stamp = new Date().toISOString().slice(11, 23);
   const line = `[${stamp}] ${message}`;
-  logOutput.textContent = `${line}\n${logOutput.textContent ?? ''}`.slice(0, 12000);
+  logOutput.textContent = `${line}\n${logOutput.textContent ?? ''}`.slice(
+    0,
+    12000,
+  );
   console.log(line);
 };
 
@@ -224,7 +227,9 @@ requireButton('clear-log').addEventListener('click', () => {
 window.addEventListener('error', (event) => {
   log(
     `window.error: ${event.message || 'Unknown error'}${
-      event.error instanceof Error ? ` :: ${event.error.stack ?? event.error.message}` : ''
+      event.error instanceof Error
+        ? ` :: ${event.error.stack ?? event.error.message}`
+        : ''
     }`,
   );
 });
@@ -232,7 +237,9 @@ window.addEventListener('error', (event) => {
 window.addEventListener('unhandledrejection', (event) => {
   log(
     `unhandledrejection: ${
-      event.reason instanceof Error ? event.reason.stack ?? event.reason.message : String(event.reason)
+      event.reason instanceof Error
+        ? (event.reason.stack ?? event.reason.message)
+        : String(event.reason)
     }`,
   );
 });

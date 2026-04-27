@@ -1,22 +1,42 @@
 {
-  "$schema": "https://turborepo.com/schema.json",
+  "$schema": "./node_modules/turbo/schema.json",
   "tasks": {
     "build": {
       "outputs": ["dist/**"],
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint.config-base.ts",
+        "$TURBO_ROOT$/tsconfig.base.json"
+      ]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint.config-base.ts",
+        "$TURBO_ROOT$/tsconfig.base.json"
+      ]
     },
     "dev": {
       "persistent": true,
       "cache": false
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint.config-base.ts",
+        "$TURBO_ROOT$/tsconfig.base.json"
+      ]
+    },
+    "//#format": {},
+    "//#format:check": {
+      "outputs": []
     },
     "ci:publish": {
-      "dependsOn": ["^ci:publish"]
+      "dependsOn": ["^ci:publish"],
+      "cache": false
     }
   }
 }
