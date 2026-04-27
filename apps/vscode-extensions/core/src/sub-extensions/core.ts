@@ -40,11 +40,21 @@ export class Core implements SubExtension<
   }
 
   getWebviewScriptUri(): vscode.Uri {
-    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'webview', 'webview.js');
+    return vscode.Uri.joinPath(
+      this.#extensionUri,
+      'dist',
+      'webview',
+      'webview.js',
+    );
   }
 
   getWebviewStyleUri(): vscode.Uri {
-    return vscode.Uri.joinPath(this.#extensionUri, 'dist', 'webview', 'vscode-prosemark.css');
+    return vscode.Uri.joinPath(
+      this.#extensionUri,
+      'dist',
+      'webview',
+      'vscode-prosemark.css',
+    );
   }
 
   getLocalResourceRoots(): vscode.Uri[] {

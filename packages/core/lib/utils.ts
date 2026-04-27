@@ -19,7 +19,7 @@ function isWidgetType(value: unknown): value is WidgetType {
     typeof value === 'object' &&
     value !== null &&
     'toDOM' in value &&
-    typeof (value as { toDOM: unknown }).toDOM === 'function'
+    typeof value.toDOM === 'function'
   );
 }
 
@@ -129,5 +129,5 @@ export function eventHandlersWithClass<This>(
           return res.some((res) => !!res);
         },
       ]),
-  ) as unknown as DOMEventHandlers<This>;
+  );
 }

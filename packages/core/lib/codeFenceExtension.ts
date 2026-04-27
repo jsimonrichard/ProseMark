@@ -79,10 +79,7 @@ const codeBlockDecorations = (view: EditorView) => {
                 line.from,
                 line.from,
                 Decoration.widget({
-                  widget: new CodeBlockInfoWidget(
-                    lang,
-                    code,
-                  ),
+                  widget: new CodeBlockInfoWidget(lang, code),
                 }),
               );
             }
