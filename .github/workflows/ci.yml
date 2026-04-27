@@ -52,8 +52,5 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: 🌐 Disable analytics
-        run: bun exec turbo telemetry disable
-
       - name: 🕵️ Merge Checks
         run: bun run turbo build check-types lint format:check
