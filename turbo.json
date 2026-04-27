@@ -1,29 +1,42 @@
 {
   "$schema": "./node_modules/turbo/schema.json",
   "tasks": {
-    "topo": {
-      "dependsOn": ["^topo"]
-    },
     "build": {
       "outputs": ["dist/**"],
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint.config-base.ts",
+        "$TURBO_ROOT$/tsconfig.base.json"
+      ]
     },
     "check-types": {
-      "dependsOn": ["^topo", "^build"]
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint.config-base.ts",
+        "$TURBO_ROOT$/tsconfig.base.json"
+      ]
     },
     "dev": {
       "persistent": true,
       "cache": false
     },
     "lint": {
-      "dependsOn": ["^topo", "^build"]
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint.config-base.ts",
+        "$TURBO_ROOT$/tsconfig.base.json"
+      ]
     },
     "//#format": {},
     "//#format:check": {
       "outputs": []
     },
     "ci:publish": {
-      "dependsOn": ["^ci:publish"]
+      "dependsOn": ["^ci:publish"],
+      "cache": false
     }
   }
 }
