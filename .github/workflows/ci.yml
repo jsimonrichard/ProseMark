@@ -16,11 +16,6 @@ on:
   # Support merge queues.
   merge_group:
 
-  # Run on a schedule.
-  schedule:
-    - cron: '0 9 * * 1'
-      timezone: 'America/Indiana/Indianapolis'
-
   # Allow running this workflow manually from the Actions tab.
   workflow_dispatch:
 
@@ -36,21 +31,28 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           submodules: recursive
-          clean: true
           persist-credentials: false
-          set-safe-directory: true
 
       - name: Install Bun
-        uses: oven-sh/setup-bun@v2.2.0
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
 
       - name: Setup Turborepo cache
-        uses: rharkor/caching-for-turbo@v2.3.14
+        uses: rharkor/caching-for-turbo@56219402aacc0d06b650d898c222996dbc1191ec # v2.3.14
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: 🕵️ Merge Checks
+      - name: Merge checks
         run: bun run turbo build check-types lint format:check
+
+      - name: Prepare StackBlitz demo template
+        run: |
+          cp -R apps/demo .pkg-pr-new-demo-template
+          cp tsconfig.base.json .pkg-pr-new-demo-template/tsconfig.base.json
+          sed -i 's#\.\./\.\./tsconfig\.base\.json#./tsconfig.base.json#' .pkg-pr-new-demo-template/tsconfig.json
+
+      - name: Publish to pkg.pr.new
+        run: bunx pkg-pr-new publish 'packages/*' --template '.pkg-pr-new-demo-template'
