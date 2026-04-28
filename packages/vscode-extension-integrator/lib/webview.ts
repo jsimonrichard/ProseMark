@@ -111,16 +111,16 @@ export const registerWebviewMessageHandler = <
         .then((r) => {
           vscode.postMessage({
             type: `${extId}:${methodName}-callback:success`,
-            callbackId: message.callbackId as string,
+            callbackId: message.callbackId,
             value: r,
-          } as CallbackFromProcMap<ExtId, WebviewProcMap>);
+          } as unknown as CallbackFromProcMap<ExtId, WebviewProcMap>);
         })
         .catch((e: unknown) => {
           vscode.postMessage({
             type: `${extId}:${methodName}-callback:error`,
-            callbackId: message.callbackId as string,
+            callbackId: message.callbackId,
             value: typeof e === 'string' ? e : JSON.stringify(e),
-          } as CallbackFromProcMap<ExtId, WebviewProcMap>);
+          } as unknown as CallbackFromProcMap<ExtId, WebviewProcMap>);
         });
     }
   });

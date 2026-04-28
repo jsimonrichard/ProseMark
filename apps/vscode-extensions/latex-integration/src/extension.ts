@@ -13,9 +13,7 @@ export function activate(context: vscode.ExtensionContext): void {
   }
   const proseMarkApi = proseMarkExtension.exports;
 
-  const createLatexIntegration_ = createLatexIntegration(
-    context.extensionUri,
-  );
+  const createLatexIntegration_ = createLatexIntegration(context.extensionUri);
   proseMarkApi.registerSubExtension(extId, createLatexIntegration_);
 }
 

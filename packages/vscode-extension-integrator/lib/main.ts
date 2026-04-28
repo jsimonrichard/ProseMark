@@ -229,14 +229,14 @@ export class SubExtensionManager {
                   type: `${extId}:${methodName}-callback:success`,
                   callbackId: message.callbackId,
                   value: r as unknown,
-                } as AnyCallbackMessage);
+                });
               })
               .catch((e: unknown) => {
                 this.#webview.postMessage({
                   type: `${extId}:${methodName}-callback:error`,
                   callbackId: message.callbackId,
                   value: typeof e === 'string' ? e : JSON.stringify(e),
-                } as AnyCallbackMessage);
+                });
               });
           }
         }

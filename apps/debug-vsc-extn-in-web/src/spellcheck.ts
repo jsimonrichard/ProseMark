@@ -40,7 +40,9 @@ const sleep = (ms: number) =>
   });
 
 const buildIssueRanges = (text: string) => {
-  const misspellings = extractWords(text).filter((w) => !nspell.correct(w.word));
+  const misspellings = extractWords(text).filter(
+    (w) => !nspell.correct(w.word),
+  );
   return misspellings.map(({ word, from, to }) =>
     new SpellcheckIssue(
       word,
@@ -91,7 +93,9 @@ export const createSpellcheckHarness = (
 
     if (staleResultGuardEnabled) {
       if (requestId !== latestRequestId) {
-        log(`Dropped stale spellcheck result (request ${requestId.toString()}).`);
+        log(
+          `Dropped stale spellcheck result (request ${requestId.toString()}).`,
+        );
         return;
       }
       if (view.state.doc.toString() !== sourceText) {
@@ -136,7 +140,9 @@ export const createSpellcheckHarness = (
     runSpellcheck,
     clearIssues: (view) => {
       view.dispatch({
-        effects: issueCompartment.reconfigure([spellcheckIssues.of(RangeSet.of([]))]),
+        effects: issueCompartment.reconfigure([
+          spellcheckIssues.of(RangeSet.of([])),
+        ]),
       });
       log('Cleared spellcheck issues.');
     },
