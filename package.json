@@ -17,6 +17,7 @@
   "packageManager": "bun@1.3.13",
   "private": true,
   "type": "module",
+  "//": "overrides.@codemirror/view: single version site-wide (TypeDoc + @codemirror/lint; see dfd56a3, 549689c).",
   "overrides": {
     "@codemirror/view": "6.42.1"
   },

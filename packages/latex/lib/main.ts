@@ -40,9 +40,11 @@ export type LatexMathOutput = 'svg' | 'html';
  * - **`url-import`**: this package sets `window.MathJax`, then dynamically imports
  *   `tex-svg.js` / `tex-chtml.js` from {@link LatexMarkdownEditorOptions.mathJaxPackageUrl}
  *   (default: jsDelivr).
- * - **`static-import`**: your app loads MathJax (e.g. `import 'mathjax/tex-svg.js'`).
- *   {@link LatexMarkdownEditorOptions.mathJaxPackageUrl} is not used. Optionally call
- *   {@link preconfigureMathJaxLoader} before that import.
+ * - **`static-import`**: your app loads MathJax first (e.g. side-effect
+ *   `import 'mathjax/tex-svg.js'` before creating the editor). This package then
+ *   waits on `startup.promise` when widgets need it. {@link LatexMarkdownEditorOptions.mathJaxPackageUrl}
+ *   is not used. Call {@link preconfigureMathJaxLoader} before that import if you need
+ *   a custom `loader.paths.mathjax`.
  */
 export type MathJaxLoadMode = 'url-import' | 'static-import';
 
@@ -140,9 +142,7 @@ async function awaitMathJaxStartupPromise(): Promise<void> {
   const mj = window.MathJax as MathJaxReady | undefined;
   const ready = mj?.startup.promise;
   if (!ready) {
-    throw new Error(
-      'MathJax failed to initialize (no startup.promise). For mathJaxLoadMode: "static-import", import the startup component after configuring window.MathJax.',
-    );
+    throw new Error('MathJax is not ready (missing startup.promise).');
   }
   await ready;
 }
@@ -233,17 +233,6 @@ const ensureMathJax = (
 
   return mathJaxReady;
 };
-
-/**
- * After your bundler loads `mathjax/tex-svg.js` or `tex-chtml.js`, call this to
- * wait for MathJax startup and to align this package’s internal singleton with
- * your `output` mode (optional but avoids duplicate work when widgets mount).
- */
-export function awaitMathJaxAfterStaticImport(
-  output: LatexMathOutput = 'svg',
-): Promise<void> {
-  return ensureMathJax(output, 'static-import', '');
-}
 
 /**
  * @internal Resets load state (unit tests only).

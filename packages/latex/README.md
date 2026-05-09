@@ -14,9 +14,7 @@ Optionally add **`mathjax`** if you want to self-host it from npm (see below). I
 
 MathJax is **not** bundled into `@prosemark/latex`. By default (`mathJaxLoadMode: 'url-import'`), the package sets `window.MathJax`, then dynamically imports **either** `tex-svg.js` **or** `tex-chtml.js` (for `output`) from **`mathJaxPackageUrl`** (default: jsDelivr).
 
-With `mathJaxLoadMode: 'static-import'`, **your app** loads that file (e.g. `import 'mathjax/tex-svg.js'`), and this package only waits for `startup.promise`; **`mathJaxPackageUrl` is not used**. Use {@link preconfigureMathJaxLoader} before your static import when you need a custom `loader.paths.mathjax`.
-
-This avoids bare specifiers like `import('mathjax/tex-svg.js')` in the **published** `@prosemark/latex` build; your application bundler can still resolve a **static** `import 'mathjax/...'` in **your** source.
+With `mathJaxLoadMode: 'static-import'`, **your app** loads that file (e.g. `import 'mathjax/tex-svg.js'`) before math widgets run, and this package waits on `startup.promise` when needed; **`mathJaxPackageUrl` is not used**. Use {@link preconfigureMathJaxLoader} before your import when you need a custom `loader.paths.mathjax`.
 
 Before the dynamic import runs (url mode), this package sets `window.MathJax = { options: { skipStartupTypeset: true }, loader: { paths: { … } } }`. MathJax’s startup must own the full `tex` / `svg` / `chtml` configuration.
 
@@ -50,22 +48,16 @@ You can instead use a build plugin (for example [`vite-plugin-static-copy`](http
 
 **3. Fully custom URL** — Host the same tree on your own CDN or path; set **`mathJaxPackageUrl`**.
 
-**4. Bundler static import (`mathJaxLoadMode: 'static-import'`)** — Add `mathjax` to your app and import the startup component from **your** entry (or a module that runs before the editor), so Vite/Rollup/esbuild resolve and chunk it:
+**4. Bundler static import (`mathJaxLoadMode: 'static-import'`)** — Add `mathjax` to your app and load the startup module from **your** code before the editor shows math (typically a top-level side-effect import). Your bundler resolves `mathjax/...`; use **`preconfigureMathJaxLoader`** first only if you need a specific `loader.paths.mathjax`.
 
 ```ts
-import {
-  preconfigureMathJaxLoader,
-  awaitMathJaxAfterStaticImport,
-  latexMarkdownEditorExtensions,
-} from '@prosemark/latex';
+import { preconfigureMathJaxLoader, latexMarkdownEditorExtensions } from '@prosemark/latex';
 
 // Optional: only if MathJax must load extra files from a known root (fonts, etc.)
 preconfigureMathJaxLoader('https://cdn.jsdelivr.net/npm/mathjax@4.1.1');
 
-await import('mathjax/tex-svg.js'); // or tex-chtml.js for output: 'html'
-await awaitMathJaxAfterStaticImport('svg');
+import 'mathjax/tex-svg.js'; // or tex-chtml.js when output: 'html'
 
-// Later:
 latexMarkdownEditorExtensions({
   mathJaxLoadMode: 'static-import',
   output: 'svg',

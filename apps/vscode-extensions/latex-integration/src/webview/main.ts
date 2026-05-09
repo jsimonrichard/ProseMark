@@ -27,7 +27,6 @@ const procs: WebviewProcMap = {
     // Bundle MathJax tex-svg into webview.js (Vite resolves `mathjax/...` from npm).
     await import('mathjax/tex-svg.js');
     const latex = await import('@prosemark/latex');
-    await latex.awaitMathJaxAfterStaticImport('svg');
     appendToExtraCodeMirrorExtensions(view, [
       ...latex.latexMarkdownSyntaxTheme,
       ...latex.latexMarkdownEditorExtensions({
