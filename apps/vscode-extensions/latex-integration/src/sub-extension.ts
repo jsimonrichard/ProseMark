@@ -52,7 +52,7 @@ export class LatexIntegration implements SubExtension<
     return [this.#extensionUri];
   }
 
-  onReady(_webview: vscode.Webview): void {
+  onReady(): void {
     void this.#callProcWithReturnValue('setup').catch((e: unknown) => {
       console.error(e);
     });
