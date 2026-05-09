@@ -1,5 +1,5 @@
 ---
-"@prosemark/latex": patch
+'@prosemark/latex': patch
 ---
 
 Improve MathJax integration for bundled apps and pre-built `@prosemark/latex`:

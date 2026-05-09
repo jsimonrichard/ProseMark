@@ -51,7 +51,10 @@ You can instead use a build plugin (for example [`vite-plugin-static-copy`](http
 **4. Bundler static import (`mathJaxLoadMode: 'static-import'`)** — Add `mathjax` to your app and load the startup module from **your** code before the editor shows math (typically a top-level side-effect import). Your bundler resolves `mathjax/...`; use **`preconfigureMathJaxLoader`** first only if you need a specific `loader.paths.mathjax`.
 
 ```ts
-import { preconfigureMathJaxLoader, latexMarkdownEditorExtensions } from '@prosemark/latex';
+import {
+  preconfigureMathJaxLoader,
+  latexMarkdownEditorExtensions,
+} from '@prosemark/latex';
 
 // Optional: only if MathJax must load extra files from a known root (fonts, etc.)
 preconfigureMathJaxLoader('https://cdn.jsdelivr.net/npm/mathjax@4.1.1');
