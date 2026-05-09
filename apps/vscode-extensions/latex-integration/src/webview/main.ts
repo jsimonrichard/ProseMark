@@ -22,18 +22,23 @@ const procs: WebviewProcMap = {
     if (latexSetupDone) {
       return;
     }
-    latexSetupDone = true;
 
-    // Bundle MathJax tex-svg into webview.js (Vite resolves `mathjax/...` from npm).
-    await import('mathjax/tex-svg.js');
-    const latex = await import('@prosemark/latex');
-    appendToExtraCodeMirrorExtensions(view, [
-      ...latex.latexMarkdownSyntaxTheme,
-      ...latex.latexMarkdownEditorExtensions({
-        mathJaxLoadMode: 'static-import',
-        output: 'svg',
-      }),
-    ]);
+    try {
+      // Bundle MathJax tex-svg into webview.js (Vite resolves `mathjax/...` from npm).
+      await import('mathjax/tex-svg.js');
+      const latex = await import('@prosemark/latex');
+      appendToExtraCodeMirrorExtensions(view, [
+        ...latex.latexMarkdownSyntaxTheme,
+        ...latex.latexMarkdownEditorExtensions({
+          mathJaxLoadMode: 'static-import',
+          output: 'svg',
+        }),
+      ]);
+      latexSetupDone = true;
+    } catch (err: unknown) {
+      console.error('[ProseMark] latex-integration setup failed', err);
+      throw err;
+    }
   },
 };
 
