@@ -1,6 +1,6 @@
 # ProseMark for VS Code — LaTeX (MathJax) integration
 
-Companion extension that enables **rendered math** in the [ProseMark](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark) editor for `$...$` and `$$...$$` using [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex). This extension works without a network connection for math rendering.
+Companion extension that enables **rendered math** in the [ProseMark](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark) editor for `$...$` and `$$...$$` using [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex).
 
 The documentation for the ProseMark libraries can be found at https://prosemark.com.
 
@@ -13,6 +13,8 @@ The documentation for the ProseMark libraries can be found at https://prosemark.
 
 1. Install **ProseMark** and this **ProseMark - LaTeX math** integration.
 2. Open a `.md` file in ProseMark and fold math spans to see rendered output.
+
+Math rendering does not use the network: the extension ships with what it needs to draw formulas.
 
 ## Extension settings
 
