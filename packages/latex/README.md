@@ -12,43 +12,25 @@ bun add @prosemark/latex
 
 Optionally add **`mathjax`** if you want to self-host it from npm (see below). It is an **optional peer dependency**; any 4.x release you choose is fine.
 
-MathJax is **not** bundled into `@prosemark/latex`. By default (`mathJaxLoadMode: 'url-import'`), the package sets `window.MathJax`, then dynamically imports **either** `tex-svg.js` **or** `tex-chtml.js` (for `output`) from **`mathJaxPackageUrl`** (default: jsDelivr).
+MathJax is **not** bundled into `@prosemark/latex`. See **How to load MathJax** below for **`url-import`** (default) vs **`static-import`**.
 
-With `mathJaxLoadMode: 'static-import'`, **your app** loads that file (e.g. `import 'mathjax/tex-svg.js'`) before math widgets run, and this package waits on `startup.promise` when needed; **`mathJaxPackageUrl` is not used**. Use {@link preconfigureMathJaxLoader} before your import when you need a custom `loader.paths.mathjax`.
+Before the dynamic import runs in **`url-import`** mode, this package sets `window.MathJax = { options: { skipStartupTypeset: true }, loader: { paths: { … } } }`. MathJax’s startup must own the full `tex` / `svg` / `chtml` configuration.
 
-Before the dynamic import runs (url mode), this package sets `window.MathJax = { options: { skipStartupTypeset: true }, loader: { paths: { … } } }`. MathJax’s startup must own the full `tex` / `svg` / `chtml` configuration.
+### How to load MathJax
 
-### How to load MathJax (you choose)
+**1. Runtime URL — `mathJaxLoadMode: 'url-import'` (default)**  
+Omit **`mathJaxPackageUrl`** to use the built-in jsDelivr base (see `MATHJAX_VERSION` in the source), **or** pass any base URL for a full MathJax **npm-style** tree: a public CDN, your own host, a copy of `node_modules/mathjax` served as static files, a VS Code `vscode-resource` root, etc.
 
-**1. CDN / URL (default, `mathJaxLoadMode: 'url-import'`)** — No npm `mathjax` install required. Omit **`mathJaxPackageUrl`** to use jsDelivr for a pinned version (see `MATHJAX_VERSION` in the source), or pass your own absolute URL (self-hosted tree, `public/mathjax`, VS Code webview URI, etc.).
-
-**2. npm + static files (still `url-import`)** — Install `mathjax`, then **serve the package directory unchanged** (same layout as in `node_modules/mathjax`). Set **`mathJaxPackageUrl`** to the **browser-reachable absolute URL** of that folder.
-
-For example, with **Vite**, copy the package into `public` so it is served as static assets:
-
-```bash
-# one-time or in a postinstall script — keep the full tree (input/, output/, etc.)
-cp -R node_modules/mathjax public/mathjax
-```
-
-Then point the editor at that folder (adjust if you use a non-root `base`):
+> **URL:** must be an absolute address the browser can load (`https://…` or same-origin). Point it at the **package root** (the folder that contains `tex-svg.js` / `tex-chtml.js` and the usual `input/`, `output/`, … layout). A trailing slash is optional.
 
 ```ts
-const mathJaxPackageUrl = new URL(
-  `${import.meta.env.BASE_URL}mathjax`,
-  window.location.href,
-).href;
-
 latexMarkdownEditorExtensions({
-  mathJaxPackageUrl,
+  // mathJaxPackageUrl: 'https://example.com/my-mathjax-copy',
 });
 ```
 
-You can instead use a build plugin (for example [`vite-plugin-static-copy`](https://github.com/sapphi-red/vite-plugin-static-copy)) to copy `node_modules/mathjax` into `dist` under a stable path—what matters is only that the URL you pass matches a directory that still looks like the published npm package.
-
-**3. Fully custom URL** — Host the same tree on your own CDN or path; set **`mathJaxPackageUrl`**.
-
-**4. Bundler static import (`mathJaxLoadMode: 'static-import'`)** — Add `mathjax` to your app and load the startup module from **your** code before the editor shows math (typically a top-level side-effect import). Your bundler resolves `mathjax/...`; use **`preconfigureMathJaxLoader`** first only if you need a specific `loader.paths.mathjax`.
+**2. Bundler — `mathJaxLoadMode: 'static-import'`**  
+Add the **`mathjax`** package to your app and load the startup file from your code (usually a top-level `import 'mathjax/tex-svg.js'` or `tex-chtml.js` for `output: 'html'`). Call **`preconfigureMathJaxLoader`** first only if you need a custom `loader.paths.mathjax`. **`mathJaxPackageUrl`** is ignored.
 
 ```ts
 import {
@@ -56,10 +38,10 @@ import {
   latexMarkdownEditorExtensions,
 } from '@prosemark/latex';
 
-// Optional: only if MathJax must load extra files from a known root (fonts, etc.)
-preconfigureMathJaxLoader('https://cdn.jsdelivr.net/npm/mathjax@4.1.1');
+// Optional, if lazy-loaded pieces need a known root:
+// preconfigureMathJaxLoader('https://cdn.jsdelivr.net/npm/mathjax@4.1.1');
 
-import 'mathjax/tex-svg.js'; // or tex-chtml.js when output: 'html'
+import 'mathjax/tex-svg.js';
 
 latexMarkdownEditorExtensions({
   mathJaxLoadMode: 'static-import',
@@ -67,9 +49,7 @@ latexMarkdownEditorExtensions({
 });
 ```
 
-**`mathJaxPackageUrl` is ignored** in this mode. You own `window.MathJax` until the startup module runs; use **`preconfigureMathJaxLoader`** when the default bundled paths would break lazy loads.
-
-**Note:** `@prosemark/latex` does not read from `node_modules` at runtime. If you install `mathjax` only to copy it into `public/` (or similar), that is enough—you are not required to ship `node_modules` to production.
+**Note:** `@prosemark/latex` does not read `node_modules` at runtime for `url-import`. Serving a copied tree under `public/` (or similar) is enough for self-hosting.
 
 ## Usage
 
