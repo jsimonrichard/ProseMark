@@ -52,19 +52,10 @@ export class LatexIntegration implements SubExtension<
     return [this.#extensionUri];
   }
 
-  onReady(webview: vscode.Webview): void {
-    const mathJaxRoot = vscode.Uri.joinPath(
-      this.#extensionUri,
-      'dist',
-      'webview',
-      'mathjax',
-    );
-    const mathJaxPackageUrl = webview.asWebviewUri(mathJaxRoot).toString();
-    void this.#callProcWithReturnValue('setup', mathJaxPackageUrl).catch(
-      (e: unknown) => {
-        console.error(e);
-      },
-    );
+  onReady(_webview: vscode.Webview): void {
+    void this.#callProcWithReturnValue('setup').catch((e: unknown) => {
+      console.error(e);
+    });
   }
 
   procMap: VSCodeExtensionProcMap = {};

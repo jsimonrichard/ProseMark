@@ -2,7 +2,7 @@
 
 Companion extension that enables **rendered math** in the [ProseMark](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark) editor for `$...$` and `$$...$$` using [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex).
 
-The webview loads MathJax from a copy of the **`mathjax` npm package** shipped inside this extension (`dist/webview/mathjax`), built with `scripts/copy-mathjax-for-webview.mjs` after `vite build`. The extension host passes a `vscode-resource` URL for that folder into `latexMarkdownEditorExtensions({ mathJaxPackageUrl })`, so the editor works offline without relying on a public CDN.
+The webview bundles **`mathjax/tex-svg.js`** into `dist/webview/webview.js` via **Vite**, then uses `@prosemark/latex` with **`mathJaxLoadMode: 'static-import'`** so no separate MathJax folder or `mathJaxPackageUrl` is needed. Everything works offline.
 
 The documentation for the ProseMark libraries can be found at https://prosemark.com.
 
@@ -26,4 +26,4 @@ Please report bugs on the [GitHub issues page](https://github.com/jsimonrichard/
 
 ## Developing this extension
 
-After `bun install`, run `bun run build`. The build runs **Vite** for `dist/webview/webview.js`, then copies `node_modules/mathjax` into `dist/webview/mathjax`. If you change the pinned `mathjax` version in `package.json`, run a full build so the webview copy stays in sync.
+After `bun install`, run `bun run build`. **Vite** produces `dist/webview/webview.js` with MathJax SVG output inlined into that bundle (see `src/webview/main.ts`). Bump the **`mathjax`** dependency when you want a different MathJax version.

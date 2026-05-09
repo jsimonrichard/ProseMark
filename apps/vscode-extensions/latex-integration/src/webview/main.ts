@@ -13,7 +13,7 @@ import './style.css';
 let latexSetupDone = false;
 
 const procs: WebviewProcMap = {
-  setup: async (mathJaxPackageUrl: string) => {
+  setup: async () => {
     const view = window.proseMark?.view;
     if (!view) {
       console.warn('[ProseMark] latex-integration setup: no view');
@@ -24,11 +24,15 @@ const procs: WebviewProcMap = {
     }
     latexSetupDone = true;
 
+    // Bundle MathJax tex-svg into webview.js (Vite resolves `mathjax/...` from npm).
+    await import('mathjax/tex-svg.js');
     const latex = await import('@prosemark/latex');
+    await latex.awaitMathJaxAfterStaticImport('svg');
     appendToExtraCodeMirrorExtensions(view, [
       ...latex.latexMarkdownSyntaxTheme,
       ...latex.latexMarkdownEditorExtensions({
-        mathJaxPackageUrl,
+        mathJaxLoadMode: 'static-import',
+        output: 'svg',
       }),
     ]);
   },
