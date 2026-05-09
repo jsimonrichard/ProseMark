@@ -17,11 +17,20 @@ export {
 
 const WIDGET_CLASS = 'cm-latex-math';
 
-/** Keep in sync with the `mathjax` dependency in package.json. */
+/** Keep in sync with the default {@link mathjaxPackageRoot} CDN version. */
 const MATHJAX_VERSION = '4.1.1';
 
 const mathjaxPackageRoot = (): string =>
   `https://cdn.jsdelivr.net/npm/mathjax@${MATHJAX_VERSION}`;
+
+/** Absolute module URL for MathJax’s combined startup bundle (no bare specifier). */
+const mathJaxStartupModuleUrl = (
+  packageUrl: string,
+  file: 'tex-svg.js' | 'tex-chtml.js',
+): string => {
+  const base = packageUrl.replace(/\/+$/, '');
+  return `${base}/${file}`;
+};
 
 export type LatexMathOutput = 'svg' | 'html';
 
@@ -38,9 +47,10 @@ export interface LatexMarkdownEditorOptions {
    */
   renderCacheSize?: number;
   /**
-   * Base URL for MathJax’s dynamic loader (`loader.paths.mathjax`), e.g. a copy
-   * of the `mathjax` package on your own host. Defaults to jsDelivr for the
-   * version pinned in this package.
+   * Base URL for MathJax’s package root (the folder that contains `tex-svg.js` /
+   * `tex-chtml.js`), used for `loader.paths.mathjax` and for loading the startup
+   * bundle. Use an absolute URL (`https://…`) or an absolute path (`/assets/…`).
+   * Defaults to jsDelivr for the version pinned in this package.
    */
   mathJaxPackageUrl?: string;
 }
@@ -127,11 +137,13 @@ const ensureMathJax = (
       },
     };
 
-    if (output === 'svg') {
-      await import('mathjax/tex-svg.js');
-    } else {
-      await import('mathjax/tex-chtml.js');
-    }
+    const bundleUrl =
+      output === 'svg'
+        ? mathJaxStartupModuleUrl(packageUrl, 'tex-svg.js')
+        : mathJaxStartupModuleUrl(packageUrl, 'tex-chtml.js');
+    // Runtime URL (not a bare specifier) so pre-built `@prosemark/latex` works in
+    // Vite/browsers without resolving `mathjax` from node_modules.
+    await import(/* @vite-ignore */ bundleUrl);
 
     const mj = window.MathJax as MathJaxReady | undefined;
     const ready = mj?.startup.promise;

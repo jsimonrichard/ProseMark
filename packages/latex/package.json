@@ -44,8 +44,7 @@
     "@lezer/common": "^1.5.2",
     "@lezer/highlight": "^1.2.3",
     "@lezer/markdown": "^1.6.3",
-    "@prosemark/core": "workspace:*",
-    "mathjax": "^4.1.1"
+    "@prosemark/core": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

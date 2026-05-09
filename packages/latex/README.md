@@ -1,6 +1,6 @@
 # @prosemark/latex
 
-LaTeX-style math for ProseMark’s Markdown editor: `$...$` and `$$...$$`, rendered with [MathJax](https://www.mathjax.org/) from the **`mathjax` npm package**.
+LaTeX-style math for ProseMark’s Markdown editor: `$...$` and `$$...$$`, rendered with [MathJax](https://www.mathjax.org/) loaded at **runtime** from your chosen package root (default: **jsDelivr**, pinned to the same MathJax version this package is tested against).
 
 The **`Math` / `MathMark` / `MathFormula`** Lezer nodes and **`mathMarkdownSyntaxExtension`** live in **`@prosemark/core`** and are part of **`prosemarkMarkdownSyntaxExtensions`**. This package adds MathJax **widgets** and theme helpers; it **re-exports** the parser under **`latexMath*`** names if you only depend on `@prosemark/latex`.
 
@@ -10,7 +10,9 @@ The **`Math` / `MathMark` / `MathFormula`** Lezer nodes and **`mathMarkdownSynta
 bun add @prosemark/latex
 ```
 
-The `mathjax` package is a dependency (`import('mathjax/tex-svg.js')` or `tex-chtml.js`). By default, `loader.paths.mathjax` points at **jsDelivr** for the pinned version so the runtime can load extra components. Override with **`mathJaxPackageUrl`** for self-hosting or another CDN.
+MathJax is **not** bundled into `@prosemark/latex` and there is no `mathjax` npm dependency. On first render, the package dynamically imports **either** `tex-svg.js` **or** `tex-chtml.js` (depending on `output`) from **`mathJaxPackageUrl`**, and sets `loader.paths.mathjax` to that same root so MathJax can load any extra components it needs. Override **`mathJaxPackageUrl`** for self-hosting or another CDN. Use an absolute URL (`https://…`) or an absolute path (`/assets/…`) so the browser can resolve the module.
+
+This avoids bare specifiers like `import('mathjax/tex-svg.js')` in the published build, which breaks in Vite and other browser bundlers when they do not rewrite pre-compiled dependencies.
 
 Before that import runs, this package sets `window.MathJax = { options: { skipStartupTypeset: true }, loader: { paths: { … } } }`. MathJax’s startup must own the full `tex` / `svg` / `chtml` configuration.
 
