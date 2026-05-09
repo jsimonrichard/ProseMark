@@ -2,7 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "sourceRoot": "./lib",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "types": ["bun-types"]
   },
-  "include": ["lib", "*.config.ts"]
+  "include": ["lib", "tests", "*.config.ts"]
 }

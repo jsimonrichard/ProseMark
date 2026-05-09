@@ -34,6 +34,18 @@ const mathJaxStartupModuleUrl = (
 
 export type LatexMathOutput = 'svg' | 'html';
 
+/**
+ * How `@prosemark/latex` loads MathJax startup.
+ *
+ * - **`url-import`**: this package sets `window.MathJax`, then dynamically imports
+ *   `tex-svg.js` / `tex-chtml.js` from {@link LatexMarkdownEditorOptions.mathJaxPackageUrl}
+ *   (default: jsDelivr).
+ * - **`static-import`**: your app loads MathJax (e.g. `import 'mathjax/tex-svg.js'`).
+ *   {@link LatexMarkdownEditorOptions.mathJaxPackageUrl} is not used. Optionally call
+ *   {@link preconfigureMathJaxLoader} before that import.
+ */
+export type MathJaxLoadMode = 'url-import' | 'static-import';
+
 export interface LatexMarkdownEditorOptions {
   /**
    * How formulas are rendered. `svg` uses MathJax SVG (`tex-svg-nofont.js`).
@@ -47,19 +59,22 @@ export interface LatexMarkdownEditorOptions {
    */
   renderCacheSize?: number;
   /**
-   * Base URL for MathJax’s package root (the folder that contains `tex-svg.js` /
+   * How MathJax is initialized. Defaults to `url-import`.
+   */
+  mathJaxLoadMode?: MathJaxLoadMode;
+  /**
+   * When {@link mathJaxLoadMode} is **`url-import`** (default): base URL for
+   * MathJax’s package root (the folder that contains `tex-svg.js` /
    * `tex-chtml.js`), used for `loader.paths.mathjax` and for loading the startup
    * bundle. Must be an absolute URL the **browser** can load (e.g. `https://…`
    * or a same-origin path such as `https://my.app/assets/mathjax` or a VS Code
    * webview `vscode-resource:` URL). No trailing slash is required.
    *
-   * Defaults to jsDelivr for the version constant in this package (a reasonable
-   * default for apps; you are not required to match that version if you host
-   * your own copy).
+   * **Omit** to use the default jsDelivr URL for the version constant in this
+   * package (you are not required to match that version if you pass your own URL).
    *
-   * To use a copy from **npm**, install the `mathjax` package, expose its
-   * directory as static files (unchanged layout), and pass that folder’s public
-   * URL here. See the package README.
+   * When {@link mathJaxLoadMode} is **`static-import`**, this option is **ignored**
+   * (configure `window.MathJax` yourself; see {@link preconfigureMathJaxLoader}).
    */
   mathJaxPackageUrl?: string;
 }
@@ -90,12 +105,51 @@ declare global {
   }
 }
 
+/** Sentinel for {@link configuredPackageUrl} when using `static-import` mode. */
+const STATIC_IMPORT_PACKAGE_KEY = 'static-import';
+
 let loadedOutput: LatexMathOutput | null = null;
+let loadedLoadMode: MathJaxLoadMode | null = null;
 let mathJaxReady: Promise<void> | null = null;
 let configuredPackageUrl: string | null = null;
 
+/**
+ * Assign `window.MathJax` loader options **before** a static
+ * `import 'mathjax/tex-svg.js'` or `import 'mathjax/tex-chtml.js'` so MathJax can
+ * resolve extra modules (fonts, input jax, etc.).
+ */
+export function preconfigureMathJaxLoader(packageUrl: string): void {
+  if (typeof window === 'undefined') {
+    throw new Error(
+      'preconfigureMathJaxLoader requires a browser environment (window).',
+    );
+  }
+  window.MathJax = {
+    options: {
+      skipStartupTypeset: true,
+    },
+    loader: {
+      paths: {
+        mathjax: packageUrl,
+      },
+    },
+  };
+}
+
+async function awaitMathJaxStartupPromise(): Promise<void> {
+  const mj = window.MathJax as MathJaxReady | undefined;
+  const ready = mj?.startup.promise;
+  if (!ready) {
+    throw new Error(
+      'MathJax failed to initialize (no startup.promise). For mathJaxLoadMode: "static-import", import the startup component after configuring window.MathJax.',
+    );
+  }
+  await ready;
+}
+
 const ensureMathJax = (
   output: LatexMathOutput,
+  loadMode: MathJaxLoadMode,
   packageUrl: string,
 ): Promise<void> => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
@@ -104,9 +158,13 @@ const ensureMathJax = (
     );
   }
 
+  const configKey =
+    loadMode === 'static-import' ? STATIC_IMPORT_PACKAGE_KEY : packageUrl;
+
   if (
     loadedOutput === output &&
-    configuredPackageUrl === packageUrl &&
+    loadedLoadMode === loadMode &&
+    configuredPackageUrl === configKey &&
     mathJaxReady
   ) {
     return mathJaxReady;
@@ -118,15 +176,31 @@ const ensureMathJax = (
     );
   }
 
-  if (configuredPackageUrl !== null && configuredPackageUrl !== packageUrl) {
+  if (loadedLoadMode !== null && loadedLoadMode !== loadMode) {
+    throw new Error(
+      'mathJaxLoadMode is fixed after the first MathJax load in this page.',
+    );
+  }
+
+  if (
+    loadMode === 'url-import' &&
+    configuredPackageUrl !== null &&
+    configuredPackageUrl !== packageUrl
+  ) {
     throw new Error(
       'mathJaxPackageUrl is fixed after the first MathJax load in this page.',
     );
   }
 
   loadedOutput = output;
-  configuredPackageUrl = packageUrl;
+  loadedLoadMode = loadMode;
+  configuredPackageUrl = configKey;
   mathJaxReady = (async () => {
+    if (loadMode === 'static-import') {
+      await awaitMathJaxStartupPromise();
+      return;
+    }
+
     // Pre-load config (no `version`): MathJax moves this object to `config` and
     // replaces `window.MathJax` with the API. Do not set `tex` / `svg` here —
     // those would land only under `config` and break input/output jax setup.
@@ -154,16 +228,32 @@ const ensureMathJax = (
     // Vite/browsers without resolving `mathjax` from node_modules.
     await import(/* @vite-ignore */ bundleUrl);
 
-    const mj = window.MathJax as MathJaxReady | undefined;
-    const ready = mj?.startup.promise;
-    if (!ready) {
-      throw new Error('MathJax failed to initialize');
-    }
-    await ready;
+    await awaitMathJaxStartupPromise();
   })();
 
   return mathJaxReady;
 };
+
+/**
+ * After your bundler loads `mathjax/tex-svg.js` or `tex-chtml.js`, call this to
+ * wait for MathJax startup and to align this package’s internal singleton with
+ * your `output` mode (optional but avoids duplicate work when widgets mount).
+ */
+export function awaitMathJaxAfterStaticImport(
+  output: LatexMathOutput = 'svg',
+): Promise<void> {
+  return ensureMathJax(output, 'static-import', '');
+}
+
+/**
+ * @internal Resets load state (unit tests only).
+ */
+export function resetLatexMathJaxStateForTests(): void {
+  loadedOutput = null;
+  loadedLoadMode = null;
+  mathJaxReady = null;
+  configuredPackageUrl = null;
+}
 
 interface RenderCacheEntry {
   node: HTMLElement;
@@ -245,6 +335,7 @@ class LatexMathWidget extends WidgetType {
     public readonly tex: string,
     public readonly display: boolean,
     public readonly output: LatexMathOutput,
+    public readonly loadMode: MathJaxLoadMode,
     public readonly packageUrl: string,
   ) {
     super();
@@ -255,6 +346,7 @@ class LatexMathWidget extends WidgetType {
       this.tex === other.tex &&
       this.display === other.display &&
       this.output === other.output &&
+      this.loadMode === other.loadMode &&
       this.packageUrl === other.packageUrl
     );
   }
@@ -277,7 +369,7 @@ class LatexMathWidget extends WidgetType {
       latexWidgetResizeObservers.set(wrap, ro);
     }
 
-    void ensureMathJax(this.output, this.packageUrl)
+    void ensureMathJax(this.output, this.loadMode, this.packageUrl)
       .then(() => renderOrCloneFromCache(this.tex, this.display, this.output))
       .then((node) => {
         wrap.replaceChildren(node);
@@ -373,7 +465,11 @@ export function latexMarkdownEditorExtensions(
   options: LatexMarkdownEditorOptions = {},
 ): ReturnType<typeof foldableSyntaxFacet.of>[] {
   const output: LatexMathOutput = options.output ?? 'svg';
-  const packageUrl = options.mathJaxPackageUrl ?? mathjaxPackageRoot();
+  const loadMode: MathJaxLoadMode = options.mathJaxLoadMode ?? 'url-import';
+  const packageUrl =
+    loadMode === 'url-import'
+      ? (options.mathJaxPackageUrl ?? mathjaxPackageRoot())
+      : '';
   const cacheSize = options.renderCacheSize ?? 128;
   renderCache = cacheSize > 0 ? new RenderLru(cacheSize) : null;
 
@@ -393,7 +489,13 @@ export function latexMarkdownEditorExtensions(
         const display = opensDouble || /^\s|\s$/.test(body);
 
         return Decoration.replace({
-          widget: new LatexMathWidget(tex, display, output, packageUrl),
+          widget: new LatexMathWidget(
+            tex,
+            display,
+            output,
+            loadMode,
+            packageUrl,
+          ),
           block: display,
           inclusive: true,
           // Skipped by revealBlockOnArrowExtension so ↑ through blank lines after math is normal.
