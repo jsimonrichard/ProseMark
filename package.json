@@ -18,7 +18,7 @@
   "private": true,
   "type": "module",
   "overrides": {
-    "@codemirror/view": "6.41.1"
+    "@codemirror/view": "6.42.1"
   },
   "workspaces": [
     "apps/**",

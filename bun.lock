@@ -48,7 +48,7 @@
         "@codemirror/language": "^6.11.3",
         "@codemirror/language-data": "^6.5.2",
         "@codemirror/state": "^6.5.2",
-        "@codemirror/view": "^6.41.1",
+        "@codemirror/view": "^6.42.1",
         "@lezer-unofficial/printer": "^1.0.1",
         "@lezer/markdown": "^1.5.1",
         "@prosemark/core": "workspace:*",
@@ -77,7 +77,7 @@
         "@codemirror/lint": "^6.9.1",
         "@codemirror/search": "^6.5.11",
         "@codemirror/state": "^6.5.2",
-        "@codemirror/view": "^6.41.1",
+        "@codemirror/view": "^6.42.1",
         "@lezer-unofficial/printer": "^1.0.1",
         "@lezer/highlight": "^1.2.0",
         "@lezer/markdown": "^1.5.1",
@@ -283,7 +283,7 @@
       "version": "0.0.4",
       "dependencies": {
         "@codemirror/state": "^6.5.2",
-        "@codemirror/view": "^6.41.1",
+        "@codemirror/view": "^6.42.1",
         "@prosemark/core": "workspace:*",
       },
     },
@@ -302,7 +302,7 @@
     },
   },
   "overrides": {
-    "@codemirror/view": "6.41.1",
+    "@codemirror/view": "6.42.1",
   },
   "packages": {
     "@actions/core": ["@actions/core@3.0.1", "", { "dependencies": { "@actions/exec": "^3.0.0", "@actions/http-client": "^4.0.0" } }, "sha512-a6d/Nwahm9fliVGRhdhofo40HjHQasUPusmc7vBfyky+7Z+P2A1J68zyFVaNcEclc/Se+eO595oAr5nwEIoIUA=="],
@@ -465,7 +465,7 @@
 
     "@codemirror/state": ["@codemirror/state@6.6.0", "", { "dependencies": { "@marijn/find-cluster-break": "^1.0.0" } }, "sha512-4nbvra5R5EtiCzr9BTHiTLc+MLXK2QGiAVYMyi8PkQd3SR+6ixar/Q/01Fa21TBIDOZXgeWV4WppsQolSreAPQ=="],
 
-    "@codemirror/view": ["@codemirror/view@6.41.1", "", { "dependencies": { "@codemirror/state": "^6.6.0", "crelt": "^1.0.6", "style-mod": "^4.1.0", "w3c-keyname": "^2.2.4" } }, "sha512-ToDnWKbBnke+ZLrP6vgTTDScGi5H37YYuZGniQaBzxMVdtCxMrslsmtnOvbPZk4RX9bvkQqnWR/WS/35tJA0qg=="],
+    "@codemirror/view": ["@codemirror/view@6.42.1", "", { "dependencies": { "@codemirror/state": "^6.6.0", "crelt": "^1.0.6", "style-mod": "^4.1.0", "w3c-keyname": "^2.2.4" } }, "sha512-ToN3oFc0nsxNUYVF5P0ztLgbC4UPPjPtA9aKYhkOKQaZASpOUo6ISXyQLP66ctVwlDc+j6Jv0uK5IFALkiXztg=="],
 
     "@cspell/cspell-types": ["@cspell/cspell-types@9.8.0", "", {}, "sha512-7Ge4UD6SCA49Tcc3+GTlz3Xn4cqVUAXtDO0u9IeHvJgkN3Me2Rw2GB/CtGmhKST3YeEeZMX7ww09TdHMUJlehw=="],
 
