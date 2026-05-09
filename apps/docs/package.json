@@ -11,7 +11,7 @@
     "@codemirror/lint": "^6.9.1",
     "@codemirror/search": "^6.5.11",
     "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.38.6",
+    "@codemirror/view": "^6.41.1",
     "@lezer-unofficial/printer": "^1.0.1",
     "@lezer/highlight": "^1.2.0",
     "@lezer/markdown": "^1.5.1",

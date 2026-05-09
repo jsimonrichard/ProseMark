@@ -17,6 +17,9 @@
   "packageManager": "bun@1.3.13",
   "private": true,
   "type": "module",
+  "overrides": {
+    "@codemirror/view": "6.41.1"
+  },
   "workspaces": [
     "apps/**",
     "!apps/**/node_modules/**",
