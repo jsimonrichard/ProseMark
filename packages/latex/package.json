@@ -46,6 +46,14 @@
     "@lezer/markdown": "^1.6.3",
     "@prosemark/core": "workspace:*"
   },
+  "peerDependencies": {
+    "mathjax": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "mathjax": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@types/node": "^24.10.4",

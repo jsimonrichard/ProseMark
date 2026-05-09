@@ -49,8 +49,17 @@ export interface LatexMarkdownEditorOptions {
   /**
    * Base URL for MathJax’s package root (the folder that contains `tex-svg.js` /
    * `tex-chtml.js`), used for `loader.paths.mathjax` and for loading the startup
-   * bundle. Use an absolute URL (`https://…`) or an absolute path (`/assets/…`).
-   * Defaults to jsDelivr for the version pinned in this package.
+   * bundle. Must be an absolute URL the **browser** can load (e.g. `https://…`
+   * or a same-origin path such as `https://my.app/assets/mathjax` or a VS Code
+   * webview `vscode-resource:` URL). No trailing slash is required.
+   *
+   * Defaults to jsDelivr for the version constant in this package (a reasonable
+   * default for apps; you are not required to match that version if you host
+   * your own copy).
+   *
+   * To use a copy from **npm**, install the `mathjax` package, expose its
+   * directory as static files (unchanged layout), and pass that folder’s public
+   * URL here. See the package README.
    */
   mathJaxPackageUrl?: string;
 }

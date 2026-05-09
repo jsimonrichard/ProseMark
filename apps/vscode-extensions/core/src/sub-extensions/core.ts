@@ -61,7 +61,7 @@ export class Core implements SubExtension<
     return [this.#extensionUri];
   }
 
-  onReady(): void {
+  onReady(_webview: vscode.Webview): void {
     const initConfig = this.#getInitConfig();
 
     this.#callProcAndForget('init', this.#document.getText(), initConfig);

@@ -13,7 +13,7 @@ import './style.css';
 let latexSetupDone = false;
 
 const procs: WebviewProcMap = {
-  setup: async () => {
+  setup: async (mathJaxPackageUrl: string) => {
     const view = window.proseMark?.view;
     if (!view) {
       console.warn('[ProseMark] latex-integration setup: no view');
@@ -27,7 +27,9 @@ const procs: WebviewProcMap = {
     const latex = await import('@prosemark/latex');
     appendToExtraCodeMirrorExtensions(view, [
       ...latex.latexMarkdownSyntaxTheme,
-      ...latex.latexMarkdownEditorExtensions(),
+      ...latex.latexMarkdownEditorExtensions({
+        mathJaxPackageUrl,
+      }),
     ]);
   },
 };

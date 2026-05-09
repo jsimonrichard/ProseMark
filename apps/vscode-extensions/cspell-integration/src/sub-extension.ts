@@ -62,7 +62,7 @@ export class CSpellIntegration implements SubExtension<
     return [this.#extensionUri];
   }
 
-  onReady(): void {
+  onReady(_webview: vscode.Webview): void {
     const onReady = async () => {
       await this.#callProcWithReturnValue('setup');
       await this.#spellcheck();

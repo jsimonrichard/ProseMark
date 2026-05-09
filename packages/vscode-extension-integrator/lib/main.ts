@@ -185,7 +185,7 @@ export class SubExtensionManager {
 
   onReady(): void {
     for (const extension of Object.values(this.#subExtensions)) {
-      extension.onReady?.();
+      extension.onReady?.(this.#webview);
     }
   }
 

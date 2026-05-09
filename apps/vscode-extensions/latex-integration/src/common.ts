@@ -2,5 +2,6 @@
 export type VSCodeExtensionProcMap = Record<string, never>;
 
 export interface WebviewProcMap {
-  setup: () => Promise<void>;
+  /** Absolute webview URL for the copied `mathjax` package root (see build script). */
+  setup: (mathJaxPackageUrl: string) => Promise<void>;
 }

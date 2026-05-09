@@ -1,6 +1,8 @@
 # ProseMark for VS Code — LaTeX (MathJax) integration
 
-Companion extension that enables **rendered math** in the [ProseMark](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark) editor for `$...$` and `$$...$$` using [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) (dependent on MathJax from the `mathjax` npm package).
+Companion extension that enables **rendered math** in the [ProseMark](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark) editor for `$...$` and `$$...$$` using [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex).
+
+The webview loads MathJax from a copy of the **`mathjax` npm package** shipped inside this extension (`dist/webview/mathjax`), built with `scripts/copy-mathjax-for-webview.mjs` after `vite build`. The extension host passes a `vscode-resource` URL for that folder into `latexMarkdownEditorExtensions({ mathJaxPackageUrl })`, so the editor works offline without relying on a public CDN.
 
 The documentation for the ProseMark libraries can be found at https://prosemark.com.
 
@@ -21,3 +23,7 @@ This extension does not contribute VS Code settings yet.
 ## Known issues
 
 Please report bugs on the [GitHub issues page](https://github.com/jsimonrichard/ProseMark/issues).
+
+## Developing this extension
+
+After `bun install`, run `bun run build`. The build runs **Vite** for `dist/webview/webview.js`, then copies `node_modules/mathjax` into `dist/webview/mathjax`. If you change the pinned `mathjax` version in `package.json`, run a full build so the webview copy stays in sync.

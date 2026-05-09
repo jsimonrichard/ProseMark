@@ -10,11 +10,45 @@ The **`Math` / `MathMark` / `MathFormula`** Lezer nodes and **`mathMarkdownSynta
 bun add @prosemark/latex
 ```
 
-MathJax is **not** bundled into `@prosemark/latex` and there is no `mathjax` npm dependency. On first render, the package dynamically imports **either** `tex-svg.js` **or** `tex-chtml.js` (depending on `output`) from **`mathJaxPackageUrl`**, and sets `loader.paths.mathjax` to that same root so MathJax can load any extra components it needs. Override **`mathJaxPackageUrl`** for self-hosting or another CDN. Use an absolute URL (`https://…`) or an absolute path (`/assets/…`) so the browser can resolve the module.
+Optionally add **`mathjax`** if you want to self-host it from npm (see below). It is an **optional peer dependency**; any 4.x release you choose is fine.
+
+MathJax is **not** bundled into `@prosemark/latex`. On first render, the package dynamically imports **either** `tex-svg.js` **or** `tex-chtml.js` (depending on `output`) from **`mathJaxPackageUrl`**, and sets `loader.paths.mathjax` to that same root so MathJax can load any extra modules it needs.
 
 This avoids bare specifiers like `import('mathjax/tex-svg.js')` in the published build, which breaks in Vite and other browser bundlers when they do not rewrite pre-compiled dependencies.
 
 Before that import runs, this package sets `window.MathJax = { options: { skipStartupTypeset: true }, loader: { paths: { … } } }`. MathJax’s startup must own the full `tex` / `svg` / `chtml` configuration.
+
+### How to load MathJax (you choose)
+
+**1. CDN (default)** — No npm `mathjax` install. `latexMarkdownEditorExtensions()` uses jsDelivr for a pinned version (see `MATHJAX_VERSION` in the source). Good for most apps.
+
+**2. npm + static files** — Install `mathjax`, then **serve the package directory unchanged** (same layout as in `node_modules/mathjax`). `mathJaxPackageUrl` must be the **browser-reachable absolute URL** of that folder.
+
+For example, with **Vite**, copy the package into `public` so it is served as static assets:
+
+```bash
+# one-time or in a postinstall script — keep the full tree (input/, output/, etc.)
+cp -R node_modules/mathjax public/mathjax
+```
+
+Then point the editor at that folder (adjust if you use a non-root `base`):
+
+```ts
+const mathJaxPackageUrl = new URL(
+  `${import.meta.env.BASE_URL}mathjax`,
+  window.location.href,
+).href;
+
+latexMarkdownEditorExtensions({
+  mathJaxPackageUrl,
+});
+```
+
+You can instead use a build plugin (for example [`vite-plugin-static-copy`](https://github.com/sapphi-red/vite-plugin-static-copy)) to copy `node_modules/mathjax` into `dist` under a stable path—what matters is only that the URL you pass matches a directory that still looks like the published npm package.
+
+**3. Fully custom URL** — Host the same tree on your own CDN or path; set `mathJaxPackageUrl` accordingly.
+
+**Note:** `@prosemark/latex` does not read from `node_modules` at runtime. If you install `mathjax` only to copy it into `public/` (or similar), that is enough—you are not required to ship `node_modules` to production.
 
 ## Usage
 

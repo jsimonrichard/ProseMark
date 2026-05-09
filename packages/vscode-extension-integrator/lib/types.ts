@@ -186,7 +186,11 @@ export interface SubExtension<ExtId extends string, VSCodePM> {
   getWebviewStyleUri?(): vscode.Uri;
   getLocalResourceRoots?(): vscode.Uri[];
   procMap: VSCodePM;
-  onReady?(): void;
+  /**
+   * Called after the webview is configured. Receives the panel’s webview so
+   * sub-extensions can build `asWebviewUri` URLs for static assets.
+   */
+  onReady?(webview: vscode.Webview): void;
   onEditorShown?(): void;
   onEditorHidden?(): void;
   onTextDocumentChange?(changes: Change[]): void;
