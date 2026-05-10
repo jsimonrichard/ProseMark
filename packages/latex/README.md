@@ -11,7 +11,7 @@ The **`Math` / `MathMark` / `MathFormula`** Lezer nodes and **`mathMarkdownSynta
 Do **one** of the following:
 
 - Pass **`prosemarkMarkdownSyntaxExtensions`** from **`@prosemark/core`** inside **`markdown({ extensions: [...] })`** (it already includes **`mathMarkdownSyntaxExtension`**), **or**
-- Add **`mathMarkdownSyntaxExtension`** from **`@prosemark/core`**, **or** **`latexMathMarkdownSyntaxExtension`** from **`@prosemark/latex`** (same parser, re-exported), to **`markdown({ extensions: [...] })`**.
+- Add **`mathMarkdownSyntaxExtension`** from **`@prosemark/core`**, **or** **`latexMathMarkdownSyntaxExtension`** from **`@prosemark/latex`** (for now, a re-export of the same extension), to **`markdown({ extensions: [...] })`**.
 
 ## Install
 
@@ -102,7 +102,7 @@ markdown({
 
 Then add **`latexMarkdownSyntaxTheme`** and **`latexMarkdownEditorExtensions()`** as in the first example.
 
-- **`latexMathMarkdownSyntaxExtension`** — same as **`mathMarkdownSyntaxExtension`** from core (re-export).
+- **`latexMathMarkdownSyntaxExtension`** — for now, a re-export of **`mathMarkdownSyntaxExtension`** from core.
 - **`latexMarkdownSyntaxTheme`** — delimiter and formula highlighting.
 - **`latexMarkdownEditorExtensions()`** — fold widgets with MathJax.
 
