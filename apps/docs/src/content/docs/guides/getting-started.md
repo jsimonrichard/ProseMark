@@ -16,6 +16,7 @@ The main npm package for ProseMark is `@prosemark/core`; install that using your
 - `@prosemark/render-html`: renders HTML tags within the markdown content. Supports most standard attributes; sanitized using [DOMPurify](https://github.com/cure53/DOMPurify).
 - `@prosemark/paste-rich-text`: allows pasting rich text as markdown.
 - `@prosemark/spellcheck-frontend`: underlines and suggestion tooltips for misspellings you compute yourself (no bundled dictionary). See [Features](/reference/features/#prosemarkspellcheck-frontend) and [Styling](/reference/styling/) (spellcheck variables).
+- `@prosemark/latex`: rendered math for `$...$` / `$$...$$` via MathJax. The **parser** for math lives in `@prosemark/core` (`mathMarkdownSyntaxExtension`). **`prosemarkMarkdownSyntaxExtensions`** already includes it. If you add **`latexMarkdownEditorExtensions`** without that bundle, you must still pass **`mathMarkdownSyntaxExtension`** (core) or **`latexMathMarkdownSyntaxExtension`** (latex) into **`markdown({ extensions: [...] })`** — see the [`@prosemark/latex` package README](https://www.npmjs.com/package/@prosemark/latex).
 
 You will also need to install some standard CodeMirror packages:
 

@@ -446,9 +446,20 @@ const latexMathWidgetTheme = EditorView.theme({
 });
 
 /**
- * CodeMirror extensions that replace core `Math` syntax nodes (from
- * {@link latexMathMarkdownSyntaxExtension} / `mathMarkdownSyntaxExtension`)
- * with rendered formulas. Add {@link latexMathSyntaxHighlighting} for source coloring.
+ * CodeMirror extensions that replace core **`Math`** syntax nodes with rendered
+ * MathJax output.
+ *
+ * @remarks
+ * **Markdown parser:** widgets attach only to `Math` nodes. Enable math in the
+ * Markdown config with **`prosemarkMarkdownSyntaxExtensions`** (includes
+ * **`mathMarkdownSyntaxExtension`**) from **`@prosemark/core`**, or add
+ * **`mathMarkdownSyntaxExtension`** from **`@prosemark/core`** or
+ * {@link latexMathMarkdownSyntaxExtension} from this package to
+ * **`markdown({ extensions: [...] })`**. Without that, `$...$` / `$$...$$` are not
+ * parsed as math and these extensions have nothing to render.
+ *
+ * Add {@link latexMathSyntaxHighlighting} (via {@link latexMarkdownSyntaxTheme})
+ * for delimiter/formula source coloring.
  */
 export function latexMarkdownEditorExtensions(
   options: LatexMarkdownEditorOptions = {},

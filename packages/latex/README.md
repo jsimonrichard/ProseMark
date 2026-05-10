@@ -4,6 +4,15 @@ LaTeX-style math for ProseMark’s Markdown editor: `$...$` and `$$...$$`, rende
 
 The **`Math` / `MathMark` / `MathFormula`** Lezer nodes and **`mathMarkdownSyntaxExtension`** live in **`@prosemark/core`** and are part of **`prosemarkMarkdownSyntaxExtensions`**. This package adds MathJax **widgets** and theme helpers; it **re-exports** the parser under **`latexMath*`** names if you only depend on `@prosemark/latex`.
 
+### Parser: you must enable math in Markdown
+
+**`latexMarkdownEditorExtensions()` only runs on `Math` syntax nodes.** If the Markdown layer never parses `$...$` / `$$...$$` as math, those widgets never attach and formulas stay plain text.
+
+Do **one** of the following:
+
+- Pass **`prosemarkMarkdownSyntaxExtensions`** from **`@prosemark/core`** inside **`markdown({ extensions: [...] })`** (it already includes **`mathMarkdownSyntaxExtension`**), **or**
+- Add **`mathMarkdownSyntaxExtension`** from **`@prosemark/core`**, **or** **`latexMathMarkdownSyntaxExtension`** from **`@prosemark/latex`** (same parser, re-exported), to **`markdown({ extensions: [...] })`**.
+
 ## Install
 
 ```bash
@@ -49,9 +58,11 @@ latexMarkdownEditorExtensions({
 });
 ```
 
-**Note:** `@prosemark/latex` does not read `node_modules` at runtime for `url-import`. Serving a copied tree under `public/` (or similar) is enough for self-hosting.
+**Note:** `@prosemark/latex` does not read `node_modules` at runtime for `url-import`. Serving a copied tree under `public/` (or similar) is enough for self-hosting. You still need the **parser** section above so `Math` nodes exist.
 
 ## Usage
+
+**Full ProseMark markdown** (math included):
 
 ```ts
 import { markdown } from '@codemirror/lang-markdown';
@@ -66,7 +77,7 @@ const extensions = [
   markdown({
     extensions: [
       GFM,
-      prosemarkMarkdownSyntaxExtensions, // includes mathMarkdownSyntaxExtension (Math nodes)
+      prosemarkMarkdownSyntaxExtensions, // includes mathMarkdownSyntaxExtension → Math nodes
     ],
   }),
   ...latexMarkdownSyntaxTheme,
@@ -74,12 +85,22 @@ const extensions = [
 ];
 ```
 
-If you **do not** use `prosemarkMarkdownSyntaxExtensions`, add the parser from core (or the latex re-export):
+**Math only** (if you assemble Markdown extensions yourself):
 
 ```ts
 import { mathMarkdownSyntaxExtension } from '@prosemark/core';
 // or: import { latexMathMarkdownSyntaxExtension } from '@prosemark/latex';
+
+markdown({
+  extensions: [
+    GFM,
+    mathMarkdownSyntaxExtension,
+    // …your other markdown extensions
+  ],
+});
 ```
+
+Then add **`latexMarkdownSyntaxTheme`** and **`latexMarkdownEditorExtensions()`** as in the first example.
 
 - **`latexMathMarkdownSyntaxExtension`** — same as **`mathMarkdownSyntaxExtension`** from core (re-export).
 - **`latexMarkdownSyntaxTheme`** — delimiter and formula highlighting.
