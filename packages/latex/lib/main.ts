@@ -396,15 +396,16 @@ export function formatLatexRenderError(err: unknown): string {
   return 'LaTeX render failed';
 }
 
-/** Populates a math widget with inline error message and source TeX. */
+/** Populates a math widget with error message and source TeX. */
 const populateLatexMathErrorDom = (
   wrap: HTMLElement,
   tex: string,
   err: unknown,
+  display: boolean,
 ): void => {
   const message = formatLatexRenderError(err);
 
-  const messageEl = document.createElement('div');
+  const messageEl = document.createElement(display ? 'div' : 'span');
   messageEl.className = WIDGET_ERROR_MESSAGE_CLASS;
   messageEl.setAttribute('role', 'alert');
   messageEl.textContent = message;
@@ -466,7 +467,7 @@ class LatexMathWidget extends WidgetType {
         view.requestMeasure();
       })
       .catch((err: unknown) => {
-        populateLatexMathErrorDom(wrap, this.tex, err);
+        populateLatexMathErrorDom(wrap, this.tex, err, this.display);
         view.requestMeasure();
       });
 
@@ -563,16 +564,27 @@ const latexMathWidgetTheme = EditorView.theme({
   },
   [`.${WIDGET_CLASS}[data-display="block"].${WIDGET_CLASS}-error`]: {
     textAlign: 'left',
+    padding: '0.5em 0.2rem',
+  },
+  [`.${WIDGET_CLASS}-error[data-display="inline"]`]: {
+    display: 'inline',
+    verticalAlign: 'baseline',
   },
   [`.${WIDGET_ERROR_MESSAGE_CLASS}`]: {
     fontSize: '0.85em',
     lineHeight: 1.35,
-    marginBottom: '0.25em',
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
   },
+  [`.${WIDGET_CLASS}-error[data-display="block"] .${WIDGET_ERROR_MESSAGE_CLASS}`]:
+    {
+      marginBottom: '0.25em',
+    },
+  [`.${WIDGET_CLASS}-error[data-display="inline"] .${WIDGET_ERROR_MESSAGE_CLASS}`]:
+    {
+      display: 'inline',
+    },
   [`.${WIDGET_ERROR_SOURCE_CLASS}`]: {
-    display: 'block',
     fontFamily: 'inherit',
     fontSize: '0.92em',
     lineHeight: 1.35,
@@ -580,6 +592,15 @@ const latexMathWidgetTheme = EditorView.theme({
     wordBreak: 'break-word',
     opacity: 0.9,
   },
+  [`.${WIDGET_CLASS}-error[data-display="block"] .${WIDGET_ERROR_SOURCE_CLASS}`]:
+    {
+      display: 'block',
+    },
+  [`.${WIDGET_CLASS}-error[data-display="inline"] .${WIDGET_ERROR_SOURCE_CLASS}`]:
+    {
+      display: 'inline',
+      marginInlineStart: '0.25em',
+    },
 });
 
 /**
