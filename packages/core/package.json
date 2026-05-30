@@ -29,7 +29,8 @@
     "ci:publish": "bash ../../scripts/ci-publish.sh",
     "dev": "tsdown --watch",
     "lint": "eslint --max-warnings=0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "bun test tests"
   },
   "dependencies": {
     "@lezer/common": "^1.4.0",
@@ -40,6 +41,7 @@
     "node-emoji": "^2.2.0"
   },
   "devDependencies": {
+    "@types/bun": "^1.3.13",
     "@codemirror/autocomplete": "^6.20.0",
     "@codemirror/commands": "^6.10.1",
     "@codemirror/lang-markdown": "^6.5.0",

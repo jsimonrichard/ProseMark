@@ -1,7 +1,8 @@
 {
-  "references": [
-    { "path": "./tsconfig.src.json" },
-    { "path": "./tsconfig.extra.json" }
-  ],
-  "include": []
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "allowImportingTsExtensions": true
+  },
+  "include": ["lib", "tests", "*.config.ts"]
 }

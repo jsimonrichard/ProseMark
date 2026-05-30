@@ -1,3 +1,4 @@
+/// <reference types="bun" />
 import { describe, expect, test } from 'bun:test';
 import { GFM, parser } from '@lezer/markdown';
 import type { SyntaxNode } from '@lezer/common';

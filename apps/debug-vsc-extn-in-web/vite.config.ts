@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { defineConfig } from 'vite';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
