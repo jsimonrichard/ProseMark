@@ -16,6 +16,8 @@ export {
 } from './markdown';
 
 const WIDGET_CLASS = 'cm-latex-math';
+const WIDGET_ERROR_CLASS = `${WIDGET_CLASS}-error`;
+const WIDGET_ERROR_MESSAGE_CLASS = `${WIDGET_CLASS}-error-message`;
 
 /** Keep in sync with the default {@link mathjaxPackageRoot} CDN version. */
 const MATHJAX_VERSION = '4.1.1';
@@ -311,11 +313,105 @@ const renderOrCloneFromCache = async (
     node = await mj.tex2svgPromise(tex, { display });
   }
 
+  const errMsg = extractMathJaxRenderError(node);
+  if (errMsg) {
+    throw new Error(errMsg);
+  }
+
   renderCache?.set(key, node);
   return node.cloneNode(true) as HTMLElement;
 };
 
 const blockMathEstimatedHeightPx = 72;
+
+/**
+ * MathJax renders TeX errors inline (red on yellow) instead of rejecting
+ * `tex2svgPromise` / `tex2chtmlPromise`. Detect those nodes so we can show
+ * ProseMark's themed error UI instead.
+ *
+ * @internal Exported for unit tests.
+ */
+const trimAttr = (el: Element, name: string): string | null => {
+  const value = el.getAttribute(name);
+  if (!value) return null;
+  const trimmed = value.trim();
+  return trimmed || null;
+};
+
+const trimText = (el: Element | null): string | null => {
+  if (!el) return null;
+  const text = el.textContent;
+  if (!text) return null;
+  const trimmed = text.trim();
+  return trimmed || null;
+};
+
+export function extractMathJaxRenderError(root: ParentNode): string | null {
+  const attrError = root.querySelector('[data-mjx-error]');
+  if (attrError) {
+    const msg = trimAttr(attrError, 'data-mjx-error');
+    if (msg) return msg;
+  }
+
+  const mjxMerror = root.querySelector('mjx-merror');
+  if (mjxMerror) {
+    const msg =
+      trimAttr(mjxMerror, 'data-mjx-error') ??
+      trimAttr(mjxMerror, 'title') ??
+      trimText(mjxMerror);
+    if (msg) return msg;
+  }
+
+  const svgMerror = root.querySelector('[data-mml-node="merror"]');
+  if (svgMerror) {
+    const title = trimText(svgMerror.querySelector('title'));
+    if (title) return title;
+    const msg = trimText(svgMerror);
+    if (msg) return msg;
+  }
+
+  return null;
+}
+
+/**
+ * Normalizes MathJax / loader failures into a single user-visible message.
+ *
+ * @internal Exported for unit tests.
+ */
+export function formatLatexRenderError(err: unknown): string {
+  if (err instanceof Error) {
+    const msg = err.message.trim();
+    return msg || 'LaTeX render failed';
+  }
+  if (typeof err === 'string') {
+    const msg = err.trim();
+    return msg || 'LaTeX render failed';
+  }
+  if (err && typeof err === 'object' && 'message' in err) {
+    const raw = (err as { message?: unknown }).message;
+    const msg = typeof raw === 'string' ? raw.trim() : String(raw).trim();
+    if (msg) return msg;
+  }
+  return 'LaTeX render failed';
+}
+
+/** Populates a math widget with the render error message. */
+const populateLatexMathErrorDom = (
+  wrap: HTMLElement,
+  err: unknown,
+  display: boolean,
+): void => {
+  const message = formatLatexRenderError(err);
+
+  const messageEl = document.createElement(display ? 'div' : 'span');
+  messageEl.className = WIDGET_ERROR_MESSAGE_CLASS;
+  messageEl.setAttribute('role', 'alert');
+  messageEl.textContent = message;
+
+  wrap.replaceChildren(messageEl);
+  wrap.classList.add(WIDGET_ERROR_CLASS);
+  wrap.setAttribute('title', message);
+};
 
 const latexWidgetResizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
 
@@ -365,10 +461,7 @@ class LatexMathWidget extends WidgetType {
         view.requestMeasure();
       })
       .catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : String(err);
-        wrap.textContent = this.tex;
-        wrap.title = msg;
-        wrap.classList.add(`${WIDGET_CLASS}-error`);
+        populateLatexMathErrorDom(wrap, err, this.display);
         view.requestMeasure();
       });
 
@@ -440,9 +533,47 @@ const latexMathWidgetTheme = EditorView.theme({
     padding: '0.5em 0',
   },
   [`.${WIDGET_CLASS}-error`]: {
-    color: '#b00020',
-    fontFamily: 'monospace',
+    color:
+      'var(--pm-latex-math-error-color, var(--pm-syntax-invalid, #c62828))',
+    backgroundColor:
+      'var(--pm-latex-math-error-background-color, rgb(128 128 128 / 0.12))',
+    fontFamily: `var(
+      --pm-latex-math-formula-font,
+      var(
+        --pm-code-font,
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        'Liberation Mono',
+        'Courier New',
+        monospace
+      )
+    )`,
+    borderRadius: '0.4rem',
+    padding: '0.2rem',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
   },
+  [`.${WIDGET_CLASS}[data-display="block"].${WIDGET_CLASS}-error`]: {
+    textAlign: 'left',
+    padding: '0.5em 0.2rem',
+  },
+  [`.${WIDGET_CLASS}-error[data-display="inline"]`]: {
+    display: 'inline',
+    verticalAlign: 'baseline',
+  },
+  [`.${WIDGET_ERROR_MESSAGE_CLASS}`]: {
+    fontSize: '0.85em',
+    lineHeight: 1.35,
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+  },
+  [`.${WIDGET_CLASS}-error[data-display="inline"] .${WIDGET_ERROR_MESSAGE_CLASS}`]:
+    {
+      display: 'inline',
+    },
 });
 
 /**
