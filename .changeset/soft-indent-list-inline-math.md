@@ -3,7 +3,7 @@
 '@prosemark/latex': patch
 ---
 
-Fix soft-indent layout when inline `$...$` math appears on list, blockquote, task, or indented lines. Prefix width no longer grows on click or edit. List items with math align with other list items.
+Fix soft-indent layout when inline `$...$` math appears on list, blockquote, task, or indented lines.
 
 `@prosemark/core` exports `isInlineMathNode`, `matchSoftIndentPrefix`, `measureSoftIndentWidth`, `softIndentMeasurePos`, and `SOFT_INDENT_LINE_CLASS`. Soft-indented lines get class `cm-soft-indent-line`.
 
