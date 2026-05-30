@@ -151,9 +151,15 @@ const cacheKey = (
   body: string,
 ): string => `${compilerUrl}\n${rendererUrl}\n${display ? '1' : '0'}\n${body}`;
 
-/** typst inline math baseline ≈ 7.513pt in an 8pt-tall viewBox (empirical). */
-const TYPST_MATH_BASELINE_RATIO = 7.513 / 8;
+/** typst.ts inline math uses ~8pt viewBoxes; baseline ≈ 7.513pt (empirical). */
+const TYPST_INLINE_MATH_VB_HEIGHT = 8;
+const TYPST_INLINE_MATH_BASELINE_Y =
+  TYPST_INLINE_MATH_VB_HEIGHT * (7.513 / 8);
+const TYPST_INLINE_MATH_DESCENDER_PT =
+  TYPST_INLINE_MATH_VB_HEIGHT - TYPST_INLINE_MATH_BASELINE_Y;
 const INLINE_TYPST_MATH_HEIGHT_EM = 1.05;
+/** Padding in typst pt units when expanding viewBox to ink bounds. */
+const INLINE_TYPST_MATH_INK_PADDING_PT = 0.35;
 
 const forceInlineSvgDisplay = (svg: SVGSVGElement): void => {
   svg.style.display = 'inline';
@@ -179,15 +185,13 @@ const collectTypstGlyphBaselineCandidates = (svg: SVGSVGElement): number[] => {
   return ys;
 };
 
-const typstMathBaselineY = (svg: SVGSVGElement, viewHeight: number): number => {
-  const target = viewHeight * TYPST_MATH_BASELINE_RATIO;
+const typstMathBaselineY = (svg: SVGSVGElement): number => {
+  const target = TYPST_INLINE_MATH_BASELINE_Y;
   const candidates = collectTypstGlyphBaselineCandidates(svg);
   if (candidates.length === 0) {
     try {
       const bbox = svg.getBBox();
-      return (
-        bbox.y + bbox.height - viewHeight * (1 - TYPST_MATH_BASELINE_RATIO)
-      );
+      return bbox.y + bbox.height - TYPST_INLINE_MATH_DESCENDER_PT;
     } catch {
       return target;
     }
@@ -200,7 +204,7 @@ const typstMathBaselineY = (svg: SVGSVGElement, viewHeight: number): number => {
   });
   const bestDist = Math.abs(best - target);
 
-  if (bestDist > viewHeight * 0.15) {
+  if (bestDist > 1.2) {
     try {
       const bbox = svg.getBBox();
       return bbox.y + bbox.height / 2;
@@ -213,19 +217,53 @@ const typstMathBaselineY = (svg: SVGSVGElement, viewHeight: number): number => {
 };
 
 /**
+ * typst.ts viewBoxes are often shorter than the ink (subscripts, fractions).
+ * Grow the viewBox to getBBox so line layout reserves enough vertical space.
+ */
+const expandInlineTypstSvgViewBoxToInk = (svg: SVGSVGElement): void => {
+  let bbox: DOMRect;
+  try {
+    bbox = svg.getBBox();
+  } catch {
+    return;
+  }
+  if (bbox.width === 0 && bbox.height === 0) return;
+
+  const vb = svg.viewBox.baseVal;
+  const pad = INLINE_TYPST_MATH_INK_PADDING_PT;
+  const x = Math.min(vb.x, bbox.x - pad);
+  const y = Math.min(vb.y, bbox.y - pad);
+  const right = Math.max(vb.x + vb.width, bbox.x + bbox.width + pad);
+  const bottom = Math.max(vb.y + vb.height, bbox.y + bbox.height + pad);
+  const width = right - x;
+  const height = bottom - y;
+  if (width <= 0 || height <= 0) return;
+
+  svg.setAttribute(
+    'viewBox',
+    `${String(x)} ${String(y)} ${String(width)} ${String(height)}`,
+  );
+  svg.removeAttribute('width');
+  svg.removeAttribute('height');
+};
+
+/**
  * Inline SVG baselines default to the viewport bottom; typst math sits higher.
  * Shift each fragment down so the typst baseline meets surrounding text.
  */
 const alignInlineTypstSvgBaseline = (svg: SVGSVGElement): void => {
+  expandInlineTypstSvgViewBoxToInk(svg);
+
   const vb = svg.viewBox.baseVal;
   if (!vb.height) return;
 
-  const baselineY = typstMathBaselineY(svg, vb.height);
+  const baselineY = typstMathBaselineY(svg);
   const slackBelowBaseline = vb.y + vb.height - baselineY;
-  const offsetEm =
-    (slackBelowBaseline / vb.height) * INLINE_TYPST_MATH_HEIGHT_EM;
+  const heightEm =
+    INLINE_TYPST_MATH_HEIGHT_EM * (vb.height / TYPST_INLINE_MATH_VB_HEIGHT);
+  const offsetEm = (slackBelowBaseline / vb.height) * heightEm;
 
-  svg.style.height = `${String(INLINE_TYPST_MATH_HEIGHT_EM)}em`;
+  svg.style.height = `${heightEm.toFixed(4)}em`;
   svg.style.width = 'auto';
   svg.style.verticalAlign = `-${offsetEm.toFixed(4)}em`;
 };
