@@ -14,7 +14,11 @@ export default defineConfig([
       parserOptions: {
         projectService: {
           maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 14,
-          allowDefaultProject: ['tsdown.config.ts', 'eslint.config.ts'],
+          allowDefaultProject: [
+            'tsdown.config.ts',
+            'eslint.config.ts',
+            'tests/multiLineMathBlock.test.ts',
+          ],
         },
         tsconfigRootDir: import.meta.dirname,
       },
