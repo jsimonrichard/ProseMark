@@ -1,6 +1,6 @@
 # ProseMark for VS Code — LaTeX (MathJax) integration
 
-Companion extension that enables **rendered math** in the [ProseMark](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark) editor for `$...$` and `$$...$$` using [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) (dependent on MathJax from the `mathjax` npm package).
+Companion extension that enables **rendered math** in the [ProseMark](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark) editor for `$...$` and `$$...$$` using [**MathJax**](https://www.mathjax.org/) and [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex).
 
 The documentation for the ProseMark libraries can be found at https://prosemark.com.
 
@@ -21,3 +21,7 @@ This extension does not contribute VS Code settings yet.
 ## Known issues
 
 Please report bugs on the [GitHub issues page](https://github.com/jsimonrichard/ProseMark/issues).
+
+## Developing this extension
+
+After `bun install`, run `bun run build`. **Vite** produces `dist/webview/webview.js` with MathJax SVG output inlined into that bundle (see `src/webview/main.ts`). Bump the **`mathjax`** dependency when you want a different MathJax version.

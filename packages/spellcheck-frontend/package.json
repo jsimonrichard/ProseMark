@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.38.0",
+    "@codemirror/view": "^6.42.1",
     "@prosemark/core": "workspace:*"
   },
   "devDependencies": {
