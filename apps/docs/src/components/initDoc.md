@@ -51,6 +51,8 @@ $$
 \int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}
 $$
 
+For Typst math instead of MathJax, try the [Typst math demo](/demo/typst).
+
 ## Credits
 
 Made by Simon Richard (https://jsimonrichard.com)
