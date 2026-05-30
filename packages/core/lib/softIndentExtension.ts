@@ -32,6 +32,22 @@ export const softIndentMeasurePos = (
   nonContentLength: number,
 ): number => lineFrom + Math.max(0, nonContentLength - 1);
 
+/**
+ * Returns the markdown prefix to hang (blockquote, leading space/tab, list, task),
+ * or `null` when the line should not get soft indent (e.g. plain paragraphs).
+ */
+export const matchSoftIndentPrefix = (lineText: string): string | null => {
+  const matches = softIndentPattern.exec(lineText);
+  if (!matches) return null;
+  const nonContent = matches[0];
+  if (!nonContent.length) return null;
+  if (nonContent.startsWith('>')) return nonContent;
+  if (/^[ \t]/.test(nonContent)) return nonContent;
+  if (/^(\s*)([-*+]|\d[.)])\s/.test(lineText)) return nonContent;
+  if (/^(\s*)([-*+]|\d[.)])\s\[.\]\s/.test(lineText)) return nonContent;
+  return null;
+};
+
 const softIndentRefresh = Annotation.define<number>();
 const MAX_REFRESH_ROUNDS = 1;
 
@@ -41,16 +57,6 @@ interface ChangedLine {
   oldStyle?: string;
   newStyle?: string;
 }
-
-const lineElementAt = (
-  view: EditorView,
-  lineFrom: number,
-): HTMLElement | null => {
-  const dom = view.domAtPos(lineFrom);
-  const node = dom.node;
-  const element = node instanceof HTMLElement ? node : node.parentElement;
-  return element?.closest('.cm-line') ?? null;
-};
 
 const lineHasInlineMath = (
   view: EditorView,
@@ -73,20 +79,29 @@ const lineHasInlineMath = (
 };
 
 /**
- * Measure prefix width from the line box's left edge to the end of the markdown
- * prefix. Uses the line DOM edge instead of `coordsAtPos(line.from)` so list-mark
- * replace widgets and inline math on the same line cannot skew the width.
+ * Pixel width of the soft-indent prefix. Uses document positions only so existing
+ * `padding-inline-start` on the line does not compound on remeasure (click/edit).
  */
 export const measureSoftIndentWidth = (
   view: EditorView,
   lineFrom: number,
   measurePos: number,
 ): number => {
-  const lineLeft = lineElementAt(view, lineFrom)?.getBoundingClientRect().left;
+  if (measurePos < lineFrom) return 0;
+
   const endCoords = view.coordsAtPos(measurePos, 1);
-  const endRight = endCoords?.right ?? endCoords?.left;
-  if (lineLeft === undefined || endRight === undefined) return 0;
-  return Math.max(0, endRight - lineLeft);
+  const end = endCoords?.right ?? endCoords?.left ?? 0;
+
+  // List marks are replace widgets at `lineFrom`; use the right edge of that cell.
+  const startAfterMark = view.coordsAtPos(lineFrom, 1);
+  const startBeforeMark = view.coordsAtPos(lineFrom, -1);
+  const candidates = [startAfterMark?.left, startBeforeMark?.left].filter(
+    (v): v is number => v !== undefined,
+  );
+
+  if (!candidates.length) return 0;
+  const start = Math.min(...candidates);
+  return Math.max(0, end - start);
 };
 
 function getDifferences(
@@ -156,22 +171,16 @@ export const softIndentExtension = ViewPlugin.fromClass(
       });
     }
 
-    // Use view.coordAtPos to measure the indent required
     measureIndents(view: EditorView): IndentData[] {
       const indents: IndentData[] = [];
-      // Loop through all visible lines
       for (const { from, to } of view.visibleRanges) {
         const start = view.state.doc.lineAt(from);
         const end = view.state.doc.lineAt(to);
         for (let i = start.number; i <= end.number; i++) {
-          // Get current line object
           const line = view.state.doc.line(i);
-
-          // Match the line's text with the indent pattern
           const text = view.state.sliceDoc(line.from, line.to);
-          const matches = softIndentPattern.exec(text);
-          if (!matches) continue;
-          const nonContent = matches[0];
+          const nonContent = matchSoftIndentPrefix(text);
+          if (!nonContent) continue;
 
           const measurePos = softIndentMeasurePos(line.from, nonContent.length);
           const indentWidth = measureSoftIndentWidth(
@@ -222,8 +231,6 @@ export const softIndentExtension = ViewPlugin.fromClass(
       return { decorations: builder.finish(), styles };
     }
 
-    // This applies new decorations and will dispatch another transaction
-    // until the dom layout settles
     applyIndents(indents: IndentData[], view: EditorView, refreshCount = 0) {
       const { decorations: newDecos, styles: newStyles } =
         this.buildDecorations(indents, view);

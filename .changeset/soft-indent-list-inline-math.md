@@ -2,4 +2,4 @@
 '@prosemark/core': patch
 ---
 
-Fix soft-indent layout on list (and similar) lines that contain inline `$...$` math. Measure prefix width from the line box edge instead of `coordsAtPos(line.from)` (unstable with list-mark widgets), measure through the last prefix character, and omit negative `text-indent` on lines with inline math so MathJax inline-block widgets are not pulled into the hanging-indent margin.
+Fix soft-indent layout on list (and similar) lines that contain inline `$...$` math. Only apply soft indent when the line has a real markdown prefix (blockquote, leading space/tab, or list/task marker), not on plain paragraphs. Measure prefix width with stable `coordsAtPos` deltas so padding does not compound on click/edit. Omit negative `text-indent` on lines with inline math so MathJax widgets stay aligned.
