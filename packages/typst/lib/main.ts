@@ -108,7 +108,7 @@ const mathToTypstDocument = (body: string, display: boolean): string => {
   if (display) {
     return `${page}#align(center)[#block(inset: 4pt)[$ ${src} $]]`;
   }
-  return `${page}#box(inset: (y: 0.08em))[$${src}$]`;
+  return `${page}$${src}$`;
 };
 
 interface RenderCacheEntry {
@@ -151,12 +151,94 @@ const cacheKey = (
   body: string,
 ): string => `${compilerUrl}\n${rendererUrl}\n${display ? '1' : '0'}\n${body}`;
 
+/** typst inline math baseline ≈ 7.513pt in an 8pt-tall viewBox (empirical). */
+const TYPST_MATH_BASELINE_RATIO = 7.513 / 8;
+const INLINE_TYPST_MATH_HEIGHT_EM = 1.05;
+
 const forceInlineSvgDisplay = (svg: SVGSVGElement): void => {
   svg.style.display = 'inline';
-  svg.style.verticalAlign = 'middle';
   svg.querySelectorAll('svg').forEach((node) => {
     node.style.display = 'inline';
-    node.style.verticalAlign = 'middle';
+  });
+};
+
+const parseTranslateY = (transform: string): number | null => {
+  const re =
+    /translate\s*\(\s*[^,\s)]+(?:\s*,\s*|\s+)(-?\d+(?:\.\d+)?)/;
+  const match = re.exec(transform);
+  return match ? Number.parseFloat(match[1]) : null;
+};
+
+const collectTypstGlyphBaselineCandidates = (svg: SVGSVGElement): number[] => {
+  const ys: number[] = [];
+  svg.querySelectorAll('[transform]').forEach((el) => {
+    const y = parseTranslateY(el.getAttribute('transform') ?? '');
+    if (y !== null && y > 0) ys.push(y);
+  });
+  return ys;
+};
+
+const typstMathBaselineY = (svg: SVGSVGElement, viewHeight: number): number => {
+  const target = viewHeight * TYPST_MATH_BASELINE_RATIO;
+  const candidates = collectTypstGlyphBaselineCandidates(svg);
+  if (candidates.length === 0) {
+    try {
+      const bbox = svg.getBBox();
+      return (
+        bbox.y + bbox.height - viewHeight * (1 - TYPST_MATH_BASELINE_RATIO)
+      );
+    } catch {
+      return target;
+    }
+  }
+
+  let best = candidates[0];
+  let bestDist = Math.abs(best - target);
+  for (let i = 1; i < candidates.length; i++) {
+    const y = candidates[i];
+    const dist = Math.abs(y - target);
+    if (dist < bestDist) {
+      best = y;
+      bestDist = dist;
+    }
+  }
+
+  if (bestDist > viewHeight * 0.15) {
+    try {
+      const bbox = svg.getBBox();
+      return bbox.y + bbox.height / 2;
+    } catch {
+      /* keep transform-based estimate */
+    }
+  }
+
+  return best;
+};
+
+/**
+ * Inline SVG baselines default to the viewport bottom; typst math sits higher.
+ * Shift each fragment down so the typst baseline meets surrounding text.
+ */
+const alignInlineTypstSvgBaseline = (svg: SVGSVGElement): void => {
+  const vb = svg.viewBox.baseVal;
+  if (!vb.height) return;
+
+  const baselineY = typstMathBaselineY(svg, vb.height);
+  const slackBelowBaseline = vb.y + vb.height - baselineY;
+  const offsetEm =
+    (slackBelowBaseline / vb.height) * INLINE_TYPST_MATH_HEIGHT_EM;
+
+  svg.style.height = `${String(INLINE_TYPST_MATH_HEIGHT_EM)}em`;
+  svg.style.width = 'auto';
+  svg.style.verticalAlign = `-${offsetEm.toFixed(4)}em`;
+};
+
+const alignInlineTypstWidgetBaselines = (wrap: HTMLElement): void => {
+  wrap.style.verticalAlign = 'baseline';
+  wrap.querySelectorAll('svg').forEach((node) => {
+    if (node instanceof SVGSVGElement) {
+      alignInlineTypstSvgBaseline(node);
+    }
   });
 };
 
@@ -316,6 +398,9 @@ class TypstMathWidget extends WidgetType {
       )
       .then((nodes) => {
         wrap.replaceChildren(...nodes);
+        if (!this.display) {
+          alignInlineTypstWidgetBaselines(wrap);
+        }
         view.requestMeasure();
       })
       .catch((err: unknown) => {
@@ -380,7 +465,7 @@ export const typstMathSyntaxHighlighting = syntaxHighlighting(
 const typstMathWidgetTheme = EditorView.theme({
   [`.${WIDGET_CLASS}`]: {
     display: 'inline-block',
-    verticalAlign: 'middle',
+    verticalAlign: 'baseline',
     maxWidth: '100%',
     color: 'inherit',
   },
@@ -388,12 +473,11 @@ const typstMathWidgetTheme = EditorView.theme({
   // and stack vertically unless forced inline (block math centers via text-align).
   [`.${WIDGET_CLASS} svg`]: {
     display: 'inline',
-    verticalAlign: 'middle',
+    verticalAlign: 'baseline',
     maxWidth: '100%',
     color: 'inherit',
   },
   [`.${WIDGET_CLASS}[data-display="inline"] svg`]: {
-    height: '1.05em',
     width: 'auto',
   },
   [`.${WIDGET_CLASS}[data-display="block"]`]: {
