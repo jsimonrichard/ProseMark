@@ -3,14 +3,8 @@
 '@prosemark/latex': patch
 ---
 
-Fix broken layout when inline `$...$` math appears on soft-indented lines (lists, blockquotes, leading spaces, tasks).
+Fix soft-indent layout when inline `$...$` math appears on list, blockquote, task, or indented lines. Plain paragraphs with math are no longer soft-indented. Prefix width no longer grows on click or edit. List items with math align with other list items.
 
-**Compared to the previous release (`main`):** the soft-indent prefix regex is unchanged (`softIndentPattern`). This release tightens *which* lines receive soft indent and *how* prefix width is measured:
+`@prosemark/core` exports `isInlineMathNode`, `matchSoftIndentPrefix`, `measureSoftIndentWidth`, `softIndentMeasurePos`, and `SOFT_INDENT_LINE_CLASS`. Soft-indented lines get class `cm-soft-indent-line`.
 
-- **`matchSoftIndentPrefix`** — only applies soft indent when the line has a real markdown prefix (blockquote `>`, leading space/tab, list marker, or task checkbox). Plain paragraphs with math no longer match the regex’s empty optional groups.
-- **Stable prefix measurement** — measure through the last prefix character and use `coordsAtPos` deltas so padding does not grow on every click or edit; list-mark replace widgets are handled correctly.
-- **`cm-soft-indent-line`** — class on soft-indented lines for theme hooks.
-
-**`@prosemark/latex`:** on soft-indented lines, inline MathJax widgets use `display: inline` / `baseline` alignment so hanging `text-indent` matches other list items instead of pushing math farther right or overlapping bullets.
-
-Also exports **`isInlineMathNode`** (inline vs display `$...$` detection for tooling; does not change math parsing).
+`@prosemark/latex` renders inline math as `display: inline` on `cm-soft-indent-line` so hanging indent does not misplace MathJax widgets.
