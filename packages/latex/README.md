@@ -116,7 +116,7 @@ Rendered math widgets and source highlighting use `--pm-*` variables on the edit
 | `--pm-latex-math-formula-color`          | Raw formula text before render                                            |
 | `--pm-latex-math-formula-font`           | Monospace stack for formula source (defaults to `--pm-code-font`)         |
 | `--pm-latex-math-error-color`            | Failed render message and source text (defaults to `--pm-syntax-invalid`) |
-| `--pm-latex-math-error-background-color` | Failed render background (defaults to `--pm-code-background-color`)       |
+| `--pm-latex-math-error-background-color` | Failed render background (defaults to semi-transparent gray)              |
 
 When MathJax rejects a formula, the widget shows the error message and source TeX inline (no console required).
 

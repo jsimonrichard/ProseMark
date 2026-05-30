@@ -485,9 +485,9 @@ const latexMathWidgetTheme = EditorView.theme({
   },
   [`.${WIDGET_CLASS}-error`]: {
     color:
-      'var(--pm-latex-math-error-color, var(--pm-syntax-invalid, #b00020))',
+      'var(--pm-latex-math-error-color, var(--pm-syntax-invalid, #c62828))',
     backgroundColor:
-      'var(--pm-latex-math-error-background-color, var(--pm-code-background-color, #fce8e8))',
+      'var(--pm-latex-math-error-background-color, rgb(128 128 128 / 0.12))',
     fontFamily: `var(
       --pm-latex-math-formula-font,
       var(
@@ -502,8 +502,8 @@ const latexMathWidgetTheme = EditorView.theme({
         monospace
       )
     )`,
-    borderRadius: '0.25em',
-    padding: '0.2em 0.4em',
+    borderRadius: '0.4rem',
+    padding: '0.2rem',
     maxWidth: '100%',
     boxSizing: 'border-box',
   },
