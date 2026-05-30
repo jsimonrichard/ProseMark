@@ -14,6 +14,17 @@ interface IndentData {
 
 const softIndentPattern = /^(> )*(\s*)?(([-*+]?|\d[.)])\s)?(\[.\]\s)?/;
 
+/**
+ * Document position to measure the visual end of a soft-indent prefix.
+ * Uses the last source character of the prefix (not the position after it) so
+ * `coordsAtPos` does not land on replace decorations (e.g. inline MathJax at
+ * `- $...$`).
+ */
+export const softIndentMeasurePos = (
+  lineFrom: number,
+  nonContentLength: number,
+): number => lineFrom + Math.max(0, nonContentLength - 1);
+
 const softIndentRefresh = Annotation.define<number>();
 const MAX_REFRESH_ROUNDS = 1;
 
@@ -108,10 +119,14 @@ export const softIndentExtension = ViewPlugin.fromClass(
           if (!matches) continue;
           const nonContent = matches[0];
 
-          // Get indent width
+          // Measure through the last prefix character (usually trailing space).
+          // The position *after* the prefix can sit on a replace widget and skew width.
+          const measurePos = softIndentMeasurePos(line.from, nonContent.length);
+          const endCoords = view.coordsAtPos(measurePos, 1);
+          const startCoords = view.coordsAtPos(line.from);
           const indentWidth =
-            (view.coordsAtPos(line.from + nonContent.length)?.left ?? 0) -
-            (view.coordsAtPos(line.from)?.left ?? 0);
+            (endCoords?.right ?? endCoords?.left ?? 0) -
+            (startCoords?.left ?? 0);
           if (!indentWidth) continue;
 
           indents.push({
