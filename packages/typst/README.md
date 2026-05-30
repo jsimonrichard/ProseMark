@@ -22,14 +22,14 @@ The published **`dist/main.js`** keeps those **`…wasm?url`** import specifiers
 import { markdown } from '@codemirror/lang-markdown';
 import { GFM } from '@lezer/markdown';
 import { prosemarkMarkdownSyntaxExtensions } from '@prosemark/core';
-import { typstMarkdownSyntaxTheme, typstMarkdownEditorExtensions } from '@prosemark/typst';
+import {
+  typstMarkdownSyntaxTheme,
+  typstMarkdownEditorExtensions,
+} from '@prosemark/typst';
 
 const extensions = [
   markdown({
-    extensions: [
-      GFM,
-      prosemarkMarkdownSyntaxExtensions,
-    ],
+    extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
   }),
   ...typstMarkdownSyntaxTheme,
   ...typstMarkdownEditorExtensions(),
@@ -56,7 +56,7 @@ typstMarkdownEditorExtensions({
 
 ## LaTeX vs Typst
 
-Do **not** enable **`latexMarkdownEditorExtensions`** and **`typstMarkdownEditorExtensions`** for the same editor: both replace **`Math`** nodes.
+Do **not** enable **`latexMarkdownEditorExtensions`** and **`typstMarkdownEditorExtensions`** for the same editor: both replace **`Math`** nodes. Typst widgets use the class **`cm-typst-math`** (exported as **`typstMathWidgetClass`**); LaTeX/MathJax uses **`cm-latex-math`**. If you see `cm-latex-math` in the DOM, the editor is still loading **`@prosemark/latex`**, not this package.
 
 ## Limitations
 

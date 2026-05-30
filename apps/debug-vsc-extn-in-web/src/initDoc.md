@@ -24,10 +24,10 @@ function recieveMessage() {
 }
 ```
 
-## LaTeX math (layout check)
+## Typst math (layout check)
 
-Inline $a^2 + b^2 = c^2$ and a display block:
+Inline $e^(i pi) + 1 = 0$ and a display block:
 
 $$
-\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}
+sum_(n=1)^oo 1/n^2 = pi^2/6
 $$

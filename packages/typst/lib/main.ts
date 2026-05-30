@@ -20,7 +20,10 @@ export {
   typstMathMarkdownSyntaxExtension,
 } from './markdown';
 
-const WIDGET_CLASS = 'cm-typst-math';
+/** CSS class on rendered math widget roots (span/div). */
+export const typstMathWidgetClass = 'cm-typst-math';
+
+const WIDGET_CLASS = typstMathWidgetClass;
 
 export interface TypstMarkdownEditorOptions {
   /**
