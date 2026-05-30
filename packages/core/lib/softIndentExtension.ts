@@ -6,13 +6,20 @@ import {
   ViewUpdate,
   type DecorationSet,
 } from '@codemirror/view';
+import { syntaxTree } from '@codemirror/language';
+import { isInlineMathNode } from './markdown/mathMarkdown';
 
 interface IndentData {
   lineNumber: number;
   indentWidth: number;
+  /** Skip negative `text-indent` — it breaks inline replace widgets (e.g. MathJax). */
+  paddingOnly: boolean;
 }
 
 const softIndentPattern = /^(> )*(\s*)?(([-*+]?|\d[.)])\s)?(\[.\]\s)?/;
+
+const SOFT_INDENT_LINE_CLASS = 'cm-soft-indent-line';
+const SOFT_INDENT_INLINE_MATH_CLASS = 'cm-soft-indent-line--inline-math';
 
 /**
  * Document position to measure the visual end of a soft-indent prefix.
@@ -34,6 +41,53 @@ interface ChangedLine {
   oldStyle?: string;
   newStyle?: string;
 }
+
+const lineElementAt = (
+  view: EditorView,
+  lineFrom: number,
+): HTMLElement | null => {
+  const dom = view.domAtPos(lineFrom);
+  const node = dom.node;
+  const element = node instanceof HTMLElement ? node : node.parentElement;
+  return element?.closest('.cm-line') ?? null;
+};
+
+const lineHasInlineMath = (
+  view: EditorView,
+  lineFrom: number,
+  lineTo: number,
+) => {
+  let found = false;
+  syntaxTree(view.state).iterate({
+    from: lineFrom,
+    to: lineTo,
+    enter: (node) => {
+      if (node.name !== 'Math') return;
+      if (isInlineMathNode(view.state, node.from, node.to)) {
+        found = true;
+        return false;
+      }
+    },
+  });
+  return found;
+};
+
+/**
+ * Measure prefix width from the line box's left edge to the end of the markdown
+ * prefix. Uses the line DOM edge instead of `coordsAtPos(line.from)` so list-mark
+ * replace widgets and inline math on the same line cannot skew the width.
+ */
+export const measureSoftIndentWidth = (
+  view: EditorView,
+  lineFrom: number,
+  measurePos: number,
+): number => {
+  const lineLeft = lineElementAt(view, lineFrom)?.getBoundingClientRect().left;
+  const endCoords = view.coordsAtPos(measurePos, 1);
+  const endRight = endCoords?.right ?? endCoords?.left;
+  if (lineLeft === undefined || endRight === undefined) return 0;
+  return Math.max(0, endRight - lineLeft);
+};
 
 function getDifferences(
   view: EditorView,
@@ -119,19 +173,20 @@ export const softIndentExtension = ViewPlugin.fromClass(
           if (!matches) continue;
           const nonContent = matches[0];
 
-          // Measure through the last prefix character (usually trailing space).
-          // The position *after* the prefix can sit on a replace widget and skew width.
           const measurePos = softIndentMeasurePos(line.from, nonContent.length);
-          const endCoords = view.coordsAtPos(measurePos, 1);
-          const startCoords = view.coordsAtPos(line.from);
-          const indentWidth =
-            (endCoords?.right ?? endCoords?.left ?? 0) -
-            (startCoords?.left ?? 0);
+          const indentWidth = measureSoftIndentWidth(
+            view,
+            line.from,
+            measurePos,
+          );
           if (!indentWidth) continue;
+
+          const paddingOnly = lineHasInlineMath(view, line.from, line.to);
 
           indents.push({
             lineNumber: i,
             indentWidth,
+            paddingOnly,
           });
         }
       }
@@ -142,13 +197,21 @@ export const softIndentExtension = ViewPlugin.fromClass(
       const builder = new RangeSetBuilder<Decoration>();
       const styles = new Map<number, string>();
 
-      for (const { lineNumber, indentWidth } of indents) {
+      for (const { lineNumber, indentWidth, paddingOnly } of indents) {
         const line = view.state.doc.line(lineNumber);
-        const style = `padding-inline-start: ${(indentWidth + 6).toString()}px; text-indent: -${indentWidth.toString()}px;`;
+        const padding = `${(indentWidth + 6).toString()}px`;
+        const style = paddingOnly
+          ? `padding-inline-start: ${padding};`
+          : `padding-inline-start: ${padding}; text-indent: -${indentWidth.toString()}px;`;
         styles.set(lineNumber, style);
+
+        const className = paddingOnly
+          ? `${SOFT_INDENT_LINE_CLASS} ${SOFT_INDENT_INLINE_MATH_CLASS}`
+          : SOFT_INDENT_LINE_CLASS;
 
         const deco = Decoration.line({
           attributes: {
+            class: className,
             style,
           },
         });
