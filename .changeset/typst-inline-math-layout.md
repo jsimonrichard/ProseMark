@@ -2,4 +2,4 @@
 '@prosemark/typst': patch
 ---
 
-Fix inline and block math layout by forcing typst.ts SVG output to `display: inline` (multiple SVG fragments otherwise stack as block). Also strip selection overlays and omit CSS/JS from widget renders.
+Fix inline and block math layout by setting `display: inline` on typst SVG output (including multiple sibling fragments) via inline styles and widget CSS, so fragments do not stack as block-level boxes.

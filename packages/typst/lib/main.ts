@@ -102,7 +102,7 @@ const mathToTypstDocument = (body: string, display: boolean): string => {
 };
 
 interface RenderCacheEntry {
-  node: SVGSVGElement;
+  nodes: SVGSVGElement[];
 }
 
 class RenderLru {
@@ -113,17 +113,17 @@ class RenderLru {
     this.max = max;
   }
 
-  get(key: string): SVGSVGElement | undefined {
+  get(key: string): SVGSVGElement[] | undefined {
     const ent = this.map.get(key);
     if (!ent) return undefined;
     this.map.delete(key);
     this.map.set(key, ent);
-    return ent.node;
+    return ent.nodes;
   }
 
-  set(key: string, node: SVGSVGElement): void {
+  set(key: string, nodes: SVGSVGElement[]): void {
     if (this.map.has(key)) this.map.delete(key);
-    this.map.set(key, { node });
+    this.map.set(key, { nodes });
     while (this.map.size > this.max) {
       const iter = this.map.keys().next();
       if (iter.done) break;
@@ -141,16 +141,13 @@ const cacheKey = (
   body: string,
 ): string => `${compilerUrl}\n${rendererUrl}\n${display ? '1' : '0'}\n${body}`;
 
-const svgStringToElement = (svg: string): SVGSVGElement => {
-  const doc = new DOMParser().parseFromString(svg, 'image/svg+xml');
-  const el = doc.documentElement;
-  if (
-    el.namespaceURI !== 'http://www.w3.org/2000/svg' ||
-    el.nodeName !== 'svg'
-  ) {
-    throw new Error('Typst did not return a root <svg> element');
-  }
-  return el as unknown as SVGSVGElement;
+const forceInlineSvgDisplay = (svg: SVGSVGElement): void => {
+  svg.style.display = 'inline';
+  svg.style.verticalAlign = 'middle';
+  svg.querySelectorAll('svg').forEach((node) => {
+    node.style.display = 'inline';
+    node.style.verticalAlign = 'middle';
+  });
 };
 
 /**
@@ -169,8 +166,40 @@ const prepareTypstSvgForWidget = (svg: SVGSVGElement): SVGSVGElement => {
     node.remove();
   });
   svg.style.overflow = 'visible';
+  forceInlineSvgDisplay(svg);
   return svg;
 };
+
+/** typst.ts may return one SVG document or several sibling `<svg>` fragments. */
+const typstSvgStringToElements = (raw: string): SVGSVGElement[] => {
+  const trimmed = raw.trim();
+  const svgTagCount = trimmed.match(/<svg[\s>]/gi)?.length ?? 0;
+
+  if (svgTagCount <= 1) {
+    const doc = new DOMParser().parseFromString(trimmed, 'image/svg+xml');
+    const el = doc.documentElement;
+    if (
+      !doc.querySelector('parsererror') &&
+      el.namespaceURI === 'http://www.w3.org/2000/svg' &&
+      el.nodeName === 'svg'
+    ) {
+      return [prepareTypstSvgForWidget(el as unknown as SVGSVGElement)];
+    }
+  }
+
+  const holder = document.createElement('div');
+  holder.innerHTML = trimmed;
+  const roots = [...holder.children].filter(
+    (el): el is SVGSVGElement => el.tagName === 'svg',
+  );
+  if (roots.length === 0) {
+    throw new Error('Typst did not return any <svg> element');
+  }
+  return roots.map((el) => prepareTypstSvgForWidget(el));
+};
+
+const cloneSvgNodes = (nodes: SVGSVGElement[]): SVGSVGElement[] =>
+  nodes.map((node) => node.cloneNode(true) as SVGSVGElement);
 
 const typstSvgRenderOptions = {
   data_selection: {
@@ -186,20 +215,20 @@ const renderOrCloneFromCache = async (
   display: boolean,
   compilerUrl: string,
   rendererUrl: string,
-): Promise<SVGSVGElement> => {
+): Promise<SVGSVGElement[]> => {
   const key = cacheKey(compilerUrl, rendererUrl, display, body);
   const cached = renderCache?.get(key);
   if (cached) {
-    return cached.cloneNode(true) as SVGSVGElement;
+    return cloneSvgNodes(cached);
   }
 
   const svg = await $typst.svg({
     mainContent: mathToTypstDocument(body, display),
     ...typstSvgRenderOptions,
   });
-  const node = prepareTypstSvgForWidget(svgStringToElement(svg));
-  renderCache?.set(key, node);
-  return node.cloneNode(true) as SVGSVGElement;
+  const nodes = typstSvgStringToElements(svg);
+  renderCache?.set(key, nodes);
+  return cloneSvgNodes(nodes);
 };
 
 const blockMathEstimatedHeightPx = 72;
@@ -252,8 +281,8 @@ class TypstMathWidget extends WidgetType {
           this.rendererWasmUrl,
         ),
       )
-      .then((svg) => {
-        wrap.replaceChildren(svg);
+      .then((nodes) => {
+        wrap.replaceChildren(...nodes);
         view.requestMeasure();
       })
       .catch((err: unknown) => {
