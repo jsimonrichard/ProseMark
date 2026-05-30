@@ -12,9 +12,7 @@ Body text inside the delimiters is passed to Typst as math: tight `$...$` uses i
 bun add @prosemark/typst
 ```
 
-The **`@myriaddreamin/typst-ts-web-compiler`** and **`@myriaddreamin/typst-ts-renderer`** packages are **dependencies**: they ship the **`.wasm`** binaries. Defaults **import** those files with a **`?url`** suffix (see `lib/typstWasmUrls.ts`) so bundlers like **Vite** emit hashed asset URLs—no manual copy step and no CDN unless you opt in.
-
-The published **`dist/main.js`** keeps those **`…wasm?url`** import specifiers so your app bundler resolves them from **`node_modules`**. If you load **`@prosemark/typst` in the browser without a bundler**, pass explicit **`compilerWasmUrl`** / **`rendererWasmUrl`** (e.g. **`https://…`**).
+**`@myriaddreamin/typst-ts-web-compiler`** and **`@myriaddreamin/typst-ts-renderer`** are **dependencies** (JS glue for typst.ts). By default, the **`.wasm`** binaries load from **jsDelivr** (pinned to the same version as this package’s typst.ts deps)—they are **not** bundled into your app. Override with **`compilerWasmUrl`** / **`rendererWasmUrl`** to self-host or use another CDN.
 
 ## Usage
 
@@ -46,11 +44,26 @@ import { mathMarkdownSyntaxExtension } from '@prosemark/core';
 ### Options
 
 ```ts
+import {
+  jsdelivrTypstWasmUrls,
+  typstMarkdownEditorExtensions,
+} from '@prosemark/typst';
+
 typstMarkdownEditorExtensions({
   renderCacheSize: 128,
-  // Optional: override default imports from @myriaddreamin/typst-ts-*
-  // compilerWasmUrl: 'https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-ts-web-compiler@0.7.0-rc2/pkg/typst_ts_web_compiler_bg.wasm',
-  // rendererWasmUrl: 'https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-ts-renderer@0.7.0-rc2/pkg/typst_ts_renderer_bg.wasm',
+  ...jsdelivrTypstWasmUrls(), // default; explicit if you prefer
+});
+```
+
+To **bundle WASM with Vite** instead (e.g. offline), import the `.wasm` assets in your app and pass URLs:
+
+```ts
+import compilerWasm from '@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url';
+import rendererWasm from '@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url';
+
+typstMarkdownEditorExtensions({
+  compilerWasmUrl: compilerWasm,
+  rendererWasmUrl: rendererWasm,
 });
 ```
 

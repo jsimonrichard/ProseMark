@@ -15,6 +15,13 @@ import {
 } from './typstWasmUrls';
 
 export {
+  defaultCompilerWasmUrl,
+  defaultRendererWasmUrl,
+  jsdelivrTypstWasmUrls,
+  TYPST_TS_VERSION,
+} from './typstWasmUrls';
+
+export {
   typstMathDelimiterTag,
   typstMathFormulaTag,
   typstMathMarkdownSyntaxExtension,
@@ -33,12 +40,12 @@ export interface TypstMarkdownEditorOptions {
   renderCacheSize?: number;
   /**
    * URL for the web compiler `.wasm` (passed to typst.ts `getModule`).
-   * @default Import of `@myriaddreamin/typst-ts-web-compiler`’s `.wasm` (your app bundler should emit a URL, e.g. Vite/webpack).
+   * @default jsDelivr URL for `@myriaddreamin/typst-ts-web-compiler` (see {@link defaultCompilerWasmUrl}).
    */
   compilerWasmUrl?: string;
   /**
    * URL for the renderer `.wasm` (passed to typst.ts `getModule`).
-   * @default Import of `@myriaddreamin/typst-ts-renderer`’s `.wasm` (your app bundler should emit a URL, e.g. Vite/webpack).
+   * @default jsDelivr URL for `@myriaddreamin/typst-ts-renderer` (see {@link defaultRendererWasmUrl}).
    */
   rendererWasmUrl?: string;
 }
