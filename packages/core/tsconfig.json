@@ -1,6 +1,6 @@
 {
   "references": [
-    { "path": "./tsconfig.src.json" },
+    { "path": "./tsconfig.lib.json" },
     { "path": "./tsconfig.extra.json" }
   ],
   "include": []
