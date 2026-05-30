@@ -144,7 +144,10 @@ const cacheKey = (
 const svgStringToElement = (svg: string): SVGSVGElement => {
   const doc = new DOMParser().parseFromString(svg, 'image/svg+xml');
   const el = doc.documentElement;
-  if (el.namespaceURI !== 'http://www.w3.org/2000/svg' || el.nodeName !== 'svg') {
+  if (
+    el.namespaceURI !== 'http://www.w3.org/2000/svg' ||
+    el.nodeName !== 'svg'
+  ) {
     throw new Error('Typst did not return a root <svg> element');
   }
   return el as unknown as SVGSVGElement;
@@ -317,10 +320,11 @@ const typstMathWidgetTheme = EditorView.theme({
     display: 'inline-block',
     verticalAlign: 'middle',
     maxWidth: '100%',
-    lineHeight: 0,
   },
+  // typst.ts may emit several sibling/nested <svg> nodes; they default to block
+  // and stack vertically unless forced inline (block math centers via text-align).
   [`.${WIDGET_CLASS} svg`]: {
-    display: 'inline-block',
+    display: 'inline',
     verticalAlign: 'middle',
     maxWidth: '100%',
   },
@@ -330,14 +334,8 @@ const typstMathWidgetTheme = EditorView.theme({
   },
   [`.${WIDGET_CLASS}[data-display="block"]`]: {
     display: 'block',
-    lineHeight: 'normal',
     textAlign: 'center',
     padding: '0.5em 0',
-  },
-  [`.${WIDGET_CLASS}[data-display="block"] svg`]: {
-    height: 'auto',
-    width: 'auto',
-    maxWidth: '100%',
   },
   [`.${WIDGET_CLASS}-error`]: {
     color: '#b00020',
@@ -349,10 +347,8 @@ const typstMathWidgetTheme = EditorView.theme({
 export function typstMarkdownEditorExtensions(
   options: TypstMarkdownEditorOptions = {},
 ): ReturnType<typeof foldableSyntaxFacet.of>[] {
-  const compilerWasmUrl =
-    options.compilerWasmUrl ?? defaultCompilerWasmUrl();
-  const rendererWasmUrl =
-    options.rendererWasmUrl ?? defaultRendererWasmUrl();
+  const compilerWasmUrl = options.compilerWasmUrl ?? defaultCompilerWasmUrl();
+  const rendererWasmUrl = options.rendererWasmUrl ?? defaultRendererWasmUrl();
   const cacheSize = options.renderCacheSize ?? 128;
   renderCache = cacheSize > 0 ? new RenderLru(cacheSize) : null;
 
