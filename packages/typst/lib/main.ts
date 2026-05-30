@@ -220,7 +220,7 @@ const typstMathBaselineY = (svg: SVGSVGElement): number => {
  * typst.ts viewBoxes are often shorter than the ink (subscripts, fractions).
  * Grow the viewBox to getBBox so line layout reserves enough vertical space.
  */
-const expandInlineTypstSvgViewBoxToInk = (svg: SVGSVGElement): void => {
+const expandTypstSvgViewBoxToInk = (svg: SVGSVGElement): void => {
   let bbox: DOMRect;
   try {
     bbox = svg.getBBox();
@@ -247,20 +247,22 @@ const expandInlineTypstSvgViewBoxToInk = (svg: SVGSVGElement): void => {
   svg.removeAttribute('height');
 };
 
+const typstSvgHeightEm = (viewHeight: number): number =>
+  INLINE_TYPST_MATH_HEIGHT_EM * (viewHeight / TYPST_INLINE_MATH_VB_HEIGHT);
+
 /**
  * Inline SVG baselines default to the viewport bottom; typst math sits higher.
  * Shift each fragment down so the typst baseline meets surrounding text.
  */
 const alignInlineTypstSvgBaseline = (svg: SVGSVGElement): void => {
-  expandInlineTypstSvgViewBoxToInk(svg);
+  expandTypstSvgViewBoxToInk(svg);
 
   const vb = svg.viewBox.baseVal;
   if (!vb.height) return;
 
   const baselineY = typstMathBaselineY(svg);
   const slackBelowBaseline = vb.y + vb.height - baselineY;
-  const heightEm =
-    INLINE_TYPST_MATH_HEIGHT_EM * (vb.height / TYPST_INLINE_MATH_VB_HEIGHT);
+  const heightEm = typstSvgHeightEm(vb.height);
   const offsetEm = (slackBelowBaseline / vb.height) * heightEm;
 
   svg.style.height = `${heightEm.toFixed(4)}em`;
@@ -268,11 +270,34 @@ const alignInlineTypstSvgBaseline = (svg: SVGSVGElement): void => {
   svg.style.verticalAlign = `-${offsetEm.toFixed(4)}em`;
 };
 
+/** Scale display math to em units (typst width/height attrs are too small in CSS). */
+const sizeDisplayTypstSvg = (svg: SVGSVGElement): void => {
+  expandTypstSvgViewBoxToInk(svg);
+
+  const vb = svg.viewBox.baseVal;
+  if (!vb.height) return;
+
+  svg.style.display = 'block';
+  svg.style.margin = '0 auto';
+  svg.style.height = `${typstSvgHeightEm(vb.height).toFixed(4)}em`;
+  svg.style.width = 'auto';
+  svg.removeAttribute('width');
+  svg.removeAttribute('height');
+};
+
 const alignInlineTypstWidgetBaselines = (wrap: HTMLElement): void => {
   wrap.style.verticalAlign = 'baseline';
   wrap.querySelectorAll('svg').forEach((node) => {
     if (node instanceof SVGSVGElement) {
       alignInlineTypstSvgBaseline(node);
+    }
+  });
+};
+
+const sizeDisplayTypstWidgetSvgs = (wrap: HTMLElement): void => {
+  wrap.querySelectorAll('svg').forEach((node) => {
+    if (node instanceof SVGSVGElement) {
+      sizeDisplayTypstSvg(node);
     }
   });
 };
@@ -304,7 +329,10 @@ const applyCurrentColorToTypstSvg = (svg: SVGSVGElement): void => {
  * embedded CSS uses `position: fixed`, which breaks inline math in CodeMirror.
  * Keep vector glyphs (`use` + `defs`) only.
  */
-const prepareTypstSvgForWidget = (svg: SVGSVGElement): SVGSVGElement => {
+const prepareTypstSvgForWidget = (
+  svg: SVGSVGElement,
+  inline: boolean,
+): SVGSVGElement => {
   svg.querySelectorAll('script').forEach((node) => {
     node.remove();
   });
@@ -315,13 +343,18 @@ const prepareTypstSvgForWidget = (svg: SVGSVGElement): SVGSVGElement => {
     node.remove();
   });
   svg.style.overflow = 'visible';
-  forceInlineSvgDisplay(svg);
+  if (inline) {
+    forceInlineSvgDisplay(svg);
+  }
   applyCurrentColorToTypstSvg(svg);
   return svg;
 };
 
 /** typst.ts may return one SVG document or several sibling `<svg>` fragments. */
-const typstSvgStringToElements = (raw: string): SVGSVGElement[] => {
+const typstSvgStringToElements = (
+  raw: string,
+  inline: boolean,
+): SVGSVGElement[] => {
   const trimmed = raw.trim();
   const svgTagCount = trimmed.match(/<svg[\s>]/gi)?.length ?? 0;
 
@@ -333,7 +366,7 @@ const typstSvgStringToElements = (raw: string): SVGSVGElement[] => {
       el.namespaceURI === 'http://www.w3.org/2000/svg' &&
       el.nodeName === 'svg'
     ) {
-      return [prepareTypstSvgForWidget(el as unknown as SVGSVGElement)];
+      return [prepareTypstSvgForWidget(el as unknown as SVGSVGElement, inline)];
     }
   }
 
@@ -345,7 +378,7 @@ const typstSvgStringToElements = (raw: string): SVGSVGElement[] => {
   if (roots.length === 0) {
     throw new Error('Typst did not return any <svg> element');
   }
-  return roots.map((el) => prepareTypstSvgForWidget(el));
+  return roots.map((el) => prepareTypstSvgForWidget(el, inline));
 };
 
 const cloneSvgNodes = (nodes: SVGSVGElement[]): SVGSVGElement[] =>
@@ -376,7 +409,7 @@ const renderOrCloneFromCache = async (
     mainContent: mathToTypstDocument(body, display),
     ...typstSvgRenderOptions,
   });
-  const nodes = typstSvgStringToElements(svg);
+  const nodes = typstSvgStringToElements(svg, !display);
   renderCache?.set(key, nodes);
   return cloneSvgNodes(nodes);
 };
@@ -433,7 +466,9 @@ class TypstMathWidget extends WidgetType {
       )
       .then((nodes) => {
         wrap.replaceChildren(...nodes);
-        if (!this.display) {
+        if (this.display) {
+          sizeDisplayTypstWidgetSvgs(wrap);
+        } else {
           alignInlineTypstWidgetBaselines(wrap);
         }
         view.requestMeasure();
@@ -507,12 +542,17 @@ const typstMathWidgetTheme = EditorView.theme({
   // typst.ts may emit several sibling/nested <svg> nodes; they default to block
   // and stack vertically unless forced inline (block math centers via text-align).
   [`.${WIDGET_CLASS} svg`]: {
-    display: 'inline',
-    verticalAlign: 'baseline',
     maxWidth: '100%',
     color: 'inherit',
   },
   [`.${WIDGET_CLASS}[data-display="inline"] svg`]: {
+    display: 'inline',
+    verticalAlign: 'baseline',
+    width: 'auto',
+  },
+  [`.${WIDGET_CLASS}[data-display="block"] svg`]: {
+    display: 'block',
+    margin: '0 auto',
     width: 'auto',
   },
   [`.${WIDGET_CLASS}[data-display="block"]`]: {
