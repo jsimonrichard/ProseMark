@@ -166,7 +166,8 @@ const parseTranslateY = (transform: string): number | null => {
   const re =
     /translate\s*\(\s*[^,\s)]+(?:\s*,\s*|\s+)(-?\d+(?:\.\d+)?)/;
   const match = re.exec(transform);
-  return match ? Number.parseFloat(match[1]) : null;
+  const y = match?.[1];
+  return y !== undefined ? Number.parseFloat(y) : null;
 };
 
 const collectTypstGlyphBaselineCandidates = (svg: SVGSVGElement): number[] => {
@@ -192,16 +193,12 @@ const typstMathBaselineY = (svg: SVGSVGElement, viewHeight: number): number => {
     }
   }
 
-  let best = candidates[0];
-  let bestDist = Math.abs(best - target);
-  for (let i = 1; i < candidates.length; i++) {
-    const y = candidates[i];
-    const dist = Math.abs(y - target);
-    if (dist < bestDist) {
-      best = y;
-      bestDist = dist;
-    }
-  }
+  const best = candidates.reduce((chosen, y) => {
+    const chosenDist = Math.abs(chosen - target);
+    const yDist = Math.abs(y - target);
+    return yDist < chosenDist ? y : chosen;
+  });
+  const bestDist = Math.abs(best - target);
 
   if (bestDist > viewHeight * 0.15) {
     try {
