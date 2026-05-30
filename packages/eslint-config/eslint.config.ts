@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import baseConfig from './index.ts';
 import { defineConfig } from 'eslint/config';
 

@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import baseConfig from '@prosemark/eslint-config';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
