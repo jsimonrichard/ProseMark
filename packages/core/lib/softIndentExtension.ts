@@ -57,26 +57,31 @@ interface ChangedLine {
 /**
  * Pixel width of the soft-indent prefix. Uses document positions only so existing
  * `padding-inline-start` on the line does not compound on remeasure (click/edit).
+ *
+ * @param contentStart - First position after the prefix (`lineFrom + prefix.length`).
+ *   Used as the measure endpoint when that character is rendered. When it sits on a
+ *   replace decoration (e.g. `- $...$`), falls back to `measurePos`.
  */
 export const measureSoftIndentWidth = (
   view: EditorView,
   lineFrom: number,
   measurePos: number,
+  contentStart: number,
 ): number => {
-  if (measurePos < lineFrom) return 0;
+  if (measurePos < lineFrom || contentStart <= lineFrom) return 0;
 
-  const endCoords = view.coordsAtPos(measurePos, 1);
-  const end = endCoords?.right ?? endCoords?.left ?? 0;
+  // Left edge of the line / list-mark cell (not the right edge after a replace widget).
+  const start =
+    view.coordsAtPos(lineFrom, -1)?.left ??
+    view.coordsAtPos(lineFrom, 1)?.left ??
+    0;
 
-  // List marks are replace widgets at `lineFrom`; use the right edge of that cell.
-  const startAfterMark = view.coordsAtPos(lineFrom, 1);
-  const startBeforeMark = view.coordsAtPos(lineFrom, -1);
-  const candidates = [startAfterMark?.left, startBeforeMark?.left].filter(
-    (v): v is number => v !== undefined,
-  );
+  const contentRect = view.coordsForChar(contentStart);
+  const prefixEnd = view.coordsAtPos(measurePos, 1);
+  const end = contentRect
+    ? contentRect.left
+    : (prefixEnd?.right ?? prefixEnd?.left ?? 0);
 
-  if (!candidates.length) return 0;
-  const start = Math.min(...candidates);
   return Math.max(0, end - start);
 };
 
@@ -165,10 +170,12 @@ export const softIndentExtension = ViewPlugin.fromClass(
 
           // Get indent width
           const measurePos = softIndentMeasurePos(line.from, nonContent.length);
+          const contentStart = line.from + nonContent.length;
           const indentWidth = measureSoftIndentWidth(
             view,
             line.from,
             measurePos,
+            contentStart,
           );
           if (!indentWidth) continue;
 
