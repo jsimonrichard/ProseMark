@@ -18,7 +18,6 @@ export {
 const WIDGET_CLASS = 'cm-latex-math';
 const WIDGET_ERROR_CLASS = `${WIDGET_CLASS}-error`;
 const WIDGET_ERROR_MESSAGE_CLASS = `${WIDGET_CLASS}-error-message`;
-const WIDGET_ERROR_SOURCE_CLASS = `${WIDGET_CLASS}-error-source`;
 
 /** Keep in sync with the default {@link mathjaxPackageRoot} CDN version. */
 const MATHJAX_VERSION = '4.1.1';
@@ -396,10 +395,9 @@ export function formatLatexRenderError(err: unknown): string {
   return 'LaTeX render failed';
 }
 
-/** Populates a math widget with error message and source TeX. */
+/** Populates a math widget with the render error message. */
 const populateLatexMathErrorDom = (
   wrap: HTMLElement,
-  tex: string,
   err: unknown,
   display: boolean,
 ): void => {
@@ -410,11 +408,7 @@ const populateLatexMathErrorDom = (
   messageEl.setAttribute('role', 'alert');
   messageEl.textContent = message;
 
-  const sourceEl = document.createElement('code');
-  sourceEl.className = WIDGET_ERROR_SOURCE_CLASS;
-  sourceEl.textContent = tex;
-
-  wrap.replaceChildren(messageEl, sourceEl);
+  wrap.replaceChildren(messageEl);
   wrap.classList.add(WIDGET_ERROR_CLASS);
   wrap.setAttribute('title', message);
 };
@@ -467,7 +461,7 @@ class LatexMathWidget extends WidgetType {
         view.requestMeasure();
       })
       .catch((err: unknown) => {
-        populateLatexMathErrorDom(wrap, this.tex, err, this.display);
+        populateLatexMathErrorDom(wrap, err, this.display);
         view.requestMeasure();
       });
 
@@ -576,30 +570,9 @@ const latexMathWidgetTheme = EditorView.theme({
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
   },
-  [`.${WIDGET_CLASS}-error[data-display="block"] .${WIDGET_ERROR_MESSAGE_CLASS}`]:
-    {
-      marginBottom: '0.25em',
-    },
   [`.${WIDGET_CLASS}-error[data-display="inline"] .${WIDGET_ERROR_MESSAGE_CLASS}`]:
     {
       display: 'inline',
-    },
-  [`.${WIDGET_ERROR_SOURCE_CLASS}`]: {
-    fontFamily: 'inherit',
-    fontSize: '0.92em',
-    lineHeight: 1.35,
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-word',
-    opacity: 0.9,
-  },
-  [`.${WIDGET_CLASS}-error[data-display="block"] .${WIDGET_ERROR_SOURCE_CLASS}`]:
-    {
-      display: 'block',
-    },
-  [`.${WIDGET_CLASS}-error[data-display="inline"] .${WIDGET_ERROR_SOURCE_CLASS}`]:
-    {
-      display: 'inline',
-      marginInlineStart: '0.25em',
     },
 });
 
