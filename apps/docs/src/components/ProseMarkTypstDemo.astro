@@ -21,9 +21,9 @@ import ProseMarkDemoSharedStyles from './ProseMarkDemoSharedStyles.astro';
     renderHtmlMarkdownSyntaxExtensions,
   } from '@prosemark/render-html';
   import {
-    latexMarkdownEditorExtensions,
-    latexMarkdownSyntaxTheme,
-  } from '@prosemark/latex';
+    typstMarkdownEditorExtensions,
+    typstMarkdownSyntaxTheme,
+  } from '@prosemark/typst';
   import {
     pasteRichTextExtension,
     pastePlainTextExtension,
@@ -32,7 +32,7 @@ import ProseMarkDemoSharedStyles from './ProseMarkDemoSharedStyles.astro';
   import { syntaxTree } from '@codemirror/language';
   import { printTree } from '@lezer-unofficial/printer';
 
-  import initDoc from './initDoc.md?raw';
+  import initDoc from './typstInitDoc.md?raw';
   import { createSpellcheckExtensions } from './spellcheck';
 
   const editor = new EditorView({
@@ -47,8 +47,8 @@ import ProseMarkDemoSharedStyles from './ProseMarkDemoSharedStyles.astro';
       }),
       prosemarkBasicSetup(),
       prosemarkBaseThemeSetup(),
-      ...latexMarkdownSyntaxTheme,
-      ...latexMarkdownEditorExtensions(),
+      ...typstMarkdownSyntaxTheme,
+      ...typstMarkdownEditorExtensions(),
       defaultClickLinkHandler,
       htmlBlockExtension,
       pasteRichTextExtension(),

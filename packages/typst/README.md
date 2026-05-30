@@ -58,6 +58,8 @@ typstMarkdownEditorExtensions({
 
 Do **not** enable **`latexMarkdownEditorExtensions`** and **`typstMarkdownEditorExtensions`** for the same editor: both replace **`Math`** nodes. Typst widgets use the class **`cm-typst-math`** (exported as **`typstMathWidgetClass`**); LaTeX/MathJax uses **`cm-latex-math`**. If you see `cm-latex-math` in the DOM, the editor is still loading **`@prosemark/latex`**, not this package.
 
+Try the live [Typst math demo](/demo/typst) on the docs site (the main [Demo](/demo) uses MathJax).
+
 ## Limitations
 
 - **Browser only** — needs `window` and `document`.
