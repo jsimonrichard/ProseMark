@@ -87,6 +87,7 @@ function getDifferences(
 ): ChangedLine[] {
   const changedLines: ChangedLine[] = [];
 
+  // Compare decorations line by line
   for (const { from, to } of view.visibleRanges) {
     const start = view.state.doc.lineAt(from);
     const end = view.state.doc.lineAt(to);
@@ -137,6 +138,7 @@ export const softIndentExtension = ViewPlugin.fromClass(
     }
 
     requestMeasure(view: EditorView, refreshCount = 0) {
+      // Needs to run via requestMeasure since it measures and updates the DOM
       view.requestMeasure({
         read: (view) => this.measureIndents(view),
         write: (indents, view) => {
@@ -145,17 +147,23 @@ export const softIndentExtension = ViewPlugin.fromClass(
       });
     }
 
+    // Use view.coordsAtPos to measure the indent required
     measureIndents(view: EditorView): IndentData[] {
       const indents: IndentData[] = [];
+      // Loop through all visible lines
       for (const { from, to } of view.visibleRanges) {
         const start = view.state.doc.lineAt(from);
         const end = view.state.doc.lineAt(to);
         for (let i = start.number; i <= end.number; i++) {
+          // Get current line object
           const line = view.state.doc.line(i);
+
+          // Match the line's text with the indent pattern
           const text = view.state.sliceDoc(line.from, line.to);
           const nonContent = matchSoftIndentPrefix(text);
           if (!nonContent) continue;
 
+          // Get indent width
           const measurePos = softIndentMeasurePos(line.from, nonContent.length);
           const indentWidth = measureSoftIndentWidth(
             view,
@@ -196,6 +204,8 @@ export const softIndentExtension = ViewPlugin.fromClass(
       return { decorations: builder.finish(), styles };
     }
 
+    // This applies new decorations and will dispatch another transaction
+    // until the dom layout settles
     applyIndents(indents: IndentData[], view: EditorView, refreshCount = 0) {
       const { decorations: newDecos, styles: newStyles } =
         this.buildDecorations(indents, view);
