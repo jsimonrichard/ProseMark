@@ -98,4 +98,11 @@
       margin-top: 0px;
     }
   }
+
+  /* Starlight sets `.sl-markdown-content svg { display: block; height: auto }`. */
+  #codemirror-container .cm-latex-math[data-display='inline'] mjx-container,
+  #codemirror-container .cm-latex-math[data-display='inline'] mjx-container > svg,
+  #codemirror-container .cm-typst-math[data-display='inline'] svg {
+    max-width: none;
+  }
 </style>

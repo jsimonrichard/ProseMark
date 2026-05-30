@@ -157,7 +157,8 @@ const TYPST_INLINE_MATH_BASELINE_Y =
   TYPST_INLINE_MATH_VB_HEIGHT * (7.513 / 8);
 const TYPST_INLINE_MATH_DESCENDER_PT =
   TYPST_INLINE_MATH_VB_HEIGHT - TYPST_INLINE_MATH_BASELINE_Y;
-const INLINE_TYPST_MATH_HEIGHT_EM = 1.05;
+/** typst SVG user units are pt; typst body text is ~12pt per em. */
+const TYPST_SVG_PT_PER_EM = 12;
 /** Padding in typst pt units when expanding viewBox to ink bounds. */
 const INLINE_TYPST_MATH_INK_PADDING_PT = 0.35;
 
@@ -248,7 +249,7 @@ const expandTypstSvgViewBoxToInk = (svg: SVGSVGElement): void => {
 };
 
 const typstSvgHeightEm = (viewHeight: number): number =>
-  INLINE_TYPST_MATH_HEIGHT_EM * (viewHeight / TYPST_INLINE_MATH_VB_HEIGHT);
+  viewHeight / TYPST_SVG_PT_PER_EM;
 
 /**
  * Inline SVG baselines default to the viewport bottom; typst math sits higher.

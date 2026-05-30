@@ -331,11 +331,35 @@ const latexMathWidgetTheme = EditorView.theme({
     display: 'inline-block',
     verticalAlign: 'middle',
   },
+  // Starlight (and similar doc themes) set `.sl-markdown-content svg { display: block;
+  // height: auto }`, which breaks inline MathJax SVG layout inside the editor.
+  [`.${WIDGET_CLASS}[data-display="inline"] mjx-container`]: {
+    display: 'inline-block',
+    verticalAlign: 'middle',
+    maxWidth: 'none',
+  },
+  [`.${WIDGET_CLASS}[data-display="inline"] mjx-container > svg`]: {
+    display: 'inline-block',
+    verticalAlign: 'middle',
+    height: 'unset',
+    maxWidth: 'none',
+  },
   [`.${WIDGET_CLASS}[data-display="block"]`]: {
     display: 'block',
     textAlign: 'center',
     // Block widget docs: no vertical *margins* (they confuse layout); padding is OK.
     padding: '0.5em 0',
+  },
+  [`.${WIDGET_CLASS}[data-display="block"] mjx-container`]: {
+    display: 'block',
+    margin: '0 auto',
+    maxWidth: '100%',
+  },
+  [`.${WIDGET_CLASS}[data-display="block"] mjx-container > svg`]: {
+    display: 'block',
+    margin: '0 auto',
+    height: 'unset',
+    maxWidth: '100%',
   },
   [`.${WIDGET_CLASS}-error`]: {
     color: '#b00020',
