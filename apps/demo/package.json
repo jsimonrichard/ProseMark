@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc -b --noEmit",
     "dev": "vite",
     "dev-all": "turbo dev -F 'demo...'",
     "lint": "eslint --max-warnings=0",
