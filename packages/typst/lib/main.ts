@@ -150,6 +150,34 @@ const svgStringToElement = (svg: string): SVGSVGElement => {
   return el as unknown as SVGSVGElement;
 };
 
+/**
+ * typst.ts SVG includes selection overlays (`foreignObject` / `.tsel`) whose
+ * embedded CSS uses `position: fixed`, which breaks inline math in CodeMirror.
+ * Keep vector glyphs (`use` + `defs`) only.
+ */
+const prepareTypstSvgForWidget = (svg: SVGSVGElement): SVGSVGElement => {
+  svg.querySelectorAll('script').forEach((node) => {
+    node.remove();
+  });
+  svg.querySelectorAll('foreignObject').forEach((node) => {
+    node.remove();
+  });
+  svg.querySelectorAll('style').forEach((node) => {
+    node.remove();
+  });
+  svg.style.overflow = 'visible';
+  return svg;
+};
+
+const typstSvgRenderOptions = {
+  data_selection: {
+    body: true,
+    defs: true,
+    css: false,
+    js: false,
+  },
+} as const;
+
 const renderOrCloneFromCache = async (
   body: string,
   display: boolean,
@@ -164,8 +192,9 @@ const renderOrCloneFromCache = async (
 
   const svg = await $typst.svg({
     mainContent: mathToTypstDocument(body, display),
+    ...typstSvgRenderOptions,
   });
-  const node = svgStringToElement(svg);
+  const node = prepareTypstSvgForWidget(svgStringToElement(svg));
   renderCache?.set(key, node);
   return node.cloneNode(true) as SVGSVGElement;
 };
@@ -288,20 +317,32 @@ const typstMathWidgetTheme = EditorView.theme({
     display: 'inline-block',
     verticalAlign: 'middle',
     maxWidth: '100%',
+    lineHeight: 0,
   },
   [`.${WIDGET_CLASS} svg`]: {
-    maxWidth: '100%',
-    height: 'auto',
+    display: 'inline-block',
     verticalAlign: 'middle',
+    maxWidth: '100%',
+  },
+  [`.${WIDGET_CLASS}[data-display="inline"] svg`]: {
+    height: '1.05em',
+    width: 'auto',
   },
   [`.${WIDGET_CLASS}[data-display="block"]`]: {
     display: 'block',
+    lineHeight: 'normal',
     textAlign: 'center',
     padding: '0.5em 0',
+  },
+  [`.${WIDGET_CLASS}[data-display="block"] svg`]: {
+    height: 'auto',
+    width: 'auto',
+    maxWidth: '100%',
   },
   [`.${WIDGET_CLASS}-error`]: {
     color: '#b00020',
     fontFamily: 'monospace',
+    lineHeight: 'normal',
   },
 });
 
