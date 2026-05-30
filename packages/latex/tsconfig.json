@@ -1,7 +1,9 @@
 {
-  "references": [
-    { "path": "./tsconfig.src.json" },
-    { "path": "./tsconfig.extra.json" }
-  ],
-  "include": []
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "types": ["node", "bun"],
+    "allowImportingTsExtensions": true
+  },
+  "include": ["lib", "tests", "*.config.ts"]
 }

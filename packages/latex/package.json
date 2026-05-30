@@ -33,7 +33,7 @@
   ],
   "scripts": {
     "build": "tsdown",
-    "check-types": "tsc -b",
+    "check-types": "tsc --noEmit",
     "ci:publish": "bash ../../scripts/ci-publish.sh",
     "dev": "tsdown --watch",
     "lint": "eslint --max-warnings=0",
