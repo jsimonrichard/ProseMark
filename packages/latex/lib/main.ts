@@ -314,11 +314,65 @@ const renderOrCloneFromCache = async (
     node = await mj.tex2svgPromise(tex, { display });
   }
 
+  const errMsg = extractMathJaxRenderError(node);
+  if (errMsg) {
+    throw new Error(errMsg);
+  }
+
   renderCache?.set(key, node);
   return node.cloneNode(true) as HTMLElement;
 };
 
 const blockMathEstimatedHeightPx = 72;
+
+/**
+ * MathJax renders TeX errors inline (red on yellow) instead of rejecting
+ * `tex2svgPromise` / `tex2chtmlPromise`. Detect those nodes so we can show
+ * ProseMark's themed error UI instead.
+ *
+ * @internal Exported for unit tests.
+ */
+const trimAttr = (el: Element, name: string): string | null => {
+  const value = el.getAttribute(name);
+  if (!value) return null;
+  const trimmed = value.trim();
+  return trimmed || null;
+};
+
+const trimText = (el: Element | null): string | null => {
+  if (!el) return null;
+  const text = el.textContent;
+  if (!text) return null;
+  const trimmed = text.trim();
+  return trimmed || null;
+};
+
+export function extractMathJaxRenderError(root: ParentNode): string | null {
+  const attrError = root.querySelector('[data-mjx-error]');
+  if (attrError) {
+    const msg = trimAttr(attrError, 'data-mjx-error');
+    if (msg) return msg;
+  }
+
+  const mjxMerror = root.querySelector('mjx-merror');
+  if (mjxMerror) {
+    const msg =
+      trimAttr(mjxMerror, 'data-mjx-error') ??
+      trimAttr(mjxMerror, 'title') ??
+      trimText(mjxMerror);
+    if (msg) return msg;
+  }
+
+  const svgMerror = root.querySelector('[data-mml-node="merror"]');
+  if (svgMerror) {
+    const title = trimText(svgMerror.querySelector('title'));
+    if (title) return title;
+    const msg = trimText(svgMerror);
+    if (msg) return msg;
+  }
+
+  return null;
+}
 
 /**
  * Normalizes MathJax / loader failures into a single user-visible message.
