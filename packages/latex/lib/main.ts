@@ -16,6 +16,9 @@ export {
 } from './markdown';
 
 const WIDGET_CLASS = 'cm-latex-math';
+const WIDGET_ERROR_CLASS = `${WIDGET_CLASS}-error`;
+const WIDGET_ERROR_MESSAGE_CLASS = `${WIDGET_CLASS}-error-message`;
+const WIDGET_ERROR_SOURCE_CLASS = `${WIDGET_CLASS}-error-source`;
 
 /** Keep in sync with the default {@link mathjaxPackageRoot} CDN version. */
 const MATHJAX_VERSION = '4.1.1';
@@ -317,6 +320,50 @@ const renderOrCloneFromCache = async (
 
 const blockMathEstimatedHeightPx = 72;
 
+/**
+ * Normalizes MathJax / loader failures into a single user-visible message.
+ *
+ * @internal Exported for unit tests.
+ */
+export function formatLatexRenderError(err: unknown): string {
+  if (err instanceof Error) {
+    const msg = err.message.trim();
+    return msg || 'LaTeX render failed';
+  }
+  if (typeof err === 'string') {
+    const msg = err.trim();
+    return msg || 'LaTeX render failed';
+  }
+  if (err && typeof err === 'object' && 'message' in err) {
+    const raw = (err as { message?: unknown }).message;
+    const msg = typeof raw === 'string' ? raw.trim() : String(raw).trim();
+    if (msg) return msg;
+  }
+  return 'LaTeX render failed';
+}
+
+/** Populates a math widget with inline error message and source TeX. */
+const populateLatexMathErrorDom = (
+  wrap: HTMLElement,
+  tex: string,
+  err: unknown,
+): void => {
+  const message = formatLatexRenderError(err);
+
+  const messageEl = document.createElement('div');
+  messageEl.className = WIDGET_ERROR_MESSAGE_CLASS;
+  messageEl.setAttribute('role', 'alert');
+  messageEl.textContent = message;
+
+  const sourceEl = document.createElement('code');
+  sourceEl.className = WIDGET_ERROR_SOURCE_CLASS;
+  sourceEl.textContent = tex;
+
+  wrap.replaceChildren(messageEl, sourceEl);
+  wrap.classList.add(WIDGET_ERROR_CLASS);
+  wrap.setAttribute('title', message);
+};
+
 const latexWidgetResizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
 
 class LatexMathWidget extends WidgetType {
@@ -365,10 +412,7 @@ class LatexMathWidget extends WidgetType {
         view.requestMeasure();
       })
       .catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : String(err);
-        wrap.textContent = this.tex;
-        wrap.title = msg;
-        wrap.classList.add(`${WIDGET_CLASS}-error`);
+        populateLatexMathErrorDom(wrap, this.tex, err);
         view.requestMeasure();
       });
 
@@ -440,8 +484,47 @@ const latexMathWidgetTheme = EditorView.theme({
     padding: '0.5em 0',
   },
   [`.${WIDGET_CLASS}-error`]: {
-    color: '#b00020',
-    fontFamily: 'monospace',
+    color:
+      'var(--pm-latex-math-error-color, var(--pm-syntax-invalid, #b00020))',
+    backgroundColor:
+      'var(--pm-latex-math-error-background-color, var(--pm-code-background-color, #fce8e8))',
+    fontFamily: `var(
+      --pm-latex-math-formula-font,
+      var(
+        --pm-code-font,
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        'Liberation Mono',
+        'Courier New',
+        monospace
+      )
+    )`,
+    borderRadius: '0.25em',
+    padding: '0.2em 0.4em',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
+  },
+  [`.${WIDGET_CLASS}[data-display="block"].${WIDGET_CLASS}-error`]: {
+    textAlign: 'left',
+  },
+  [`.${WIDGET_ERROR_MESSAGE_CLASS}`]: {
+    fontSize: '0.85em',
+    lineHeight: 1.35,
+    marginBottom: '0.25em',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+  },
+  [`.${WIDGET_ERROR_SOURCE_CLASS}`]: {
+    display: 'block',
+    fontFamily: 'inherit',
+    fontSize: '0.92em',
+    lineHeight: 1.35,
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+    opacity: 0.9,
   },
 });
 
