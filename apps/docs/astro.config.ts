@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import { fileURLToPath } from 'node:url';
 import { createStarlightTypeDocPlugin } from 'starlight-typedoc';
 
 const buildTypeDocEntry = (
@@ -58,6 +59,9 @@ export default defineConfig({
     },
     resolve: {
       alias: {
+        '@components': fileURLToPath(
+          new URL('./src/components', import.meta.url),
+        ),
         buffer: 'buffer',
       },
     },
