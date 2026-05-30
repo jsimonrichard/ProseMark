@@ -1,6 +1,8 @@
 # Typst math
 
-This page uses **`@prosemark/typst`**. Delimiters are the same as elsewhere (`$…$` / `$$…$$`), but the **math syntax is Typst**, not LaTeX.
+Live editor using `@prosemark/typst` (Typst WASM). For the main demo with MathJax / LaTeX math, see [Demo](/demo).
+
+Delimiters are the same as elsewhere (`$…$` / `$$…$$`), but the **math syntax is Typst**, not LaTeX.
 
 ## Inline
 
