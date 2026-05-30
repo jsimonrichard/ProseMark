@@ -34,7 +34,7 @@
   "dependencies": {
     "@codemirror/language": "^6.12.2",
     "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.39.4",
+    "@codemirror/view": "^6.42.1",
     "@types/turndown": "^5.0.6",
     "turndown": "^7.2.2"
   },

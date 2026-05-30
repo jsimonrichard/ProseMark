@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./node_modules/.cache/tsbuild/extra",
+    "tsBuildInfoFile": "./node_modules/.cache/tsbuild/info.extra.json",
+    "allowImportingTsExtensions": true,
+    "emitDeclarationOnly": true,
+    "types": ["@types/bun"]
+  },
+  "include": ["./tests/", "*.config.ts"],
+  "references": [{ "path": "./tsconfig.src.json" }]
+}
