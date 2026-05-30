@@ -10,6 +10,12 @@ function mockRoot(
   return { querySelector } as unknown as ParentNode;
 }
 
+function mockElement(
+  partial: Partial<Pick<Element, 'getAttribute' | 'textContent'>>,
+): Element {
+  return partial as unknown as Element;
+}
+
 describe('formatLatexRenderError', () => {
   test('uses Error.message', () => {
     expect(
@@ -49,12 +55,12 @@ describe('extractMathJaxRenderError', () => {
   test('reads data-mjx-error attribute', () => {
     const root = mockRoot((selector) => {
       if (selector === '[data-mjx-error]') {
-        return {
+        return mockElement({
           getAttribute: (name: string) =>
             name === 'data-mjx-error'
               ? 'Extra open brace or missing close brace'
               : null,
-        } as Element;
+        });
       }
       return null;
     });
@@ -68,10 +74,10 @@ describe('extractMathJaxRenderError', () => {
     const root = mockRoot((selector) => {
       if (selector === '[data-mjx-error]') return null;
       if (selector === 'mjx-merror') {
-        return {
+        return mockElement({
           getAttribute: () => null,
           textContent: 'Undefined control sequence \\foo',
-        } as Element;
+        });
       }
       return null;
     });
