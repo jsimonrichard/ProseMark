@@ -160,6 +160,28 @@ const forceInlineSvgDisplay = (svg: SVGSVGElement): void => {
   });
 };
 
+const isBlackInkFill = (fill: string): boolean => {
+  const v = fill.trim().toLowerCase().replace(/\s/g, '');
+  return (
+    v === '#000' ||
+    v === '#000000' ||
+    v === 'black' ||
+    v === 'rgb(0,0,0)' ||
+    v === 'rgb(0%,0%,0%)'
+  );
+};
+
+/** typst.ts SVG uses fill="#000"; inherit editor foreground via currentColor. */
+const applyCurrentColorToTypstSvg = (svg: SVGSVGElement): void => {
+  svg.style.color = 'inherit';
+  svg.querySelectorAll('[fill]').forEach((el) => {
+    const fill = el.getAttribute('fill');
+    if (fill && fill !== 'none' && isBlackInkFill(fill)) {
+      el.setAttribute('fill', 'currentColor');
+    }
+  });
+};
+
 /**
  * typst.ts SVG includes selection overlays (`foreignObject` / `.tsel`) whose
  * embedded CSS uses `position: fixed`, which breaks inline math in CodeMirror.
@@ -177,6 +199,7 @@ const prepareTypstSvgForWidget = (svg: SVGSVGElement): SVGSVGElement => {
   });
   svg.style.overflow = 'visible';
   forceInlineSvgDisplay(svg);
+  applyCurrentColorToTypstSvg(svg);
   return svg;
 };
 
@@ -359,6 +382,7 @@ const typstMathWidgetTheme = EditorView.theme({
     display: 'inline-block',
     verticalAlign: 'middle',
     maxWidth: '100%',
+    color: 'inherit',
   },
   // typst.ts may emit several sibling/nested <svg> nodes; they default to block
   // and stack vertically unless forced inline (block math centers via text-align).
@@ -366,6 +390,7 @@ const typstMathWidgetTheme = EditorView.theme({
     display: 'inline',
     verticalAlign: 'middle',
     maxWidth: '100%',
+    color: 'inherit',
   },
   [`.${WIDGET_CLASS}[data-display="inline"] svg`]: {
     height: '1.05em',
