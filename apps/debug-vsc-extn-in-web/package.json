@@ -3,16 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "check-types": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "vite",
     "dev-all": "turbo dev -F 'debug-vsc-extn-in-web...'",
+    "lint": "eslint --max-warnings=0",
+    "preview": "vite preview",
     "repro:codefence": "node ./scripts/repro-codefence.mjs"
-  },
-  "devDependencies": {
-    "typescript": "^5.2.2",
-    "vite": "^5.3.1"
   },
   "dependencies": {
     "@codemirror/lang-markdown": "^6.5.0",
@@ -28,5 +25,10 @@
     "@prosemark/spellcheck-frontend": "workspace:*",
     "dictionary-en": "^3.2.0",
     "nspell": "^2.1.5"
+  },
+  "devDependencies": {
+    "@prosemark/eslint-config": "workspace:*",
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1"
   }
 }

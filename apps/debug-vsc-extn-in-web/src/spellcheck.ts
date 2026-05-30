@@ -124,9 +124,11 @@ export const createSpellcheckHarness = (
   const extensions: Extension[] = [
     issueCompartment.of([spellcheckIssues.of(RangeSet.of([]))]),
     spellcheckExtension,
-    suggestionFetcher.of(async (word: string) => {
-      return nspell.suggest(word).map((candidate) => ({ word: candidate }));
-    }),
+    suggestionFetcher.of(
+      // eslint-disable-next-line @typescript-eslint/require-await
+      async (word: string) =>
+        nspell.suggest(word).map((candidate) => ({ word: candidate })),
+    ),
     spellcheckActions.of(createActions),
     EditorView.updateListener.of((update) => {
       if (update.docChanged && autoRefreshEnabled) {

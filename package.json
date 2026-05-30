@@ -1,20 +1,5 @@
 {
   "name": "prosemark-workspace",
-  "devDependencies": {
-    "@changesets/cli": "^2.29.5",
-    "@eslint/js": "^9.38.0",
-    "@types/node": "^24.3.0",
-    "eslint": "^9.38.0",
-    "jsonc-parser": "^3.3.1",
-    "pkg-pr-new": "^0.0.65",
-    "prettier": "^3.4.2",
-    "prettier-plugin-astro": "^0.14.1",
-    "tsdown": "^0.15.6",
-    "turbo": "^2.5.5",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.2"
-  },
-  "packageManager": "bun@1.3.13",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -24,8 +9,22 @@
     "!packages/**/node_modules/**"
   ],
   "scripts": {
-    "version": "bun changeset version && bun scripts/patch-lock.ts",
     "format": "prettier --experimental-cli --write .",
-    "format:check": "prettier --experimental-cli --check ."
-  }
+    "format:check": "prettier --experimental-cli --check .",
+    "version": "bun changeset version && bun scripts/patch-lock.ts"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.5",
+    "@prosemark/eslint-config": "workspace:*",
+    "@types/node": "^24.3.0",
+    "eslint": "^9.39.2",
+    "jsonc-parser": "^3.3.1",
+    "pkg-pr-new": "^0.0.65",
+    "prettier": "^3.4.2",
+    "prettier-plugin-astro": "^0.14.1",
+    "tsdown": "^0.15.6",
+    "turbo": "^2.5.5",
+    "typescript": "^5.9.3"
+  },
+  "packageManager": "bun@1.3.13"
 }

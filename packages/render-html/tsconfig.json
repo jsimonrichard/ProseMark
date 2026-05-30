@@ -1,8 +1,7 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "sourceRoot": "./lib",
-    "outDir": "./dist"
-  },
-  "include": ["lib", "*.config.ts"]
+  "references": [
+    { "path": "./tsconfig.src.json" },
+    { "path": "./tsconfig.extra.json" }
+  ],
+  "include": []
 }

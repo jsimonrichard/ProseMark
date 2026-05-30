@@ -1,4 +1,6 @@
 declare module 'nspell' {
+  import type { Buffer } from 'node:buffer';
+
   export default class NSpell {
     constructor(aff: Buffer | string, dic: Buffer | string);
     correct(word: string): boolean;

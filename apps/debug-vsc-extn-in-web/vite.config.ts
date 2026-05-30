@@ -12,7 +12,7 @@ export default defineConfig({
           (id.endsWith('.aff') || id.endsWith('.dic'))
         ) {
           try {
-            const fileName = id.split('dictionary-en/').pop() || '';
+            const fileName = id.split('dictionary-en/').pop() ?? '';
             const filePath = resolve(
               process.cwd(),
               'node_modules',

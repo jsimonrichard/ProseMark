@@ -5,8 +5,9 @@
   "publisher": "jsimonrichard",
   "version": "0.0.4",
   "repository": {
-    "type": "GitHub",
-    "url": "https://github.com/jsimonrichard/ProseMark"
+    "type": "git",
+    "url": "https://github.com/jsimonrichard/ProseMark.git",
+    "directory": "apps/vscode-extensions/cspell-integration"
   },
   "author": {
     "name": "J. Simon Richard",
@@ -38,7 +39,7 @@
     "dev-tests": "tsc -p . -w --outDir out",
     "pretest": "bun run build-tests && bun run build && bun run lint",
     "check-types": "tsc --noEmit",
-    "lint": "eslint src",
+    "lint": "eslint --max-warnings=0",
     "test": "vscode-test"
   },
   "dependencies": {
@@ -65,6 +66,7 @@
     "eslint": "^9.32.0",
     "tsdown": "^0.14.1",
     "typescript": "^5.9.2",
-    "vite": "^8.0.5"
+    "vite": "^8.0.5",
+    "@prosemark/eslint-config": "workspace:*"
   }
 }

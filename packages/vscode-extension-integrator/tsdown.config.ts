@@ -9,6 +9,14 @@ export default defineConfig([
     sourcemap: true,
   },
   { entry: 'lib/webview.ts', dts: true, sourcemap: true },
-  { entry: 'lib/types.ts', dts: { emitDtsOnly: true }, sourcemap: true },
-  { entry: 'lib/rolldown-plugin.ts', dts: true, sourcemap: true },
+  {
+    entry: 'lib/types.ts',
+    dts: { emitDtsOnly: true },
+    sourcemap: true,
+  },
+  {
+    entry: 'lib/rolldown-plugin.ts',
+    dts: true,
+    sourcemap: true,
+  },
 ]);

@@ -1,8 +1,17 @@
-import baseConfig from '../../../eslint.config-base.js';
-import { defineConfig } from 'eslint/config';
+import baseConfig from '@prosemark/eslint-config';
+import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
   ...baseConfig,
+  globalIgnores(['out/']),
+  {
+    files: ['**/*.ts', 'tsdown.config.mts', '.vscode-test.mjs'],
+    languageOptions: {
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
   {
     files: ['**/*.ts'],
     rules: {

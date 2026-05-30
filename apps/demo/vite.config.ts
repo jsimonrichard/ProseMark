@@ -14,7 +14,7 @@ export default defineConfig({
         ) {
           try {
             // Extract the filename from the import path
-            const fileName = id.split('dictionary-en/').pop() || '';
+            const fileName = id.split('dictionary-en/').pop() ?? '';
             const filePath = resolve(
               process.cwd(),
               'node_modules',

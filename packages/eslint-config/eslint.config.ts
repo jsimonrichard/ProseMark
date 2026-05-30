@@ -1,4 +1,4 @@
-import baseConfig from '@prosemark/eslint-config';
+import baseConfig from './index.ts';
 import { defineConfig } from 'eslint/config';
 
 declare global {
@@ -13,10 +13,6 @@ export default defineConfig([
     files: ['**/*.ts'],
     languageOptions: {
       parserOptions: {
-        projectService: {
-          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 14,
-          allowDefaultProject: ['tsdown.config.ts', 'eslint.config.ts'],
-        },
         tsconfigRootDir: import.meta.dirname,
       },
     },

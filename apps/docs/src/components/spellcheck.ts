@@ -5,6 +5,7 @@ import {
   RangeSet,
   EditorState,
   StateEffect,
+  type Extension,
 } from '@codemirror/state';
 import {
   spellcheckExtension,
@@ -21,13 +22,14 @@ import dicData from 'dictionary-en/index.dic?raw';
 const nspell = new NSpell(affData, dicData);
 
 // StateEffect to trigger spellcheck refresh after adding a word
+// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 const refreshSpellcheck = StateEffect.define<void>();
 
 // Function to extract words from text (simple word boundary regex)
 function extractWords(
   text: string,
-): Array<{ word: string; from: number; to: number }> {
-  const words: Array<{ word: string; from: number; to: number }> = [];
+): { word: string; from: number; to: number }[] {
+  const words: { word: string; from: number; to: number }[] = [];
   const wordRegex = /\b[a-zA-Z']{2,}\b/g;
   let match;
   while ((match = wordRegex.exec(text)) !== null) {
@@ -47,7 +49,6 @@ const getIssues = (state: EditorState): RangeSet<SpellcheckIssue> => {
 
   for (const { word, from, to } of words) {
     if (!nspell.correct(word)) {
-      console.log('misspelled word', word);
       builder.add(from, to, new SpellcheckIssue(word));
     }
   }
@@ -84,7 +85,7 @@ const createActions = (word: string): SpellcheckActionsConfig => ({
   actions: [
     {
       label: `Add "${word}" to dictionary`,
-      execute: async (word, view) => {
+      execute: (word, view) => {
         nspell.add(word);
         // Trigger a refresh of spellcheck issues
         view.dispatch({
@@ -96,7 +97,7 @@ const createActions = (word: string): SpellcheckActionsConfig => ({
 });
 
 // Export the extensions needed for spellcheck
-export function createSpellcheckExtensions() {
+export function createSpellcheckExtensions(): Extension[] {
   return [
     spellcheckExtension,
     nSpellcheckExtension,

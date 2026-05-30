@@ -5,8 +5,9 @@
   "publisher": "jsimonrichard",
   "version": "0.0.8",
   "repository": {
-    "type": "GitHub",
-    "url": "https://github.com/jsimonrichard/ProseMark"
+    "type": "git",
+    "url": "https://github.com/jsimonrichard/ProseMark.git",
+    "directory": "apps/vscode-extensions/core"
   },
   "author": {
     "name": "J. Simon Richard",
@@ -54,7 +55,7 @@
     "dev-tests": "tsc -p . -w --outDir out",
     "pretest": "bun run build-tests && bun run build && bun run lint",
     "check-types": "tsc --noEmit",
-    "lint": "eslint src",
+    "lint": "eslint --max-warnings=0",
     "test": "vscode-test"
   },
   "dependencies": {
@@ -77,10 +78,11 @@
     "@types/vscode": "^1.90.0",
     "@typescript-eslint/parser": "^8.50.0",
     "@vscode/test-cli": "^0.0.11",
+    "eslint": "^9.39.2",
+    "@prosemark/eslint-config": "workspace:*",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
     "concurrently": "^9.2.1",
-    "eslint": "^9.39.2",
     "tsdown": "^0.14.2",
     "typescript": "^5.9.3",
     "vite": "^8.0.5"

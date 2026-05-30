@@ -1,21 +1,16 @@
-import eslint from '@eslint/js';
-import { defineConfig } from 'eslint/config';
+import js from '@eslint/js';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  {
-    ignores: ['dist/**'],
-  },
-  eslint.configs.recommended,
+  globalIgnores(['dist/']),
+  js.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
   {
     languageOptions: {
       parserOptions: {
-        projectService: {
-          allowDefaultProject: ['*.config.ts'],
-        },
-        tsconfigRootDir: import.meta.dirname,
+        projectService: true,
       },
     },
     linterOptions: {

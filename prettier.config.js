@@ -9,4 +9,5 @@ export default /** @type {Config} */ ({
   trailingComma: 'all',
   singleQuote: true,
   printWidth: 80,
+  overrides: [{ files: 'turbo.json', options: { parser: 'json-stringify' } }],
 });

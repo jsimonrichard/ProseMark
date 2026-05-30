@@ -3,15 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "check-types": "tsc",
-    "dev-all": "turbo dev -F 'demo...'"
-  },
-  "devDependencies": {
-    "typescript": "^5.2.2",
-    "vite": "^5.3.1"
+    "check-types": "tsc --noEmit",
+    "dev": "vite",
+    "dev-all": "turbo dev -F 'demo...'",
+    "lint": "eslint --max-warnings=0",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@codemirror/commands": "^6.8.1",
@@ -30,5 +27,10 @@
     "codemirror": "^6.0.2",
     "dictionary-en": "^3.2.0",
     "nspell": "^2.1.5"
+  },
+  "devDependencies": {
+    "@prosemark/eslint-config": "workspace:*",
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1"
   }
 }

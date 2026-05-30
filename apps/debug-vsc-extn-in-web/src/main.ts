@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { EditorView, keymap } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
@@ -41,10 +40,7 @@ if (!(logOutput instanceof HTMLPreElement)) {
 const log = (message: string) => {
   const stamp = new Date().toISOString().slice(11, 23);
   const line = `[${stamp}] ${message}`;
-  logOutput.textContent = `${line}\n${logOutput.textContent ?? ''}`.slice(
-    0,
-    12000,
-  );
+  logOutput.textContent = `${line}\n${logOutput.textContent}`.slice(0, 12000);
   console.log(line);
 };
 
@@ -77,6 +73,7 @@ const editor = new EditorView({
       {
         key: 'Alt-p',
         run: (view) => {
+          // eslint-disable-next-line @typescript-eslint/no-base-to-string
           log(syntaxTree(view.state).toString());
           return true;
         },
@@ -217,6 +214,7 @@ delayInput.addEventListener('change', () => {
 });
 
 requireButton('print-tree').addEventListener('click', () => {
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string
   log(syntaxTree(editor.state).toString());
 });
 

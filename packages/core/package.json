@@ -2,8 +2,9 @@
   "name": "@prosemark/core",
   "version": "0.0.7",
   "repository": {
-    "url": "https://github.com/jsimonrichard/ProseMark",
-    "type": "github"
+    "type": "git",
+    "url": "https://github.com/jsimonrichard/ProseMark.git",
+    "directory": "packages/core"
   },
   "license": "MIT",
   "author": {
@@ -11,24 +12,24 @@
     "url": "https://jsimonrichard.com"
   },
   "type": "module",
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/main.js",
-  "module": "./dist/main.js",
   "exports": {
     ".": {
       "types": "./dist/main.d.ts",
       "import": "./dist/main.js"
     }
   },
+  "main": "./dist/main.js",
+  "module": "./dist/main.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "dev": "tsdown --watch",
     "build": "tsdown",
-    "preview": "vite preview",
+    "check-types": "tsc --noEmit",
+    "ci:publish": "bash ../../scripts/ci-publish.sh",
+    "dev": "tsdown --watch",
     "lint": "eslint --max-warnings=0",
-    "check-types": "tsc",
-    "ci:publish": "bash ../../scripts/ci-publish.sh"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@lezer/common": "^1.4.0",
@@ -37,17 +38,6 @@
     "@lezer/yaml": "^1.0.4",
     "ajv": "^8.17.1",
     "node-emoji": "^2.2.0"
-  },
-  "peerDependencies": {
-    "@codemirror/autocomplete": "^6.20.0",
-    "@codemirror/commands": "^6.10.1",
-    "@codemirror/lang-markdown": "^6.5.0",
-    "@codemirror/language": "^6.11.3",
-    "@codemirror/language-data": "^6.5.2",
-    "@codemirror/lint": "^6.9.2",
-    "@codemirror/search": "^6.5.11",
-    "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.39.4"
   },
   "devDependencies": {
     "@codemirror/autocomplete": "^6.20.0",
@@ -59,15 +49,24 @@
     "@codemirror/search": "^6.5.11",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.39.4",
-    "@eslint/js": "^9.39.2",
     "@lezer-unofficial/printer": "^1.0.1",
-    "@lezer/highlight": "^1.2.3",
+    "@prosemark/eslint-config": "workspace:*",
     "@types/node": "^24.10.4",
-    "bun-types": "^1.3.11",
     "codemirror": "^6.0.2",
     "eslint": "^9.39.2",
     "jiti": "^2.6.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.50.0"
+  },
+  "peerDependencies": {
+    "@codemirror/autocomplete": "^6.20.0",
+    "@codemirror/commands": "^6.10.1",
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@codemirror/language": "^6.11.3",
+    "@codemirror/language-data": "^6.5.2",
+    "@codemirror/lint": "^6.9.2",
+    "@codemirror/search": "^6.5.11",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.39.4"
   }
 }

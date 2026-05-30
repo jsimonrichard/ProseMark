@@ -1,20 +1,30 @@
 {
   "$schema": "./node_modules/turbo/schema.json",
   "tasks": {
+    "prebuild": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
     "build": {
-      "outputs": ["dist/**"],
-      "dependsOn": ["^build"],
+      "outputs": [
+        "dist/**"
+      ],
+      "dependsOn": [
+        "^build",
+        "prebuild"
+      ],
       "inputs": [
         "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/eslint.config-base.ts",
         "$TURBO_ROOT$/tsconfig.base.json"
       ]
     },
     "check-types": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "inputs": [
         "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/eslint.config-base.ts",
         "$TURBO_ROOT$/tsconfig.base.json"
       ]
     },
@@ -23,10 +33,12 @@
       "cache": false
     },
     "lint": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build",
+        "prebuild"
+      ],
       "inputs": [
         "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/eslint.config-base.ts",
         "$TURBO_ROOT$/tsconfig.base.json"
       ]
     },
@@ -35,7 +47,9 @@
       "outputs": []
     },
     "ci:publish": {
-      "dependsOn": ["^ci:publish"],
+      "dependsOn": [
+        "^ci:publish"
+      ],
       "cache": false
     }
   }

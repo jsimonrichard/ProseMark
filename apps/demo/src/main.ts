@@ -17,12 +17,11 @@ import {
   latexMarkdownEditorExtensions,
   latexMarkdownSyntaxTheme,
 } from '@prosemark/latex';
-import { indentWithTab } from '@codemirror/commands';
 import { GFM } from '@lezer/markdown';
 import { indentUnit, syntaxTree } from '@codemirror/language';
 import { printTree } from '@lezer-unofficial/printer';
 import initDoc from './initDoc.md?raw';
-import { traverseTreePlugin } from './traverseTreePlugin';
+// import { traverseTreePlugin } from './traverseTreePlugin';
 import {
   pastePlainTextExtension,
   pasteRichTextExtension,

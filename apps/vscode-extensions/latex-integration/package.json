@@ -5,8 +5,9 @@
   "publisher": "jsimonrichard",
   "version": "0.0.1",
   "repository": {
-    "type": "GitHub",
-    "url": "https://github.com/jsimonrichard/ProseMark"
+    "type": "git",
+    "url": "https://github.com/jsimonrichard/ProseMark.git",
+    "directory": "apps/vscode-extensions/latex-integration"
   },
   "author": {
     "name": "J. Simon Richard",
@@ -37,7 +38,7 @@
     "dev-tests": "tsc -p . -w --outDir out",
     "pretest": "bun run build-tests && bun run build && bun run lint",
     "check-types": "tsc --noEmit",
-    "lint": "eslint src",
+    "lint": "eslint --max-warnings=0",
     "test": "vscode-test"
   },
   "dependencies": {
@@ -56,6 +57,7 @@
     "@vscode/vsce": "^3.7.1",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.2",
+    "@prosemark/eslint-config": "workspace:*",
     "tsdown": "^0.15.6",
     "typescript": "^5.9.3",
     "vite": "^8.0.5"

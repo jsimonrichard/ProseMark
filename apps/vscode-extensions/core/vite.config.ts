@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 export default defineConfig({
   build: {
     outDir: 'dist/webview',
-    target: 'es2020',
+    target: 'es2022',
     lib: {
       entry: resolve(__dirname, 'src/webview/main.ts'),
       name: 'webview',

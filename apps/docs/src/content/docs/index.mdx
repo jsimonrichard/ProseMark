@@ -22,5 +22,36 @@ hero:
 ---
 
 import LogoAttrib from '../../components/LogoAttrib.astro';
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
 <LogoAttrib />
+
+## Projects using ProseMark
+
+If you ship something built on ProseMark, we would love to list it here. Open a pull request against [the docs site](https://github.com/jsimonrichard/ProseMark/tree/main/apps/docs) on GitHub.
+
+### Official VS Code Extensions
+
+These extensions live under `apps/vscode-extensions/` and are published on the Visual Studio Marketplace:
+
+<CardGrid>
+  <LinkCard
+    title="ProseMark"
+    href="https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark"
+    description='The main ProseMark editor for Markdown ("What You See Is What You Mean").'
+  />
+  <LinkCard
+    title="ProseMark — cSpell integration"
+    href="https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration"
+    description="Spell-checking in the ProseMark editor via Code Spell Checker."
+  />
+  <LinkCard
+    title="ProseMark — LaTeX math (MathJax)"
+    href="https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration"
+    description="Renders $...$ and $$...$$ math in ProseMark using MathJax."
+  />
+</CardGrid>
+
+### Desktop Editors
+
+_Coming soon._

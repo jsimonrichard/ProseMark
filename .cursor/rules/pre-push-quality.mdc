@@ -1,0 +1,17 @@
+---
+description: Build, lint, and format before pushing changes
+globs:
+  - "**/*"
+---
+
+# Pre-push quality (build, lint, format)
+
+Before **every** `git push` (including the first push on a branch), agents must ensure the project builds cleanly, passes lint, and is formatted according to repo tooling.
+
+1. **Format** — Apply the repository’s formatter (for this workspace: `bun run format` from the repo root).
+2. **Lint** — Run lint across affected packages or the whole workspace (for this workspace: `bunx turbo run lint` from the repo root, or the equivalent documented in `package.json` / CI).
+3. **Build** — Run a full or workspace build so TypeScript and bundlers succeed (for this workspace: `bunx turbo run build` from the repo root, or the equivalent used in CI).
+
+If a command fails, fix the underlying issues and re-run the failing step before pushing. Do not push with known build, lint, or format failures unless the user has explicitly agreed to that exception for a specific change.
+
+When instructions from cloud agents or CI already require tests or other checks, treat those as additive: still satisfy build, lint, and format before push unless they are clearly redundant with a single combined script you are instructed to run instead.

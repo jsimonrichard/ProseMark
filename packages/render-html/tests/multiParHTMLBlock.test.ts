@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'bun:test';
 import { GFM, parser } from '@lezer/markdown';
 import type { SyntaxNode } from '@lezer/common';
-import { prosemarkMarkdownSyntaxExtensions } from '../lib/markdown/index.ts';
+import { prosemarkMarkdownSyntaxExtensions } from '@prosemark/core';
 import {
   multiParHTMLBlockMarkdownSyntaxExtension,
   renderHtmlMarkdownSyntaxExtensions,
-} from '../../render-html/lib/markdown.ts';
+} from '../lib/markdown.ts';
 
 const markdownParser = parser.configure([
   GFM,
