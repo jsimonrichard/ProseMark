@@ -77,10 +77,11 @@ export const measureSoftIndentWidth = (
     0;
 
   const contentRect = view.coordsForChar(contentStart);
+  const atContent = view.coordsAtPos(contentStart, 1);
   const prefixEnd = view.coordsAtPos(measurePos, 1);
   const end = contentRect
     ? contentRect.left
-    : (prefixEnd?.right ?? prefixEnd?.left ?? 0);
+    : (atContent?.left ?? prefixEnd?.right ?? prefixEnd?.left ?? 0);
 
   return Math.max(0, end - start);
 };
