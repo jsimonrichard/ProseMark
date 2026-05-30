@@ -2,6 +2,7 @@ import { Decoration, EditorView, WidgetType } from '@codemirror/view';
 import {
   foldableSyntaxFacet,
   selectAllDecorationsOnSelectExtension,
+  SOFT_INDENT_LINE_CLASS,
 } from '@prosemark/core';
 import type { EditorState, Extension } from '@codemirror/state';
 import type { SyntaxNodeRef } from '@lezer/common';
@@ -525,6 +526,12 @@ const latexMathWidgetTheme = EditorView.theme({
   [`.${WIDGET_CLASS}`]: {
     display: 'inline-block',
     verticalAlign: 'middle',
+  },
+  // Soft-indent lines use negative text-indent; inline-block math overlaps the
+  // hanging margin unless the widget flows like text (see @prosemark/core softIndentExtension).
+  [`.${SOFT_INDENT_LINE_CLASS} .${WIDGET_CLASS}[data-display="inline"]`]: {
+    display: 'inline',
+    verticalAlign: 'baseline',
   },
   [`.${WIDGET_CLASS}[data-display="block"]`]: {
     display: 'block',

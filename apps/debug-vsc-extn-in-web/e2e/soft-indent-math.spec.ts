@@ -4,9 +4,9 @@ const FIXTURE = `# Soft indent + math
 
 Plain paragraph with $x^2$ inline.
 
-- List item with $y^2$ after text
-- $z^2$ right after marker
-  - Nested $a$ item
+- List with $y^2$ after words
+- Plain list item
+  - Nested $a$ child
 `;
 
 const setDoc = async (page: import('@playwright/test').Page) => {
@@ -18,7 +18,6 @@ const setDoc = async (page: import('@playwright/test').Page) => {
       changes: { from: 0, to: view.state.doc.length, insert: doc },
     });
   }, FIXTURE);
-  // Let soft-indent requestMeasure + refresh settle
   await page.waitForSelector('.cm-line.cm-soft-indent-line', {
     timeout: 10_000,
   });
@@ -27,14 +26,17 @@ const setDoc = async (page: import('@playwright/test').Page) => {
 const lineByText = (page: import('@playwright/test').Page, text: string) =>
   page.locator('.cm-line').filter({ hasText: text }).first();
 
-const paddingInlineStartPx = async (
-  line: import('@playwright/test').Locator,
-) => {
-  const value = await line.evaluate((el) =>
-    Number.parseFloat(getComputedStyle(el).paddingInlineStart),
-  );
-  return Number.isFinite(value) ? value : 0;
-};
+const lineLayout = async (line: import('@playwright/test').Locator) =>
+  line.evaluate((el) => {
+    const style = getComputedStyle(el);
+    const bullet = el.querySelector('.cm-rendered-list-mark');
+    const bulletRect = bullet?.getBoundingClientRect();
+    return {
+      paddingInlineStart: Number.parseFloat(style.paddingInlineStart),
+      textIndent: Number.parseFloat(style.textIndent),
+      bulletLeft: bulletRect?.left ?? null,
+    };
+  });
 
 test.describe('soft indent with inline math', () => {
   test('does not soft-indent plain paragraphs that contain math', async ({
@@ -48,34 +50,42 @@ test.describe('soft indent with inline math', () => {
     await expect(plain).not.toHaveClass(/cm-soft-indent-line/);
   });
 
-  test('soft-indents list lines that contain math', async ({ page }) => {
+  test('list lines with and without math share the same soft-indent CSS', async ({
+    page,
+  }) => {
     await page.goto('/');
     await setDoc(page);
 
-    const plain = lineByText(page, 'Plain paragraph');
-    const listLine = lineByText(page, 'List item with');
+    const withMath = lineByText(page, 'List with');
+    const withoutMath = lineByText(page, 'Plain list item');
 
-    await expect(listLine).toHaveClass(/cm-soft-indent-line/, {
-      timeout: 10_000,
-    });
-    await expect(listLine).toHaveClass(/cm-soft-indent-line--inline-math/);
+    await expect(withMath).toHaveClass(/cm-soft-indent-line/);
+    await expect(withoutMath).toHaveClass(/cm-soft-indent-line/);
 
-    const plainPad = await paddingInlineStartPx(plain);
-    const listPad = await paddingInlineStartPx(listLine);
-    expect(listPad).toBeGreaterThan(plainPad + 4);
+    const mathLayout = await lineLayout(withMath);
+    const plainLayout = await lineLayout(withoutMath);
+
+    expect(mathLayout.paddingInlineStart).toBeCloseTo(
+      plainLayout.paddingInlineStart,
+      0,
+    );
+    expect(mathLayout.textIndent).toBeCloseTo(plainLayout.textIndent, 0);
+    expect(mathLayout.textIndent).toBeLessThan(0);
+
+    if (mathLayout.bulletLeft === null || plainLayout.bulletLeft === null) {
+      throw new Error('expected list bullets to render');
+    }
+    expect(mathLayout.bulletLeft).toBeCloseTo(plainLayout.bulletLeft, 0);
   });
 
-  test('padding does not grow when clicking or editing', async ({ page }) => {
+  test('padding does not grow when clicking or editing a list line with math', async ({
+    page,
+  }) => {
     await page.goto('/');
     await setDoc(page);
 
-    const plain = lineByText(page, 'Plain paragraph');
-    const listLine = lineByText(page, 'List item with');
-    await expect(listLine).toHaveClass(/cm-soft-indent-line/);
-
-    const initial = await paddingInlineStartPx(listLine);
-    const plainPad = await paddingInlineStartPx(plain);
-    expect(initial).toBeGreaterThan(plainPad + 4);
+    const listLine = lineByText(page, 'List with');
+    const initial = await lineLayout(listLine);
 
     const editor = page.locator('.cm-editor');
     for (let i = 0; i < 6; i++) {
@@ -83,16 +93,21 @@ test.describe('soft indent with inline math', () => {
       await page.waitForTimeout(80);
     }
 
-    await listLine.evaluate((el) => el.textContent);
-    const afterClicks = await paddingInlineStartPx(listLine);
-    expect(afterClicks).toBeCloseTo(initial, 0);
+    const afterClicks = await lineLayout(listLine);
+    expect(afterClicks.paddingInlineStart).toBeCloseTo(
+      initial.paddingInlineStart,
+      0,
+    );
+    expect(afterClicks.textIndent).toBeCloseTo(initial.textIndent, 0);
 
-    // Typing in the list line should not inflate padding either
     await editor.click();
     await page.keyboard.type('!');
     await page.waitForTimeout(200);
 
-    const afterEdit = await paddingInlineStartPx(listLine);
-    expect(afterEdit).toBeCloseTo(initial, 0);
+    const afterEdit = await lineLayout(listLine);
+    expect(afterEdit.paddingInlineStart).toBeCloseTo(
+      initial.paddingInlineStart,
+      0,
+    );
   });
 });

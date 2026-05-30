@@ -6,20 +6,16 @@ import {
   ViewUpdate,
   type DecorationSet,
 } from '@codemirror/view';
-import { syntaxTree } from '@codemirror/language';
-import { isInlineMathNode } from './markdown/mathMarkdown';
 
 interface IndentData {
   lineNumber: number;
   indentWidth: number;
-  /** Skip negative `text-indent` — it breaks inline replace widgets (e.g. MathJax). */
-  paddingOnly: boolean;
 }
 
 const softIndentPattern = /^(> )*(\s*)?(([-*+]?|\d[.)])\s)?(\[.\]\s)?/;
 
-const SOFT_INDENT_LINE_CLASS = 'cm-soft-indent-line';
-const SOFT_INDENT_INLINE_MATH_CLASS = 'cm-soft-indent-line--inline-math';
+/** Class on lines that use soft hanging-indent layout (used by `@prosemark/latex` theme). */
+export const SOFT_INDENT_LINE_CLASS = 'cm-soft-indent-line';
 
 /**
  * Document position to measure the visual end of a soft-indent prefix.
@@ -58,26 +54,6 @@ interface ChangedLine {
   newStyle?: string;
 }
 
-const lineHasInlineMath = (
-  view: EditorView,
-  lineFrom: number,
-  lineTo: number,
-) => {
-  let found = false;
-  syntaxTree(view.state).iterate({
-    from: lineFrom,
-    to: lineTo,
-    enter: (node) => {
-      if (node.name !== 'Math') return;
-      if (isInlineMathNode(view.state, node.from, node.to)) {
-        found = true;
-        return false;
-      }
-    },
-  });
-  return found;
-};
-
 /**
  * Pixel width of the soft-indent prefix. Uses document positions only so existing
  * `padding-inline-start` on the line does not compound on remeasure (click/edit).
@@ -111,7 +87,6 @@ function getDifferences(
 ): ChangedLine[] {
   const changedLines: ChangedLine[] = [];
 
-  // Compare decorations line by line
   for (const { from, to } of view.visibleRanges) {
     const start = view.state.doc.lineAt(from);
     const end = view.state.doc.lineAt(to);
@@ -162,7 +137,6 @@ export const softIndentExtension = ViewPlugin.fromClass(
     }
 
     requestMeasure(view: EditorView, refreshCount = 0) {
-      // Needs to run via requestMeasure since it measures and updates the DOM
       view.requestMeasure({
         read: (view) => this.measureIndents(view),
         write: (indents, view) => {
@@ -190,12 +164,9 @@ export const softIndentExtension = ViewPlugin.fromClass(
           );
           if (!indentWidth) continue;
 
-          const paddingOnly = lineHasInlineMath(view, line.from, line.to);
-
           indents.push({
             lineNumber: i,
             indentWidth,
-            paddingOnly,
           });
         }
       }
@@ -206,21 +177,15 @@ export const softIndentExtension = ViewPlugin.fromClass(
       const builder = new RangeSetBuilder<Decoration>();
       const styles = new Map<number, string>();
 
-      for (const { lineNumber, indentWidth, paddingOnly } of indents) {
+      for (const { lineNumber, indentWidth } of indents) {
         const line = view.state.doc.line(lineNumber);
         const padding = `${(indentWidth + 6).toString()}px`;
-        const style = paddingOnly
-          ? `padding-inline-start: ${padding};`
-          : `padding-inline-start: ${padding}; text-indent: -${indentWidth.toString()}px;`;
+        const style = `padding-inline-start: ${padding}; text-indent: -${indentWidth.toString()}px;`;
         styles.set(lineNumber, style);
-
-        const className = paddingOnly
-          ? `${SOFT_INDENT_LINE_CLASS} ${SOFT_INDENT_INLINE_MATH_CLASS}`
-          : SOFT_INDENT_LINE_CLASS;
 
         const deco = Decoration.line({
           attributes: {
-            class: className,
+            class: SOFT_INDENT_LINE_CLASS,
             style,
           },
         });
