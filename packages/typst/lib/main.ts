@@ -40,12 +40,11 @@ export const typstMathWidgetClass = 'cm-typst-math';
 export const typstMathWidgetInkFillAttribute = 'data-typst-ink-fill';
 
 /** Bump when widget DOM/debug attributes change (helps verify deploy cache). */
-const TYPST_MATH_WIDGET_VERSION = '4';
-
-/** Match {@link packages/latex/lib/main.ts} math widget error styling. */
-const TYPST_MATH_WIDGET_ERROR_COLOR = '#b00020';
+const TYPST_MATH_WIDGET_VERSION = '5';
 
 const WIDGET_CLASS = typstMathWidgetClass;
+const WIDGET_ERROR_CLASS = `${WIDGET_CLASS}-error`;
+const WIDGET_ERROR_MESSAGE_CLASS = `${WIDGET_CLASS}-error-message`;
 const typstMathWidgetInkFillAttr = typstMathWidgetInkFillAttribute;
 
 export interface TypstMarkdownEditorOptions {
@@ -524,9 +523,7 @@ const renderOrCloneFromCache = async (
   return cloneSvgNodes(nodes);
 };
 
-/** Extract human-readable messages from typst.ts / WASM diagnostic dumps. */
-const formatTypstRenderError = (err: unknown): string => {
-  const raw = err instanceof Error ? err.message : String(err);
+const parseTypstDiagnosticMessages = (raw: string): string[] => {
   const messages: string[] = [];
   const messageRe = /message:\s*"((?:\\.|[^"\\])*)"/g;
   for (let match = messageRe.exec(raw); match; match = messageRe.exec(raw)) {
@@ -535,35 +532,61 @@ const formatTypstRenderError = (err: unknown): string => {
       messages.push(text.replace(/\\"/g, '"').replace(/\\\\/g, '\\'));
     }
   }
-  if (messages.length > 0) {
-    return messages.join('; ');
-  }
-  const trimmed = raw.trim();
-  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-    return 'Typst failed to render math';
-  }
-  return raw;
+  return messages;
 };
 
-const applyTypstMathWidgetError = (
+/**
+ * Normalizes typst.ts / WASM failures into a single user-visible message.
+ *
+ * @internal Exported for unit tests.
+ */
+export function formatTypstRenderError(err: unknown): string {
+  const formatRaw = (raw: string): string | null => {
+    const parsed = parseTypstDiagnosticMessages(raw);
+    if (parsed.length > 0) return parsed.join('; ');
+    const trimmed = raw.trim();
+    if (!trimmed) return null;
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      return 'Typst render failed';
+    }
+    return trimmed;
+  };
+
+  if (err instanceof Error) {
+    return formatRaw(err.message) ?? 'Typst render failed';
+  }
+  if (typeof err === 'string') {
+    return formatRaw(err) ?? 'Typst render failed';
+  }
+  if (err && typeof err === 'object' && 'message' in err) {
+    const raw = (err as { message?: unknown }).message;
+    const str = typeof raw === 'string' ? raw : String(raw);
+    return formatRaw(str) ?? 'Typst render failed';
+  }
+  return 'Typst render failed';
+}
+
+/** Populates a math widget with the render error message. */
+const populateTypstMathErrorDom = (
   wrap: HTMLElement,
-  body: string,
   err: unknown,
+  display: boolean,
 ): void => {
-  const msg = formatTypstRenderError(err);
-  wrap.replaceChildren(document.createTextNode(body));
-  wrap.title = msg;
-  wrap.classList.add(`${WIDGET_CLASS}-error`);
-  wrap.style.color = TYPST_MATH_WIDGET_ERROR_COLOR;
-  wrap.style.fontFamily = 'monospace';
-  wrap.style.verticalAlign = 'middle';
+  const message = formatTypstRenderError(err);
+
+  const messageEl = document.createElement(display ? 'div' : 'span');
+  messageEl.className = WIDGET_ERROR_MESSAGE_CLASS;
+  messageEl.setAttribute('role', 'alert');
+  messageEl.textContent = message;
+
+  wrap.replaceChildren(messageEl);
+  wrap.classList.add(WIDGET_ERROR_CLASS);
+  wrap.setAttribute('title', message);
 };
 
 const clearTypstMathWidgetError = (wrap: HTMLElement): void => {
-  wrap.classList.remove(`${WIDGET_CLASS}-error`);
-  wrap.style.color = '';
-  wrap.style.fontFamily = '';
-  wrap.style.verticalAlign = '';
+  wrap.classList.remove(WIDGET_ERROR_CLASS);
+  wrap.removeAttribute('title');
 };
 
 const blockMathEstimatedHeightPx = 72;
@@ -650,7 +673,7 @@ class TypstMathWidget extends WidgetType {
         ) {
           return;
         }
-        applyTypstMathWidgetError(wrap, this.body, err);
+        populateTypstMathErrorDom(wrap, err, this.display);
         view.requestMeasure();
       });
 
@@ -706,40 +729,76 @@ export const typstMathSyntaxHighlighting = syntaxHighlighting(
 );
 
 const typstMathWidgetTheme = EditorView.theme({
-  [`.${WIDGET_CLASS}:not(.${WIDGET_CLASS}-error)`]: {
+  [`.${WIDGET_CLASS}:not(.${WIDGET_ERROR_CLASS})`]: {
     display: 'inline-block',
     verticalAlign: 'baseline',
     maxWidth: '100%',
     color: 'inherit',
   },
-  [`.${WIDGET_CLASS}-error`]: {
-    display: 'inline-block',
-    verticalAlign: 'middle',
-    maxWidth: '100%',
-    color: TYPST_MATH_WIDGET_ERROR_COLOR,
-    fontFamily: 'monospace',
-  },
   // typst.ts may emit several sibling/nested <svg> nodes; they default to block
   // and stack vertically unless forced inline (block math centers via text-align).
-  [`.${WIDGET_CLASS} svg`]: {
+  [`.${WIDGET_CLASS}:not(.${WIDGET_ERROR_CLASS}) svg`]: {
     maxWidth: '100%',
     color: 'inherit',
   },
-  [`.${WIDGET_CLASS}[data-display="inline"] svg`]: {
+  [`.${WIDGET_CLASS}[data-display="inline"]:not(.${WIDGET_ERROR_CLASS}) svg`]: {
     display: 'inline',
     verticalAlign: 'baseline',
     width: 'auto',
   },
-  [`.${WIDGET_CLASS}[data-display="block"] svg`]: {
+  [`.${WIDGET_CLASS}[data-display="block"]:not(.${WIDGET_ERROR_CLASS}) svg`]: {
     display: 'block',
     margin: '0 auto',
     width: 'auto',
   },
-  [`.${WIDGET_CLASS}[data-display="block"]`]: {
+  [`.${WIDGET_CLASS}[data-display="block"]:not(.${WIDGET_ERROR_CLASS})`]: {
     display: 'block',
     textAlign: 'center',
     padding: '0.5em 0',
   },
+  [`.${WIDGET_ERROR_CLASS}`]: {
+    color:
+      'var(--pm-typst-math-error-color, var(--pm-syntax-invalid, #c62828))',
+    backgroundColor:
+      'var(--pm-typst-math-error-background-color, rgb(128 128 128 / 0.12))',
+    fontFamily: `var(
+      --pm-typst-math-formula-font,
+      var(
+        --pm-code-font,
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        'Liberation Mono',
+        'Courier New',
+        monospace
+      )
+    )`,
+    borderRadius: '0.4rem',
+    padding: '0.2rem',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
+  },
+  [`.${WIDGET_CLASS}[data-display="block"].${WIDGET_ERROR_CLASS}`]: {
+    display: 'block',
+    textAlign: 'left',
+    padding: '0.5em 0.2rem',
+  },
+  [`.${WIDGET_ERROR_CLASS}[data-display="inline"]`]: {
+    display: 'inline',
+    verticalAlign: 'baseline',
+  },
+  [`.${WIDGET_ERROR_MESSAGE_CLASS}`]: {
+    fontSize: '0.85em',
+    lineHeight: 1.35,
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+  },
+  [`.${WIDGET_ERROR_CLASS}[data-display="inline"] .${WIDGET_ERROR_MESSAGE_CLASS}`]:
+    {
+      display: 'inline',
+    },
 });
 
 export function typstMarkdownEditorExtensions(
