@@ -1,5 +1,12 @@
 # @prosemark/paste-rich-text
 
+## 0.0.4
+
+### Patch Changes
+
+- 24ca7ca: Update `@codemirror/view` to `^6.42.1`.
+- 4c06b33: Published packages no longer include `devDependencies` in their npm registry manifest; CI strips `devDependencies` before `bun pm pack` so workspace-only dev tooling is not resolved at publish time.
+
 ## 0.0.3
 
 ### Patch Changes

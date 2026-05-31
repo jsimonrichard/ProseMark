@@ -1,5 +1,18 @@
 # vscode-prosemark
 
+## 0.0.9
+
+### Patch Changes
+
+- Updated dependencies [24ca7ca]
+- Updated dependencies [24ca7ca]
+- Updated dependencies [24ca7ca]
+- Updated dependencies [4c06b33]
+  - @prosemark/core@0.0.8
+  - @prosemark/paste-rich-text@0.0.4
+  - @prosemark/render-html@0.0.9
+  - @prosemark/vscode-extension-integrator@0.0.3
+
 ## 0.0.8
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @prosemark/render-html
 
+## 0.0.9
+
+### Patch Changes
+
+- 24ca7ca: Update `@codemirror/view` to `^6.42.1`.
+- 4c06b33: Published packages no longer include `devDependencies` in their npm registry manifest; CI strips `devDependencies` before `bun pm pack` so workspace-only dev tooling is not resolved at publish time.
+- Updated dependencies [24ca7ca]
+- Updated dependencies [24ca7ca]
+- Updated dependencies [24ca7ca]
+- Updated dependencies [4c06b33]
+  - @prosemark/core@0.0.8
+
 ## 0.0.8
 
 ### Patch Changes
