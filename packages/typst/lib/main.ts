@@ -40,7 +40,10 @@ export const typstMathWidgetClass = 'cm-typst-math';
 export const typstMathWidgetInkFillAttribute = 'data-typst-ink-fill';
 
 /** Bump when widget DOM/debug attributes change (helps verify deploy cache). */
-const TYPST_MATH_WIDGET_VERSION = '3';
+const TYPST_MATH_WIDGET_VERSION = '4';
+
+/** Match {@link packages/latex/lib/main.ts} math widget error styling. */
+const TYPST_MATH_WIDGET_ERROR_COLOR = '#b00020';
 
 const WIDGET_CLASS = typstMathWidgetClass;
 const typstMathWidgetInkFillAttr = typstMathWidgetInkFillAttribute;
@@ -542,6 +545,27 @@ const formatTypstRenderError = (err: unknown): string => {
   return raw;
 };
 
+const applyTypstMathWidgetError = (
+  wrap: HTMLElement,
+  body: string,
+  err: unknown,
+): void => {
+  const msg = formatTypstRenderError(err);
+  wrap.replaceChildren(document.createTextNode(body));
+  wrap.title = msg;
+  wrap.classList.add(`${WIDGET_CLASS}-error`);
+  wrap.style.color = TYPST_MATH_WIDGET_ERROR_COLOR;
+  wrap.style.fontFamily = 'monospace';
+  wrap.style.verticalAlign = 'middle';
+};
+
+const clearTypstMathWidgetError = (wrap: HTMLElement): void => {
+  wrap.classList.remove(`${WIDGET_CLASS}-error`);
+  wrap.style.color = '';
+  wrap.style.fontFamily = '';
+  wrap.style.verticalAlign = '';
+};
+
 const blockMathEstimatedHeightPx = 72;
 
 const typstWidgetResizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
@@ -589,6 +613,9 @@ class TypstMathWidget extends WidgetType {
     const inkFill = resolveEditorInkTypstFill(view);
     wrap.setAttribute(typstMathWidgetInkFillAttr, inkFill);
 
+    const renderGeneration = String(Math.random());
+    wrap.dataset['typstRenderGeneration'] = renderGeneration;
+
     void ensureTypst(this.compilerWasmUrl, this.rendererWasmUrl)
       .then(() =>
         renderOrCloneFromCache(
@@ -600,6 +627,13 @@ class TypstMathWidget extends WidgetType {
         ),
       )
       .then((nodes) => {
+        if (
+          !wrap.isConnected ||
+          wrap.dataset['typstRenderGeneration'] !== renderGeneration
+        ) {
+          return;
+        }
+        clearTypstMathWidgetError(wrap);
         wrap.setAttribute(typstMathWidgetInkFillAttr, inkFill);
         wrap.replaceChildren(...nodes);
         if (this.display) {
@@ -610,10 +644,13 @@ class TypstMathWidget extends WidgetType {
         view.requestMeasure();
       })
       .catch((err: unknown) => {
-        const msg = formatTypstRenderError(err);
-        wrap.textContent = this.body;
-        wrap.title = msg;
-        wrap.classList.add(`${WIDGET_CLASS}-error`);
+        if (
+          !wrap.isConnected ||
+          wrap.dataset['typstRenderGeneration'] !== renderGeneration
+        ) {
+          return;
+        }
+        applyTypstMathWidgetError(wrap, this.body, err);
         view.requestMeasure();
       });
 
@@ -669,11 +706,18 @@ export const typstMathSyntaxHighlighting = syntaxHighlighting(
 );
 
 const typstMathWidgetTheme = EditorView.theme({
-  [`.${WIDGET_CLASS}`]: {
+  [`.${WIDGET_CLASS}:not(.${WIDGET_CLASS}-error)`]: {
     display: 'inline-block',
     verticalAlign: 'baseline',
     maxWidth: '100%',
     color: 'inherit',
+  },
+  [`.${WIDGET_CLASS}-error`]: {
+    display: 'inline-block',
+    verticalAlign: 'middle',
+    maxWidth: '100%',
+    color: TYPST_MATH_WIDGET_ERROR_COLOR,
+    fontFamily: 'monospace',
   },
   // typst.ts may emit several sibling/nested <svg> nodes; they default to block
   // and stack vertically unless forced inline (block math centers via text-align).
@@ -695,10 +739,6 @@ const typstMathWidgetTheme = EditorView.theme({
     display: 'block',
     textAlign: 'center',
     padding: '0.5em 0',
-  },
-  [`.${WIDGET_CLASS}.${WIDGET_CLASS}-error`]: {
-    color: '#b00020',
-    fontFamily: 'monospace',
   },
 });
 
