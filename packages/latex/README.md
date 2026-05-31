@@ -2,7 +2,9 @@
 
 LaTeX-style math for ProseMark’s Markdown editor: `$...$` and `$$...$$`, rendered with [MathJax](https://www.mathjax.org/) loaded at **runtime** from your chosen package root (default: **jsDelivr**, pinned to the same MathJax version this package is tested against).
 
-The **`Math` / `MathMark` / `MathFormula`** Lezer nodes and **`mathMarkdownSyntaxExtension`** live in **`@prosemark/core`** and are part of **`prosemarkMarkdownSyntaxExtensions`**. This package adds MathJax **widgets** and theme helpers; it **re-exports** the parser under **`latexMath*`** names if you only depend on `@prosemark/latex`.
+**Full setup guide:** [prosemark.com/guides/latex-math](https://prosemark.com/guides/latex-math/)
+
+**`Math` / `MathMark` / `MathFormula`** and **`mathMarkdownSyntaxExtension`** live in **`@prosemark/core`** (included in **`prosemarkMarkdownSyntaxExtensions`**). This package adds MathJax widgets and theme helpers. **`latexMath*`** exports are re-exports of the core math parser symbols.
 
 ### Parser: you must enable math in Markdown
 
@@ -11,7 +13,7 @@ The **`Math` / `MathMark` / `MathFormula`** Lezer nodes and **`mathMarkdownSynta
 Do **one** of the following:
 
 - Pass **`prosemarkMarkdownSyntaxExtensions`** from **`@prosemark/core`** inside **`markdown({ extensions: [...] })`** (it already includes **`mathMarkdownSyntaxExtension`**), **or**
-- Add **`mathMarkdownSyntaxExtension`** from **`@prosemark/core`**, **or** **`latexMathMarkdownSyntaxExtension`** from **`@prosemark/latex`** (for now, a re-export of the same extension), to **`markdown({ extensions: [...] })`**.
+- Add **`mathMarkdownSyntaxExtension`** from **`@prosemark/core`**, **or** **`latexMathMarkdownSyntaxExtension`** (re-export) from **`@prosemark/latex`**, to **`markdown({ extensions: [...] })`**.
 
 ## Install
 
@@ -102,7 +104,7 @@ markdown({
 
 Then add **`latexMarkdownSyntaxTheme`** and **`latexMarkdownEditorExtensions()`** as in the first example.
 
-- **`latexMathMarkdownSyntaxExtension`** — for now, a re-export of **`mathMarkdownSyntaxExtension`** from core.
+- **`latexMathMarkdownSyntaxExtension`** — re-export of **`mathMarkdownSyntaxExtension`** from core.
 - **`latexMarkdownSyntaxTheme`** — delimiter and formula highlighting.
 - **`latexMarkdownEditorExtensions()`** — fold widgets with MathJax.
 
@@ -140,15 +142,3 @@ latexMarkdownEditorExtensions({
 ## Caching
 
 MathJax caches font paths (SVG `fontCache: 'global'`). This package adds an **LRU cache of rendered DOM trees**. Set `renderCacheSize: 0` to disable.
-
-## Limitations
-
-- **Browser only** — needs `window` and `document`.
-- **One output mode per page** — the first successful load picks `svg` or `html`.
-- **One MathJax load mode per page** — do not mix `url-import` and `static-import`.
-
-### Block widgets and layout
-
-Block replace widgets should not use **vertical margins**; use padding. This package calls **`requestMeasure`** after render and uses **`ResizeObserver`** when available.
-
-See [Decoration.widget](https://codemirror.net/docs/ref/#view.Decoration%5Ewidget) and [requestMeasure](https://codemirror.net/docs/ref/#view.EditorView.requestMeasure).

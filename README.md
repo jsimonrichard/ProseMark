@@ -8,7 +8,7 @@ This project is structured as a set of extensions for [CodeMirror 6](https://cod
 
 - **[`@prosemark/core`](https://www.npmjs.com/package/@prosemark/core):** the core functionality needed for the WYSIWYM editor.
 - **[`@prosemark/render-html`](https://www.npmjs.com/package/@prosemark/render-html):** renders raw HTML blocks in Markdown (sanitized with DOMPurify).
-- **[`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex):** renders latex math (inside `$...$` / `$$...$$`) using MathJax.
+- **[`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex):** renders LaTeX math (inside `$...$` / `$$...$$`) using MathJax. Setup guide: [prosemark.com/guides/latex-math](https://prosemark.com/guides/latex-math/).
 - **[`@prosemark/paste-rich-text`](https://www.npmjs.com/package/@prosemark/paste-rich-text):** enables pasting formatted rich text into the editor.
 - **[`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend):** CodeMirror UI for spellcheck (underlines, suggestion tooltips, optional custom actions). You plug in your own spell engine and issue source; see the package README and [demo](https://prosemark.com/demo/).
 
@@ -23,7 +23,7 @@ This project is structured as a set of extensions for [CodeMirror 6](https://cod
 - Block quotes
 - Code fences with syntax highlighting
 - Rendered HTML when you add [`@prosemark/render-html`](https://www.npmjs.com/package/@prosemark/render-html)
-- Dollar-delimited math (`$...$` / `$$...$$`) when you add [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) (or use the VS Code LaTeX integration below)
+- Dollar-delimited math (`$...$` / `$$...$$`) when you add [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) — see [LaTeX math setup](https://prosemark.com/guides/latex-math/) (or use the VS Code LaTeX integration below)
 - Spellcheck UI when using [`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend) (you supply the dictionary / engine)
 
 ## ProseMark for Visual Studio Code

@@ -20,7 +20,7 @@ The published **ProseMark** extension lists companion extensions so installs get
 
 - **Spellcheck:** webview UI from [`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend). Dictionary-backed checking uses [**ProseMark - Code Spell Checker (cSpell) Integration**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration) with [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker).
 
-- **LaTeX math:** [**ProseMark - LaTeX math (MathJax) integration**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration) loads [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) in the webview so folded `$...$` / `$$...$$` renders with MathJax.
+- **LaTeX math:** [**ProseMark - LaTeX math (MathJax) integration**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration) loads [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) in the webview so folded `$...$` / `$$...$$` renders with MathJax. For library apps, see [LaTeX math setup](https://prosemark.com/guides/latex-math/).
 
 ## How to Use
 
