@@ -1,15 +1,5 @@
 # @prosemark/render-html
 
-## 0.0.9
-
-### Patch Changes
-
-- 99b5cfc: Update `@codemirror/view` to `^6.42.1`.
-- Updated dependencies [99b5cfc]
-- Updated dependencies [31e9266]
-- Updated dependencies [c4e4a13]
-  - @prosemark/core@0.0.8
-
 ## 0.0.8
 
 ### Patch Changes
