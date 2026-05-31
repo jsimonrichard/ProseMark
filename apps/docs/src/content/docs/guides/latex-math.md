@@ -8,7 +8,7 @@ description: Set up @prosemark/latex to parse and render $...$ and $$...$$ math 
 This guide walks through installing the package, enabling the **parser**, wiring **editor extensions**, and choosing how **MathJax** is loaded. API details are in the [`@prosemark/latex` TypeDoc](/api/prosemark/latex/).
 
 :::note[Parser vs renderer]
-The Lezer nodes (`Math`, `MathMark`, `MathFormula`) and [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/) live in **`@prosemark/core`** (included in [`prosemarkMarkdownSyntaxExtensions`](/api/prosemark/core/variables/prosemarkmarkdownsyntaxextensions/)). **`@prosemark/latex`** adds MathJax **widgets**, delimiter/formula highlighting, and re-exports the parser as `latexMath*` if you only depend on the latex package.
+Core defines shared Lezer nodes (`Math`, `MathMark`, `MathFormula`) and [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/) (TeX-style `$...$` / `$$...$$` today), so the same tree can feed different renderers. **`@prosemark/latex`** adds MathJax widgets and theme helpers, and also exports **`latexMath*`** names for the parser—**for now, the same extension as core**. Prefer `latexMathMarkdownSyntaxExtension` when you want the markdown entry point next to `latexMarkdownEditorExtensions()`; that keeps LaTeX setup in one package if delimiter rules ever diverge from another math backend (for example a future Typst integration).
 :::
 
 ## Install
@@ -28,7 +28,7 @@ MathJax is **not** bundled into `@prosemark/latex`. By default the package loads
 Do **one** of the following:
 
 - Pass [`prosemarkMarkdownSyntaxExtensions`](/api/prosemark/core/variables/prosemarkmarkdownsyntaxextensions/) inside `markdown({ extensions: [...] })` (it already includes [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/)), **or**
-- Add [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/) from `@prosemark/core`, **or** `latexMathMarkdownSyntaxExtension` from `@prosemark/latex` (a re-export of the same extension), to your markdown extensions.
+- Add [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/) from `@prosemark/core`, **or** `latexMathMarkdownSyntaxExtension` from `@prosemark/latex` (today, the same extension), to your markdown extensions.
 
 ## Wire up the editor
 
@@ -72,11 +72,11 @@ If you assemble markdown extensions yourself (without `prosemarkMarkdownSyntaxEx
 
 Exports at a glance:
 
-| Export                             | Role                                            |
-| ---------------------------------- | ----------------------------------------------- |
-| `latexMathMarkdownSyntaxExtension` | Re-export of core `mathMarkdownSyntaxExtension` |
-| `latexMarkdownSyntaxTheme`         | Delimiter and formula source highlighting       |
-| `latexMarkdownEditorExtensions()`  | Fold widgets that render with MathJax           |
+| Export                             | Role                                                                                         |
+| ---------------------------------- | -------------------------------------------------------------------------------------------- |
+| `latexMathMarkdownSyntaxExtension` | LaTeX package entry point for the parser (today: same as core `mathMarkdownSyntaxExtension`) |
+| `latexMarkdownSyntaxTheme`         | Delimiter and formula source highlighting                                                    |
+| `latexMarkdownEditorExtensions()`  | Fold widgets that render with MathJax                                                        |
 
 ## How MathJax is loaded
 

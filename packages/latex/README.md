@@ -4,7 +4,7 @@ LaTeX-style math for ProseMark’s Markdown editor: `$...$` and `$$...$$`, rende
 
 **Full setup guide:** [prosemark.com/guides/latex-math](https://prosemark.com/guides/latex-math/)
 
-The **`Math` / `MathMark` / `MathFormula`** Lezer nodes and **`mathMarkdownSyntaxExtension`** live in **`@prosemark/core`** and are part of **`prosemarkMarkdownSyntaxExtensions`**. This package adds MathJax **widgets** and theme helpers; it **re-exports** the parser under **`latexMath*`** names if you only depend on `@prosemark/latex`.
+The **`Math` / `MathMark` / `MathFormula`** Lezer nodes and **`mathMarkdownSyntaxExtension`** live in **`@prosemark/core`** and are part of **`prosemarkMarkdownSyntaxExtensions`** (generic **`Math`** nodes so multiple renderers can share one tree). This package adds MathJax **widgets** and theme helpers, and exports **`latexMath*`** names for the parser—**for now, aliases of the core symbols**. Use them when you want parser and renderer imports from `@prosemark/latex`; they are the stable hook if LaTeX-specific delimiter rules ever diverge from another math package.
 
 ### Parser: you must enable math in Markdown
 
@@ -13,7 +13,7 @@ The **`Math` / `MathMark` / `MathFormula`** Lezer nodes and **`mathMarkdownSynta
 Do **one** of the following:
 
 - Pass **`prosemarkMarkdownSyntaxExtensions`** from **`@prosemark/core`** inside **`markdown({ extensions: [...] })`** (it already includes **`mathMarkdownSyntaxExtension`**), **or**
-- Add **`mathMarkdownSyntaxExtension`** from **`@prosemark/core`**, **or** **`latexMathMarkdownSyntaxExtension`** from **`@prosemark/latex`** (for now, a re-export of the same extension), to **`markdown({ extensions: [...] })`**.
+- Add **`mathMarkdownSyntaxExtension`** from **`@prosemark/core`**, **or** **`latexMathMarkdownSyntaxExtension`** from **`@prosemark/latex`** (today, the same extension), to **`markdown({ extensions: [...] })`**.
 
 ## Install
 
@@ -104,7 +104,7 @@ markdown({
 
 Then add **`latexMarkdownSyntaxTheme`** and **`latexMarkdownEditorExtensions()`** as in the first example.
 
-- **`latexMathMarkdownSyntaxExtension`** — for now, a re-export of **`mathMarkdownSyntaxExtension`** from core.
+- **`latexMathMarkdownSyntaxExtension`** — LaTeX package entry point for the parser (today: same as **`mathMarkdownSyntaxExtension`** in core).
 - **`latexMarkdownSyntaxTheme`** — delimiter and formula highlighting.
 - **`latexMarkdownEditorExtensions()`** — fold widgets with MathJax.
 
