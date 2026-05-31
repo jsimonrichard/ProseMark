@@ -1,9 +1,10 @@
-import { Decoration, EditorView, WidgetType } from '@codemirror/view';
+import { Decoration, EditorView, ViewPlugin, WidgetType } from '@codemirror/view';
 import {
   foldableSyntaxFacet,
   selectAllDecorationsOnSelectExtension,
 } from '@prosemark/core';
 import type { EditorState, Extension } from '@codemirror/state';
+import { StateEffect, StateField } from '@codemirror/state';
 import type { SyntaxNodeRef } from '@lezer/common';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { $typst } from '@myriaddreamin/typst.ts/contrib/snippet';
@@ -101,15 +102,104 @@ const ensureTypst = (
 };
 
 /** Build a minimal Typst program that renders math in an auto-sized page. */
-const mathToTypstDocument = (body: string, display: boolean): string => {
+const mathToTypstDocument = (
+  body: string,
+  display: boolean,
+  inkFill: string,
+): string => {
   const src = body.trim();
   const page =
     '#set page(width: auto, height: auto, margin: 0pt, fill: none)\n';
+  const colorRule = `#show math.equation: set text(fill: ${inkFill})\n`;
   if (display) {
-    return `${page}#align(center)[#block(inset: 4pt)[$ ${src} $]]`;
+    return `${page}${colorRule}#align(center)[#block(inset: 4pt)[$ ${src} $]]`;
   }
-  return `${page}$${src}$`;
+  return `${page}${colorRule}$${src}$`;
 };
+
+/** Convert a resolved CSS color to a Typst `rgb("#…")` fill expression. */
+const cssColorToTypstFill = (cssColor: string): string => {
+  const trimmed = cssColor.trim();
+  const rgbMatch = /^rgba?\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)/.exec(
+    trimmed,
+  );
+  if (rgbMatch) {
+    const parts = [rgbMatch[1], rgbMatch[2], rgbMatch[3]];
+    if (parts.some((part) => part === undefined)) {
+      return 'rgb("#000000")';
+    }
+    const hex = `#${parts
+      .map((part) => Math.round(Number(part)).toString(16).padStart(2, '0'))
+      .join('')}`;
+    return `rgb("${hex}")`;
+  }
+  if (trimmed.startsWith('#')) {
+    if (trimmed.length === 4) {
+      const r = trimmed[1];
+      const g = trimmed[2];
+      const b = trimmed[3];
+      if (r && g && b) {
+        return `rgb("#${r}${r}${g}${g}${b}${b}")`;
+      }
+    }
+    return `rgb("${trimmed}")`;
+  }
+  return 'rgb("#000000")';
+};
+
+const resolveEditorInkTypstFill = (view: EditorView): string =>
+  cssColorToTypstFill(getComputedStyle(view.contentDOM).color);
+
+const typstInkFillEffect = StateEffect.define<string>();
+
+const typstInkFillField = StateField.define<string>({
+  create: () => 'rgb("#000000")',
+  update(value, tr) {
+    for (const effect of tr.effects) {
+      if (effect.is(typstInkFillEffect)) return effect.value;
+    }
+    return value;
+  },
+});
+
+const typstInkFillSyncPlugin = ViewPlugin.fromClass(
+  class {
+    private inkFill = '';
+    private observer: MutationObserver | undefined;
+
+    constructor(private view: EditorView) {
+      this.inkFill = view.state.field(typstInkFillField);
+      this.sync();
+      if (typeof MutationObserver !== 'undefined') {
+        this.observer = new MutationObserver(() => {
+          this.sync();
+        });
+        this.observer.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ['data-theme', 'class', 'style'],
+        });
+      }
+    }
+
+    update(): void {
+      this.sync();
+    }
+
+    private sync(): void {
+      const next = resolveEditorInkTypstFill(this.view);
+      if (next === this.inkFill) return;
+      this.inkFill = next;
+      this.view.dispatch({
+        effects: typstInkFillEffect.of(next),
+        selection: this.view.state.selection,
+      });
+    }
+
+    destroy(): void {
+      this.observer?.disconnect();
+    }
+  },
+);
 
 interface RenderCacheEntry {
   nodes: SVGSVGElement[];
@@ -148,8 +238,10 @@ const cacheKey = (
   compilerUrl: string,
   rendererUrl: string,
   display: boolean,
+  inkFill: string,
   body: string,
-): string => `${compilerUrl}\n${rendererUrl}\n${display ? '1' : '0'}\n${body}`;
+): string =>
+  `${compilerUrl}\n${rendererUrl}\n${display ? '1' : '0'}\n${inkFill}\n${body}`;
 
 /** typst.ts inline math uses ~8pt viewBoxes; baseline ≈ 7.513pt (empirical). */
 const TYPST_INLINE_MATH_VB_HEIGHT = 8;
@@ -303,28 +395,6 @@ const sizeDisplayTypstWidgetSvgs = (wrap: HTMLElement): void => {
   });
 };
 
-const isBlackInkFill = (fill: string): boolean => {
-  const v = fill.trim().toLowerCase().replace(/\s/g, '');
-  return (
-    v === '#000' ||
-    v === '#000000' ||
-    v === 'black' ||
-    v === 'rgb(0,0,0)' ||
-    v === 'rgb(0%,0%,0%)'
-  );
-};
-
-/** typst.ts SVG uses fill="#000"; inherit editor foreground via currentColor. */
-const applyCurrentColorToTypstSvg = (svg: SVGSVGElement): void => {
-  svg.style.color = 'inherit';
-  svg.querySelectorAll('[fill]').forEach((el) => {
-    const fill = el.getAttribute('fill');
-    if (fill && fill !== 'none' && isBlackInkFill(fill)) {
-      el.setAttribute('fill', 'currentColor');
-    }
-  });
-};
-
 /**
  * typst.ts SVG includes selection overlays (`foreignObject` / `.tsel`) whose
  * embedded CSS uses `position: fixed`, which breaks inline math in CodeMirror.
@@ -347,7 +417,6 @@ const prepareTypstSvgForWidget = (
   if (inline) {
     forceInlineSvgDisplay(svg);
   }
-  applyCurrentColorToTypstSvg(svg);
   return svg;
 };
 
@@ -397,17 +466,18 @@ const typstSvgRenderOptions = {
 const renderOrCloneFromCache = async (
   body: string,
   display: boolean,
+  inkFill: string,
   compilerUrl: string,
   rendererUrl: string,
 ): Promise<SVGSVGElement[]> => {
-  const key = cacheKey(compilerUrl, rendererUrl, display, body);
+  const key = cacheKey(compilerUrl, rendererUrl, display, inkFill, body);
   const cached = renderCache?.get(key);
   if (cached) {
     return cloneSvgNodes(cached);
   }
 
   const svg = await $typst.svg({
-    mainContent: mathToTypstDocument(body, display),
+    mainContent: mathToTypstDocument(body, display, inkFill),
     ...typstSvgRenderOptions,
   });
   const nodes = typstSvgStringToElements(svg, !display);
@@ -423,6 +493,7 @@ class TypstMathWidget extends WidgetType {
   constructor(
     public readonly body: string,
     public readonly display: boolean,
+    public readonly inkFill: string,
     public readonly compilerWasmUrl: string,
     public readonly rendererWasmUrl: string,
   ) {
@@ -433,6 +504,7 @@ class TypstMathWidget extends WidgetType {
     return (
       this.body === other.body &&
       this.display === other.display &&
+      this.inkFill === other.inkFill &&
       this.compilerWasmUrl === other.compilerWasmUrl &&
       this.rendererWasmUrl === other.rendererWasmUrl
     );
@@ -461,6 +533,7 @@ class TypstMathWidget extends WidgetType {
         renderOrCloneFromCache(
           this.body,
           this.display,
+          this.inkFill,
           this.compilerWasmUrl,
           this.rendererWasmUrl,
         ),
@@ -570,13 +643,15 @@ const typstMathWidgetTheme = EditorView.theme({
 
 export function typstMarkdownEditorExtensions(
   options: TypstMarkdownEditorOptions = {},
-): ReturnType<typeof foldableSyntaxFacet.of>[] {
+): Extension[] {
   const compilerWasmUrl = options.compilerWasmUrl ?? defaultCompilerWasmUrl();
   const rendererWasmUrl = options.rendererWasmUrl ?? defaultRendererWasmUrl();
   const cacheSize = options.renderCacheSize ?? 128;
   renderCache = cacheSize > 0 ? new RenderLru(cacheSize) : null;
 
   return [
+    typstInkFillField,
+    typstInkFillSyncPlugin,
     foldableSyntaxFacet.of({
       nodePath: 'Math',
       buildDecorations: (state: EditorState, node: SyntaxNodeRef) => {
@@ -589,11 +664,13 @@ export function typstMarkdownEditorExtensions(
         if (!body) return;
 
         const display = opensDouble || /^\s|\s$/.test(rawBody);
+        const inkFill = state.field(typstInkFillField);
 
         return Decoration.replace({
           widget: new TypstMathWidget(
             body,
             display,
+            inkFill,
             compilerWasmUrl,
             rendererWasmUrl,
           ),
