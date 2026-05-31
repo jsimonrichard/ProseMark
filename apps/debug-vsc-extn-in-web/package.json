@@ -9,7 +9,9 @@
     "dev-all": "turbo dev -F 'debug-vsc-extn-in-web...'",
     "lint": "eslint --max-warnings=0",
     "preview": "vite preview",
-    "repro:codefence": "node ./scripts/repro-codefence.mjs"
+    "repro:codefence": "node ./scripts/repro-codefence.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@codemirror/lang-markdown": "^6.5.0",
@@ -27,6 +29,7 @@
     "nspell": "^2.1.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@prosemark/eslint-config": "workspace:*",
     "typescript": "^5.2.2",
     "vite": "^5.3.1"

@@ -14,6 +14,75 @@ interface IndentData {
 
 const softIndentPattern = /^(> )*(\s*)?(([-*+]?|\d[.)])\s)?(\[.\]\s)?/;
 
+/** Class on lines that use soft hanging-indent layout (used by `@prosemark/latex` theme). */
+export const SOFT_INDENT_LINE_CLASS = 'cm-soft-indent-line';
+
+/**
+ * Document positions for one markdown “prefix” on a line (blockquote marker, list
+ * marker, indentation spaces, task checkbox, etc.).
+ *
+ * Soft indent hangs this prefix on the first line and aligns wrapped lines with
+ * {@link SoftIndentPrefixBounds.bodyStartPos body start}.
+ */
+export interface SoftIndentPrefixBounds {
+  /** Document position where the line begins. */
+  lineFrom: number;
+  /** Matched prefix text at the start of the line. */
+  prefix: string;
+  /**
+   * Last character of {@link prefix} in the document.
+   *
+   * Used only when the body cannot be measured at {@link bodyStartPos} (e.g. the
+   * first body character sits on a replace decoration such as inline MathJax).
+   */
+  prefixEndPos: number;
+  /**
+   * First character of body content — the position immediately after {@link prefix}.
+   *
+   * This is the usual right edge of the hung prefix (where wrapped lines should align).
+   */
+  bodyStartPos: number;
+}
+
+/** Document position of the last character of a prefix with the given length. */
+const prefixEndPosAt = (lineFrom: number, prefixLength: number): number =>
+  lineFrom + Math.max(0, prefixLength - 1);
+
+/** Builds {@link SoftIndentPrefixBounds} from a line start and matched prefix string. */
+export const softIndentPrefixBounds = (
+  lineFrom: number,
+  prefix: string,
+): SoftIndentPrefixBounds => ({
+  lineFrom,
+  prefix,
+  prefixEndPos: prefixEndPosAt(lineFrom, prefix.length),
+  bodyStartPos: lineFrom + prefix.length,
+});
+
+/**
+ * @deprecated Prefer {@link softIndentPrefixBounds}. Returns {@link SoftIndentPrefixBounds.prefixEndPos}.
+ */
+export const softIndentMeasurePos = (
+  lineFrom: number,
+  prefixLength: number,
+): number => prefixEndPosAt(lineFrom, prefixLength);
+
+/**
+ * Returns the markdown prefix to hang (blockquote, leading space/tab, list, task),
+ * or `null` when the line should not get soft indent (e.g. plain paragraphs).
+ */
+export const matchSoftIndentPrefix = (lineText: string): string | null => {
+  const matches = softIndentPattern.exec(lineText);
+  if (!matches) return null;
+  const nonContent = matches[0];
+  if (!nonContent.length) return null;
+  if (nonContent.startsWith('>')) return nonContent;
+  if (/^[ \t]/.test(nonContent)) return nonContent;
+  if (/^(\s*)([-*+]|\d[.)])\s/.test(lineText)) return nonContent;
+  if (/^(\s*)([-*+]|\d[.)])\s\[.\]\s/.test(lineText)) return nonContent;
+  return null;
+};
+
 const softIndentRefresh = Annotation.define<number>();
 const MAX_REFRESH_ROUNDS = 1;
 
@@ -23,6 +92,49 @@ interface ChangedLine {
   oldStyle?: string;
   newStyle?: string;
 }
+
+/** Left edge of the hung prefix (before list-mark replace widgets when present). */
+const measurePrefixStartLeft = (view: EditorView, lineFrom: number): number =>
+  view.coordsAtPos(lineFrom, -1)?.left ??
+  view.coordsAtPos(lineFrom, 1)?.left ??
+  0;
+
+/**
+ * Left edge where body text should begin — right edge of the visual prefix.
+ *
+ * Prefer measuring at {@link SoftIndentPrefixBounds.bodyStartPos}. When that
+ * position is not a normal glyph (inline math widget, etc.), fall back to coords
+ * beside {@link SoftIndentPrefixBounds.prefixEndPos}.
+ */
+const measureBodyStartLeft = (
+  view: EditorView,
+  bounds: SoftIndentPrefixBounds,
+): number => {
+  const { bodyStartPos, prefixEndPos, lineFrom } = bounds;
+  if (prefixEndPos < lineFrom || bodyStartPos <= lineFrom) return 0;
+
+  const bodyChar = view.coordsForChar(bodyStartPos);
+  if (bodyChar) return bodyChar.left;
+
+  const besideBody = view.coordsAtPos(bodyStartPos, 1);
+  if (besideBody) return besideBody.left;
+
+  const prefixEnd = view.coordsAtPos(prefixEndPos, 1);
+  return prefixEnd?.right ?? prefixEnd?.left ?? 0;
+};
+
+/**
+ * Pixel width of the soft-indent prefix. Uses document positions only so existing
+ * `padding-inline-start` on the line does not compound on remeasure (click/edit).
+ */
+export const measureSoftIndentWidth = (
+  view: EditorView,
+  bounds: SoftIndentPrefixBounds,
+): number => {
+  const start = measurePrefixStartLeft(view, bounds.lineFrom);
+  const end = measureBodyStartLeft(view, bounds);
+  return Math.max(0, end - start);
+};
 
 function getDifferences(
   view: EditorView,
@@ -91,7 +203,7 @@ export const softIndentExtension = ViewPlugin.fromClass(
       });
     }
 
-    // Use view.coordAtPos to measure the indent required
+    // Use view.coordsAtPos to measure the indent required
     measureIndents(view: EditorView): IndentData[] {
       const indents: IndentData[] = [];
       // Loop through all visible lines
@@ -104,14 +216,11 @@ export const softIndentExtension = ViewPlugin.fromClass(
 
           // Match the line's text with the indent pattern
           const text = view.state.sliceDoc(line.from, line.to);
-          const matches = softIndentPattern.exec(text);
-          if (!matches) continue;
-          const nonContent = matches[0];
+          const nonContent = matchSoftIndentPrefix(text);
+          if (!nonContent) continue;
 
-          // Get indent width
-          const indentWidth =
-            (view.coordsAtPos(line.from + nonContent.length)?.left ?? 0) -
-            (view.coordsAtPos(line.from)?.left ?? 0);
+          const bounds = softIndentPrefixBounds(line.from, nonContent);
+          const indentWidth = measureSoftIndentWidth(view, bounds);
           if (!indentWidth) continue;
 
           indents.push({
@@ -129,11 +238,13 @@ export const softIndentExtension = ViewPlugin.fromClass(
 
       for (const { lineNumber, indentWidth } of indents) {
         const line = view.state.doc.line(lineNumber);
-        const style = `padding-inline-start: ${(indentWidth + 6).toString()}px; text-indent: -${indentWidth.toString()}px;`;
+        const padding = `${(indentWidth + 6).toString()}px`;
+        const style = `padding-inline-start: ${padding}; text-indent: -${indentWidth.toString()}px;`;
         styles.set(lineNumber, style);
 
         const deco = Decoration.line({
           attributes: {
+            class: SOFT_INDENT_LINE_CLASS,
             style,
           },
         });

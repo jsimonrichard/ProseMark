@@ -22,6 +22,7 @@ export {
   dashMarkdownSyntaxExtension,
 } from '../fold';
 export {
+  isInlineMathNode,
   mathDelimiterTag,
   mathFormulaTag,
   mathMarkdownSyntaxExtension,

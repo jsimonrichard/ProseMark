@@ -5,6 +5,7 @@ import type {
   MarkdownConfig,
 } from '@lezer/markdown';
 import type { Input } from '@lezer/common';
+import type { EditorState } from '@codemirror/state';
 import { styleTags, Tag } from '@lezer/highlight';
 
 /** Highlight tag for `$` / `$$` math delimiters. */
@@ -12,6 +13,20 @@ export const mathDelimiterTag = Tag.define();
 
 /** Highlight tag for raw math source between delimiters. */
 export const mathFormulaTag = Tag.define();
+
+/** Whether a `Math` node is tight single-dollar inline math (not `$$` or padded `$ ... $`). */
+export const isInlineMathNode = (
+  state: EditorState,
+  from: number,
+  to: number,
+): boolean => {
+  const opensDouble = state.doc.sliceString(from, from + 2) === '$$';
+  if (opensDouble) return false;
+  const innerFrom = from + 1;
+  const innerTo = to - 1;
+  const body = state.doc.sliceString(innerFrom, innerTo);
+  return !/^\s|\s$/.test(body);
+};
 
 const EMPTY_LINE = /^[ \t]*$/;
 
