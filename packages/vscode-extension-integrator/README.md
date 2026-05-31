@@ -66,7 +66,7 @@ registerWebviewMessageHandler(
 );
 ```
 
-Use **`appendToExtraCodeMirrorExtensions`** instead of `StateEffect.appendConfig` so multiple integrations can share the same `Compartment`.
+When adding CodeMirror extensions from a sub-extension, use **`appendToExtraCodeMirrorExtensions`** rather than `StateEffect.appendConfig`.
 
 ## Bundling (Rolldown / Vite)
 
