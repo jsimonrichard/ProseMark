@@ -110,7 +110,7 @@ const mathToTypstDocument = (
   const src = body.trim();
   const page =
     '#set page(width: auto, height: auto, margin: 0pt, fill: none)\n';
-  const colorRule = `#show math.equation: set text(fill: ${inkFill})\n`;
+  const colorRule = `#show math: set text(fill: ${inkFill})\n#show math.equation: set text(fill: ${inkFill})\n`;
   if (display) {
     return `${page}${colorRule}#align(center)[#block(inset: 4pt)[$ ${src} $]]`;
   }
@@ -395,6 +395,30 @@ const sizeDisplayTypstWidgetSvgs = (wrap: HTMLElement): void => {
   });
 };
 
+const isBlackInk = (value: string): boolean => {
+  const v = value.trim().toLowerCase().replace(/\s/g, '');
+  return (
+    v === '#000' ||
+    v === '#000000' ||
+    v === 'black' ||
+    v === 'rgb(0,0,0)' ||
+    v === 'rgb(0%,0%,0%)'
+  );
+};
+
+/** Fallback when typst still emits #000 (e.g. before theme color is resolved). */
+const applyCurrentColorToTypstSvg = (svg: SVGSVGElement): void => {
+  svg.style.color = 'inherit';
+  for (const attr of ['fill', 'stroke'] as const) {
+    svg.querySelectorAll(`[${attr}]`).forEach((el) => {
+      const value = el.getAttribute(attr);
+      if (value && value !== 'none' && isBlackInk(value)) {
+        el.setAttribute(attr, 'currentColor');
+      }
+    });
+  }
+};
+
 /**
  * typst.ts SVG includes selection overlays (`foreignObject` / `.tsel`) whose
  * embedded CSS uses `position: fixed`, which breaks inline math in CodeMirror.
@@ -417,6 +441,7 @@ const prepareTypstSvgForWidget = (
   if (inline) {
     forceInlineSvgDisplay(svg);
   }
+  applyCurrentColorToTypstSvg(svg);
   return svg;
 };
 
@@ -528,12 +553,15 @@ class TypstMathWidget extends WidgetType {
       typstWidgetResizeObservers.set(wrap, ro);
     }
 
+    const inkFill = resolveEditorInkTypstFill(view);
+    wrap.setAttribute('data-ink-fill', inkFill);
+
     void ensureTypst(this.compilerWasmUrl, this.rendererWasmUrl)
       .then(() =>
         renderOrCloneFromCache(
           this.body,
           this.display,
-          this.inkFill,
+          inkFill,
           this.compilerWasmUrl,
           this.rendererWasmUrl,
         ),
