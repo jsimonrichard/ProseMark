@@ -119,15 +119,13 @@ const measurePrefixStartLeft = (
 ): number => {
   const line = view.state.doc.lineAt(bounds.lineFrom);
   const lineEl = lineElementAt(view, line.from);
-  if (lineEl) {
-    return lineEl.getBoundingClientRect().left + SOFT_INDENT_BASE_PADDING;
+  if (!lineEl) {
+    throw new Error(
+      `Soft indent: no .cm-line DOM element for line ${line.number.toString()}`,
+    );
   }
 
-  return (
-    view.coordsAtPos(line.from, 1)?.left ??
-    view.coordsAtPos(bounds.lineFrom, -1)?.left ??
-    0
-  );
+  return lineEl.getBoundingClientRect().left + SOFT_INDENT_BASE_PADDING;
 };
 
 /**
