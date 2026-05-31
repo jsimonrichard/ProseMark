@@ -1,11 +1,5 @@
 # @prosemark/vscode-extension-integrator
 
-## 0.0.3
-
-### Patch Changes
-
-- 99b5cfc: Update `@codemirror/view` to `^6.42.1`.
-
 ## 0.0.2
 
 ### Patch Changes
