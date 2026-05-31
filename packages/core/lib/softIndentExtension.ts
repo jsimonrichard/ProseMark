@@ -44,6 +44,10 @@ export interface SoftIndentPrefixBounds {
   bodyStartPos: number;
 }
 
+/** Document position of the last character of a prefix with the given length. */
+const prefixEndPosAt = (lineFrom: number, prefixLength: number): number =>
+  lineFrom + Math.max(0, prefixLength - 1);
+
 /** Builds {@link SoftIndentPrefixBounds} from a line start and matched prefix string. */
 export const softIndentPrefixBounds = (
   lineFrom: number,
@@ -51,7 +55,7 @@ export const softIndentPrefixBounds = (
 ): SoftIndentPrefixBounds => ({
   lineFrom,
   prefix,
-  prefixEndPos: lineFrom + Math.max(0, prefix.length - 1),
+  prefixEndPos: prefixEndPosAt(lineFrom, prefix.length),
   bodyStartPos: lineFrom + prefix.length,
 });
 
@@ -61,7 +65,7 @@ export const softIndentPrefixBounds = (
 export const softIndentMeasurePos = (
   lineFrom: number,
   prefixLength: number,
-): number => lineFrom + Math.max(0, prefixLength - 1);
+): number => prefixEndPosAt(lineFrom, prefixLength);
 
 /**
  * Returns the markdown prefix to hang (blockquote, leading space/tab, list, task),
