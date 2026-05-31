@@ -47,8 +47,10 @@ These features are illustrated in our [Demo](/demo).
 
 ## `@prosemark/latex`
 
-- Math is parsed in core (`$...$` / `$$...$$` → `Math` nodes via [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/), or `latexMathMarkdownSyntaxExtension` as a re-export). Rendered with MathJax via `latexMarkdownEditorExtensions()` and `latexMarkdownSyntaxTheme`.
+- Dollar-delimited math (`$...$` / `$$...$$`) is parsed as `Math` nodes when [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/) is enabled (included in [`prosemarkMarkdownSyntaxExtensions`](/api/prosemark/core/variables/prosemarkmarkdownsyntaxextensions/)). `latexMathMarkdownSyntaxExtension` is a re-export of that extension.
 
-- Block vs inline: `$$...$$` always block; `$ ... $` with inner padding block; tight `$...$` inline.
+- Rendered with MathJax via `latexMarkdownEditorExtensions()` and `latexMarkdownSyntaxTheme`.
+
+- Block vs inline: `$$...$$` is always block; `$ ... $` with inner padding is block; tight `$...$` is inline.
 
 - See the [LaTeX math guide](/guides/latex-math/) for MathJax loading and setup.
