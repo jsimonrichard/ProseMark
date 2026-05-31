@@ -1,4 +1,9 @@
-import { Decoration, EditorView, ViewPlugin, WidgetType } from '@codemirror/view';
+import {
+  Decoration,
+  EditorView,
+  ViewPlugin,
+  WidgetType,
+} from '@codemirror/view';
 import {
   foldableSyntaxFacet,
   selectAllDecorationsOnSelectExtension,
@@ -35,7 +40,7 @@ export const typstMathWidgetClass = 'cm-typst-math';
 export const typstMathWidgetInkFillAttribute = 'data-typst-ink-fill';
 
 /** Bump when widget DOM/debug attributes change (helps verify deploy cache). */
-const TYPST_MATH_WIDGET_VERSION = '2';
+const TYPST_MATH_WIDGET_VERSION = '3';
 
 const WIDGET_CLASS = typstMathWidgetClass;
 const typstMathWidgetInkFillAttr = typstMathWidgetInkFillAttribute;
@@ -117,7 +122,7 @@ const mathToTypstDocument = (
   const src = body.trim();
   const page =
     '#set page(width: auto, height: auto, margin: 0pt, fill: none)\n';
-  const colorRule = `#show math: set text(fill: ${inkFill})\n#show math.equation: set text(fill: ${inkFill})\n`;
+  const colorRule = `#show math.equation: set text(fill: ${inkFill})\n`;
   if (display) {
     return `${page}${colorRule}#align(center)[#block(inset: 4pt)[$ ${src} $]]`;
   }
@@ -127,9 +132,10 @@ const mathToTypstDocument = (
 /** Convert a resolved CSS color to a Typst `rgb("#…")` fill expression. */
 const cssColorToTypstFill = (cssColor: string): string => {
   const trimmed = cssColor.trim();
-  const rgbMatch = /^rgba?\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)/.exec(
-    trimmed,
-  );
+  const rgbMatch =
+    /^rgba?\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)/.exec(
+      trimmed,
+    );
   if (rgbMatch) {
     const parts = [rgbMatch[1], rgbMatch[2], rgbMatch[3]];
     if (parts.some((part) => part === undefined)) {
@@ -252,8 +258,7 @@ const cacheKey = (
 
 /** typst.ts inline math uses ~8pt viewBoxes; baseline ≈ 7.513pt (empirical). */
 const TYPST_INLINE_MATH_VB_HEIGHT = 8;
-const TYPST_INLINE_MATH_BASELINE_Y =
-  TYPST_INLINE_MATH_VB_HEIGHT * (7.513 / 8);
+const TYPST_INLINE_MATH_BASELINE_Y = TYPST_INLINE_MATH_VB_HEIGHT * (7.513 / 8);
 const TYPST_INLINE_MATH_DESCENDER_PT =
   TYPST_INLINE_MATH_VB_HEIGHT - TYPST_INLINE_MATH_BASELINE_Y;
 /** typst SVG user units are pt; typst body text is ~12pt per em. */
@@ -269,8 +274,7 @@ const forceInlineSvgDisplay = (svg: SVGSVGElement): void => {
 };
 
 const parseTranslateY = (transform: string): number | null => {
-  const re =
-    /translate\s*\(\s*[^,\s)]+(?:\s*,\s*|\s+)(-?\d+(?:\.\d+)?)/;
+  const re = /translate\s*\(\s*[^,\s)]+(?:\s*,\s*|\s+)(-?\d+(?:\.\d+)?)/;
   const match = re.exec(transform);
   const y = match?.[1];
   return y !== undefined ? Number.parseFloat(y) : null;
@@ -517,6 +521,27 @@ const renderOrCloneFromCache = async (
   return cloneSvgNodes(nodes);
 };
 
+/** Extract human-readable messages from typst.ts / WASM diagnostic dumps. */
+const formatTypstRenderError = (err: unknown): string => {
+  const raw = err instanceof Error ? err.message : String(err);
+  const messages: string[] = [];
+  const messageRe = /message:\s*"((?:\\.|[^"\\])*)"/g;
+  for (let match = messageRe.exec(raw); match; match = messageRe.exec(raw)) {
+    const text = match[1];
+    if (text !== undefined) {
+      messages.push(text.replace(/\\"/g, '"').replace(/\\\\/g, '\\'));
+    }
+  }
+  if (messages.length > 0) {
+    return messages.join('; ');
+  }
+  const trimmed = raw.trim();
+  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    return 'Typst failed to render math';
+  }
+  return raw;
+};
+
 const blockMathEstimatedHeightPx = 72;
 
 const typstWidgetResizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
@@ -585,7 +610,7 @@ class TypstMathWidget extends WidgetType {
         view.requestMeasure();
       })
       .catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : String(err);
+        const msg = formatTypstRenderError(err);
         wrap.textContent = this.body;
         wrap.title = msg;
         wrap.classList.add(`${WIDGET_CLASS}-error`);
@@ -671,10 +696,9 @@ const typstMathWidgetTheme = EditorView.theme({
     textAlign: 'center',
     padding: '0.5em 0',
   },
-  [`.${WIDGET_CLASS}-error`]: {
+  [`.${WIDGET_CLASS}.${WIDGET_CLASS}-error`]: {
     color: '#b00020',
     fontFamily: 'monospace',
-    lineHeight: 'normal',
   },
 });
 
