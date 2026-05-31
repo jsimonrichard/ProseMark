@@ -57,4 +57,4 @@ These features are illustrated in our [Demo](/demo).
 
 - Invalid formulas show an inline error in the widget; optional LRU cache of rendered DOM trees (`renderCacheSize`).
 
-- Browser only; one MathJax output mode and one load mode per page.
+- One MathJax output mode and one load mode per page.

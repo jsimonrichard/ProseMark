@@ -145,7 +145,6 @@ MathJax caches font paths (SVG `fontCache: 'global'`). This package adds an **LR
 
 ## Limitations
 
-- **Browser only** — needs `window` and `document`.
 - **One output mode per page** — the first successful load picks `svg` or `html`.
 - **One MathJax load mode per page** — do not mix `url-import` and `static-import`.
 

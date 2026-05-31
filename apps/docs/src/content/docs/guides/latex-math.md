@@ -146,7 +146,6 @@ Rendered math and source highlighting use `--pm-*` variables on the editor root.
 
 ## Limitations
 
-- **Browser only** — requires `window` and `document`.
 - **One output mode per page** — the first successful load picks `svg` or `html`.
 - **One MathJax load mode per page** — do not mix `url-import` and `static-import`.
 
@@ -154,7 +153,7 @@ Block replace widgets avoid vertical margins (padding only). The package calls [
 
 ## Visual Studio Code
 
-You do not need to wire `@prosemark/latex` yourself in VS Code. Install **[ProseMark - LaTeX math (MathJax) integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration)** alongside the main ProseMark extension; it registers `@prosemark/latex` in the webview with a bundled MathJax build.
+To render math in the ProseMark VS Code editor, install **[ProseMark - LaTeX math (MathJax) integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration)**.
 
 ## Next steps
 
