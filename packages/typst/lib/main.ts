@@ -31,7 +31,14 @@ export {
 /** CSS class on rendered math widget roots (span/div). */
 export const typstMathWidgetClass = 'cm-typst-math';
 
+/** `data-typst-ink-fill` on rendered widget roots (resolved typst fill). */
+export const typstMathWidgetInkFillAttribute = 'data-typst-ink-fill';
+
+/** Bump when widget DOM/debug attributes change (helps verify deploy cache). */
+const TYPST_MATH_WIDGET_VERSION = '2';
+
 const WIDGET_CLASS = typstMathWidgetClass;
+const typstMathWidgetInkFillAttr = typstMathWidgetInkFillAttribute;
 
 export interface TypstMarkdownEditorOptions {
   /**
@@ -553,8 +560,9 @@ class TypstMathWidget extends WidgetType {
       typstWidgetResizeObservers.set(wrap, ro);
     }
 
+    wrap.setAttribute('data-typst-widget-version', TYPST_MATH_WIDGET_VERSION);
     const inkFill = resolveEditorInkTypstFill(view);
-    wrap.setAttribute('data-ink-fill', inkFill);
+    wrap.setAttribute(typstMathWidgetInkFillAttr, inkFill);
 
     void ensureTypst(this.compilerWasmUrl, this.rendererWasmUrl)
       .then(() =>
@@ -567,6 +575,7 @@ class TypstMathWidget extends WidgetType {
         ),
       )
       .then((nodes) => {
+        wrap.setAttribute(typstMathWidgetInkFillAttr, inkFill);
         wrap.replaceChildren(...nodes);
         if (this.display) {
           sizeDisplayTypstWidgetSvgs(wrap);
