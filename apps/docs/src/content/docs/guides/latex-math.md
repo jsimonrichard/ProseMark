@@ -154,10 +154,3 @@ Block replace widgets avoid vertical margins (padding only). The package calls [
 ## Visual Studio Code
 
 To render math in the ProseMark VS Code editor, install **[ProseMark - LaTeX math (MathJax) integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration)**.
-
-## Next steps
-
-- [Getting Started](/guides/getting-started/) — base editor setup
-- [Styling](/reference/styling/) — `--pm-latex-math-*` variables
-- [Features](/reference/features/#prosemarklatex) — behavior summary
-- [Fold, hide, and theme extensions](/reference/fold-hide-theme-extensions/) — how math fits the WYSIWYM model
