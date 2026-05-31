@@ -1,6 +1,6 @@
 ---
 title: Styling
-description: CSS variables for ProseMark packages (@prosemark/core and @prosemark/spellcheck-frontend).
+description: CSS variables for ProseMark packages (@prosemark/core, @prosemark/latex, and @prosemark/spellcheck-frontend).
 ---
 
 ProseMark themes use **`--pm-*` CSS variables**. Set them on `:root`, on a `[data-theme]` variant, or on a wrapper around the editor. Values below match the [demo](/demo); adjust for your app.
@@ -45,6 +45,18 @@ These follow CodeMirror tag names mapped in the ProseMark theme:
 | `--pm-syntax-invalid`                | Invalid / error    |
 
 `@prosemark/render-html` and `@prosemark/paste-rich-text` do not define their own `--pm-*` variables; they inherit the same editor surface and code styling from core.
+
+## `@prosemark/latex`
+
+Used by `latexMarkdownSyntaxTheme` and MathJax widgets from `latexMarkdownEditorExtensions()`. See the [LaTeX math guide](/guides/latex-math/) for setup.
+
+| Variable                                 | Purpose                                                           |
+| ---------------------------------------- | ----------------------------------------------------------------- |
+| `--pm-latex-math-delimiter-color`        | `$` / `$$` delimiter color (defaults to `--pm-link-color`)        |
+| `--pm-latex-math-formula-color`          | Raw formula text before render                                    |
+| `--pm-latex-math-formula-font`           | Monospace stack for formula source (defaults to `--pm-code-font`) |
+| `--pm-latex-math-error-color`            | Failed render message (defaults to `--pm-syntax-invalid`)         |
+| `--pm-latex-math-error-background-color` | Failed render background (defaults to semi-transparent gray)      |
 
 ## `@prosemark/spellcheck-frontend`
 

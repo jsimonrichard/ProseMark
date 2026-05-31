@@ -44,3 +44,17 @@ These features are illustrated in our [Demo](/demo).
 - Renders wavy underlines for misspelled ranges and keeps decorations mapped across document edits so ranges stay valid.
 
 - Shows a tooltip on interaction (including keyboard shortcuts from `spellcheckKeymap`): suggestions from the issue and/or from an async `suggestionFetcher` facet, plus custom actions via `spellcheckActions` (for example “add to word list”).
+
+## `@prosemark/latex`
+
+- Dollar-delimited math (`$...$` / `$$...$$`) parsed as `Math` nodes when [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/) is enabled (included in [`prosemarkMarkdownSyntaxExtensions`](/api/prosemark/core/variables/prosemarkmarkdownsyntaxextensions/)).
+
+- Rendered with MathJax via fold widgets: `latexMarkdownEditorExtensions()` and `latexMarkdownSyntaxTheme`.
+
+- Hybrid block vs inline: `$$...$$` is always block; `$ ... $` with inner padding is block; tight `$...$` is inline.
+
+- MathJax loading: default runtime URL (`url-import`) or bundler import (`static-import`). See the [LaTeX math guide](/guides/latex-math/).
+
+- Invalid formulas show an inline error in the widget; optional LRU cache of rendered DOM trees (`renderCacheSize`).
+
+- Browser only; one MathJax output mode and one load mode per page.
