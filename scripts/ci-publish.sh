@@ -18,6 +18,12 @@ else
     PKG_FILE="${SAFE_NAME}-${VERSION}.tgz"
     PKG_PATH="${TMPDIR}/${PKG_FILE}"
 
-    bun pm pack --filename $PKG_PATH
-    npm publish $PKG_PATH
+    # npm pack (not `bun pm pack`) — Bun fails to resolve private workspace
+    # devDependencies such as @prosemark/eslint-config when creating tarballs.
+    npm pack --pack-destination "${TMPDIR}"
+    if [[ ! -f "${PKG_PATH}" ]]; then
+        echo "Expected pack output at ${PKG_PATH} but file was not created."
+        exit 1
+    fi
+    npm publish "${PKG_PATH}"
 fi
