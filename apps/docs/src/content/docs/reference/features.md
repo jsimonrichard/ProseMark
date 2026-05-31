@@ -47,12 +47,8 @@ These features are illustrated in our [Demo](/demo).
 
 ## `@prosemark/latex`
 
-- Dollar-delimited math (`$...$` / `$$...$$`) parsed as `Math` nodes when [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/) is enabled (included in [`prosemarkMarkdownSyntaxExtensions`](/api/prosemark/core/variables/prosemarkmarkdownsyntaxextensions/)).
+- Math is parsed in core (`$...$` / `$$...$$` → `Math` nodes via [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/), or `latexMathMarkdownSyntaxExtension` as a re-export). Rendered with MathJax via `latexMarkdownEditorExtensions()` and `latexMarkdownSyntaxTheme`.
 
-- Rendered with MathJax via fold widgets: `latexMarkdownEditorExtensions()` and `latexMarkdownSyntaxTheme`.
+- Block vs inline: `$$...$$` always block; `$ ... $` with inner padding block; tight `$...$` inline.
 
-- Hybrid block vs inline: `$$...$$` is always block; `$ ... $` with inner padding is block; tight `$...$` is inline.
-
-- MathJax loading: default runtime URL (`url-import`) or bundler import (`static-import`). See the [LaTeX math guide](/guides/latex-math/).
-
-- Invalid formulas show an inline error in the widget; optional LRU cache of rendered DOM trees (`renderCacheSize`).
+- See the [LaTeX math guide](/guides/latex-math/) for MathJax loading and setup.
