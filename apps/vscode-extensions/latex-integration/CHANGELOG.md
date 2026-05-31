@@ -1,5 +1,19 @@
 # vscode-prosemark-latex-integration
 
+## 0.0.2
+
+### Patch Changes
+
+- 24ca7ca: Bundle MathJax `tex-svg.js` into the webview with Vite and use `@prosemark/latex` `mathJaxLoadMode: 'static-import'` instead of copying the package and passing a webview URL.
+- Updated dependencies [24ca7ca]
+- Updated dependencies [24ca7ca]
+- Updated dependencies [24ca7ca]
+- Updated dependencies [24ca7ca]
+- Updated dependencies [24ca7ca]
+- Updated dependencies [4c06b33]
+  - @prosemark/latex@0.0.2
+  - @prosemark/vscode-extension-integrator@0.0.3
+
 ## 0.0.1
 
 ### Patch Changes

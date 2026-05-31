@@ -1,5 +1,17 @@
 # @prosemark/core
 
+## 0.0.8
+
+### Patch Changes
+
+- 24ca7ca: Update `@codemirror/view` to `^6.42.1`.
+- 24ca7ca: Parse `$$...$$` display math as a single block-level `Math` node when the formula contains blank lines, matching the multi-line HTML block continuation behavior.
+- 24ca7ca: Fix soft-indent layout when inline `$...$` math appears on list, blockquote, task, or indented lines.
+
+  `@prosemark/latex` renders inline math as `display: inline` on `cm-soft-indent-line` so hanging indent does not misplace MathJax widgets.
+
+- 4c06b33: Published packages no longer include `devDependencies` in their npm registry manifest; CI strips `devDependencies` before `bun pm pack` so workspace-only dev tooling is not resolved at publish time.
+
 ## 0.0.7
 
 ### Patch Changes

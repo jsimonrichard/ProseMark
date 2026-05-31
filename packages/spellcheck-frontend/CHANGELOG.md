@@ -1,5 +1,16 @@
 # @prosemark/spellcheck-frontend
 
+## 0.0.5
+
+### Patch Changes
+
+- 4c06b33: Published packages no longer include `devDependencies` in their npm registry manifest; CI strips `devDependencies` before `bun pm pack` so workspace-only dev tooling is not resolved at publish time.
+- Updated dependencies [24ca7ca]
+- Updated dependencies [24ca7ca]
+- Updated dependencies [24ca7ca]
+- Updated dependencies [4c06b33]
+  - @prosemark/core@0.0.8
+
 ## 0.0.4
 
 ### Patch Changes
