@@ -56,5 +56,3 @@ These features are illustrated in our [Demo](/demo).
 - MathJax loading: default runtime URL (`url-import`) or bundler import (`static-import`). See the [LaTeX math guide](/guides/latex-math/).
 
 - Invalid formulas show an inline error in the widget; optional LRU cache of rendered DOM trees (`renderCacheSize`).
-
-- One MathJax output mode and one load mode per page.

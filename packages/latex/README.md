@@ -142,14 +142,3 @@ latexMarkdownEditorExtensions({
 ## Caching
 
 MathJax caches font paths (SVG `fontCache: 'global'`). This package adds an **LRU cache of rendered DOM trees**. Set `renderCacheSize: 0` to disable.
-
-## Limitations
-
-- **One output mode per page** — the first successful load picks `svg` or `html`.
-- **One MathJax load mode per page** — do not mix `url-import` and `static-import`.
-
-### Block widgets and layout
-
-Block replace widgets should not use **vertical margins**; use padding. This package calls **`requestMeasure`** after render and uses **`ResizeObserver`** when available.
-
-See [Decoration.widget](https://codemirror.net/docs/ref/#view.Decoration%5Ewidget) and [requestMeasure](https://codemirror.net/docs/ref/#view.EditorView.requestMeasure).

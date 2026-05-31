@@ -144,13 +144,6 @@ When MathJax rejects a formula, the widget shows the error message inline (no co
 
 Rendered math and source highlighting use `--pm-*` variables on the editor root. See the [`@prosemark/latex` section on Styling](/reference/styling/#prosemarklatex) for variable names and defaults.
 
-## Limitations
-
-- **One output mode per page** — the first successful load picks `svg` or `html`.
-- **One MathJax load mode per page** — do not mix `url-import` and `static-import`.
-
-Block replace widgets avoid vertical margins (padding only). The package calls [`requestMeasure`](https://codemirror.net/docs/ref/#view.EditorView.requestMeasure) after render and uses `ResizeObserver` when available so block math layout stays correct.
-
 ## Visual Studio Code
 
 To render math in the ProseMark VS Code editor, install **[ProseMark - LaTeX math (MathJax) integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration)**.
