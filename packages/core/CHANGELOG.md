@@ -1,5 +1,16 @@
 # @prosemark/core
 
+## 0.0.9
+
+### Patch Changes
+
+- 26b281c: Fix 1–2px soft-indent misalignment on top-level list items when text wraps.
+
+  Measure prefix width from the line text-indent origin (line box + 6px) instead of
+  widget or prefix-character coordinates, so hanging-indent math matches layout.
+
+- 6b5b440: Add package README files with install instructions, usage examples, and links to prosemark.com documentation.
+
 ## 0.0.8
 
 ### Patch Changes

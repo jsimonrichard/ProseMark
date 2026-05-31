@@ -1,5 +1,13 @@
 # vscode-prosemark-latex-integration
 
+## 0.0.3
+
+### Patch Changes
+
+- Updated dependencies [6b5b440]
+  - @prosemark/vscode-extension-integrator@0.0.4
+  - @prosemark/latex@0.0.3
+
 ## 0.0.2
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @prosemark/render-html
 
+## 0.0.10
+
+### Patch Changes
+
+- 6b5b440: Add package README files with install instructions, usage examples, and links to prosemark.com documentation.
+- Updated dependencies [26b281c]
+- Updated dependencies [6b5b440]
+  - @prosemark/core@0.0.9
+
 ## 0.0.9
 
 ### Patch Changes
