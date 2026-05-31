@@ -18,15 +18,50 @@ const softIndentPattern = /^(> )*(\s*)?(([-*+]?|\d[.)])\s)?(\[.\]\s)?/;
 export const SOFT_INDENT_LINE_CLASS = 'cm-soft-indent-line';
 
 /**
- * Document position to measure the visual end of a soft-indent prefix.
- * Uses the last source character of the prefix (not the position after it) so
- * `coordsAtPos` does not land on replace decorations (e.g. inline MathJax at
- * `- $...$`).
+ * Document positions for one markdown “prefix” on a line (blockquote marker, list
+ * marker, indentation spaces, task checkbox, etc.).
+ *
+ * Soft indent hangs this prefix on the first line and aligns wrapped lines with
+ * {@link SoftIndentPrefixBounds.bodyStartPos body start}.
+ */
+export interface SoftIndentPrefixBounds {
+  /** Document position where the line begins. */
+  lineFrom: number;
+  /** Matched prefix text at the start of the line. */
+  prefix: string;
+  /**
+   * Last character of {@link prefix} in the document.
+   *
+   * Used only when the body cannot be measured at {@link bodyStartPos} (e.g. the
+   * first body character sits on a replace decoration such as inline MathJax).
+   */
+  prefixEndPos: number;
+  /**
+   * First character of body content — the position immediately after {@link prefix}.
+   *
+   * This is the usual right edge of the hung prefix (where wrapped lines should align).
+   */
+  bodyStartPos: number;
+}
+
+/** Builds {@link SoftIndentPrefixBounds} from a line start and matched prefix string. */
+export const softIndentPrefixBounds = (
+  lineFrom: number,
+  prefix: string,
+): SoftIndentPrefixBounds => ({
+  lineFrom,
+  prefix,
+  prefixEndPos: lineFrom + Math.max(0, prefix.length - 1),
+  bodyStartPos: lineFrom + prefix.length,
+});
+
+/**
+ * @deprecated Prefer {@link softIndentPrefixBounds}. Returns {@link SoftIndentPrefixBounds.prefixEndPos}.
  */
 export const softIndentMeasurePos = (
   lineFrom: number,
-  nonContentLength: number,
-): number => lineFrom + Math.max(0, nonContentLength - 1);
+  prefixLength: number,
+): number => lineFrom + Math.max(0, prefixLength - 1);
 
 /**
  * Returns the markdown prefix to hang (blockquote, leading space/tab, list, task),
@@ -54,35 +89,46 @@ interface ChangedLine {
   newStyle?: string;
 }
 
+/** Left edge of the hung prefix (before list-mark replace widgets when present). */
+const measurePrefixStartLeft = (view: EditorView, lineFrom: number): number =>
+  view.coordsAtPos(lineFrom, -1)?.left ??
+  view.coordsAtPos(lineFrom, 1)?.left ??
+  0;
+
+/**
+ * Left edge where body text should begin — right edge of the visual prefix.
+ *
+ * Prefer measuring at {@link SoftIndentPrefixBounds.bodyStartPos}. When that
+ * position is not a normal glyph (inline math widget, etc.), fall back to coords
+ * beside {@link SoftIndentPrefixBounds.prefixEndPos}.
+ */
+const measureBodyStartLeft = (
+  view: EditorView,
+  bounds: SoftIndentPrefixBounds,
+): number => {
+  const { bodyStartPos, prefixEndPos, lineFrom } = bounds;
+  if (prefixEndPos < lineFrom || bodyStartPos <= lineFrom) return 0;
+
+  const bodyChar = view.coordsForChar(bodyStartPos);
+  if (bodyChar) return bodyChar.left;
+
+  const besideBody = view.coordsAtPos(bodyStartPos, 1);
+  if (besideBody) return besideBody.left;
+
+  const prefixEnd = view.coordsAtPos(prefixEndPos, 1);
+  return prefixEnd?.right ?? prefixEnd?.left ?? 0;
+};
+
 /**
  * Pixel width of the soft-indent prefix. Uses document positions only so existing
  * `padding-inline-start` on the line does not compound on remeasure (click/edit).
- *
- * @param contentStart - First position after the prefix (`lineFrom + prefix.length`).
- *   Used as the measure endpoint when that character is rendered. When it sits on a
- *   replace decoration (e.g. `- $...$`), falls back to `measurePos`.
  */
 export const measureSoftIndentWidth = (
   view: EditorView,
-  lineFrom: number,
-  measurePos: number,
-  contentStart: number,
+  bounds: SoftIndentPrefixBounds,
 ): number => {
-  if (measurePos < lineFrom || contentStart <= lineFrom) return 0;
-
-  // Left edge of the line / list-mark cell (not the right edge after a replace widget).
-  const start =
-    view.coordsAtPos(lineFrom, -1)?.left ??
-    view.coordsAtPos(lineFrom, 1)?.left ??
-    0;
-
-  const contentRect = view.coordsForChar(contentStart);
-  const atContent = view.coordsAtPos(contentStart, 1);
-  const prefixEnd = view.coordsAtPos(measurePos, 1);
-  const end = contentRect
-    ? contentRect.left
-    : (atContent?.left ?? prefixEnd?.right ?? prefixEnd?.left ?? 0);
-
+  const start = measurePrefixStartLeft(view, bounds.lineFrom);
+  const end = measureBodyStartLeft(view, bounds);
   return Math.max(0, end - start);
 };
 
@@ -169,15 +215,8 @@ export const softIndentExtension = ViewPlugin.fromClass(
           const nonContent = matchSoftIndentPrefix(text);
           if (!nonContent) continue;
 
-          // Get indent width
-          const measurePos = softIndentMeasurePos(line.from, nonContent.length);
-          const contentStart = line.from + nonContent.length;
-          const indentWidth = measureSoftIndentWidth(
-            view,
-            line.from,
-            measurePos,
-            contentStart,
-          );
+          const bounds = softIndentPrefixBounds(line.from, nonContent);
+          const indentWidth = measureSoftIndentWidth(view, bounds);
           if (!indentWidth) continue;
 
           indents.push({
