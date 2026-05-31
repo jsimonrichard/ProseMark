@@ -61,7 +61,7 @@ const measureRowsBodyStartLeft = async (
   });
 
 test.describe('soft indent wrap alignment', () => {
-  test('top-level list items align first row with wrapped rows', async ({
+  test('list items align first row with wrapped rows at every depth', async ({
     page,
   }) => {
     await setDoc(page);
@@ -72,18 +72,20 @@ test.describe('soft indent wrap alignment', () => {
     });
     await page.waitForTimeout(500);
 
-    const topLine = page
-      .locator('.cm-line.cm-soft-indent-line')
-      .filter({ hasText: 'Top level' })
-      .first();
-    const rows = await measureRowsBodyStartLeft(topLine);
+    for (const label of ['Top level', 'Nested item', 'Deep nested']) {
+      const line = page
+        .locator('.cm-line.cm-soft-indent-line')
+        .filter({ hasText: label })
+        .first();
+      const rows = await measureRowsBodyStartLeft(line);
 
-    expect(rows.length).toBeGreaterThanOrEqual(2);
-    const firstRowLeft = rows[0]?.left;
-    const wrappedRowLeft = rows[1]?.left;
-    if (firstRowLeft === undefined || wrappedRowLeft === undefined) {
-      throw new Error('expected wrapped list rows');
+      expect(rows.length, `${label} should wrap`).toBeGreaterThanOrEqual(2);
+      const firstRowLeft = rows[0]?.left;
+      const wrappedRowLeft = rows[1]?.left;
+      if (firstRowLeft === undefined || wrappedRowLeft === undefined) {
+        throw new Error(`expected wrapped rows for ${label}`);
+      }
+      expect(Math.abs(firstRowLeft - wrappedRowLeft)).toBeLessThan(1);
     }
-    expect(Math.abs(firstRowLeft - wrappedRowLeft)).toBeLessThan(1);
   });
 });

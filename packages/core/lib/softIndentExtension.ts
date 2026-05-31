@@ -106,29 +106,26 @@ const lineElementAt = (view: EditorView, pos: number): HTMLElement | null => {
   return node.parentElement?.closest('.cm-line') ?? null;
 };
 
-/** Left edge of the hung prefix (before list-mark replace widgets when present). */
+/**
+ * Left edge where the hung prefix begins — the first-row text-indent origin.
+ *
+ * Always uses the line box plus {@link SOFT_INDENT_BASE_PADDING}, matching
+ * `padding-inline-start - text-indent` regardless of replace widgets or leading
+ * whitespace in the markdown prefix.
+ */
 const measurePrefixStartLeft = (
   view: EditorView,
   bounds: SoftIndentPrefixBounds,
 ): number => {
   const line = view.state.doc.lineAt(bounds.lineFrom);
-  // Top-level list/task lines start with a replace widget at column 0. Measuring
-  // from widget coords skips the gap between the text-indent origin (line box +
-  // {@link SOFT_INDENT_BASE_PADDING}) and the bullet, so the first row body sits
-  // ~0.2em right of wrapped rows.
-  const prefixStartsAtLineStart =
-    bounds.lineFrom === line.from && !/^[ \t>]/.test(bounds.prefix);
-
-  if (prefixStartsAtLineStart) {
-    const lineEl = lineElementAt(view, line.from);
-    if (lineEl) {
-      return lineEl.getBoundingClientRect().left + SOFT_INDENT_BASE_PADDING;
-    }
+  const lineEl = lineElementAt(view, line.from);
+  if (lineEl) {
+    return lineEl.getBoundingClientRect().left + SOFT_INDENT_BASE_PADDING;
   }
 
   return (
+    view.coordsAtPos(line.from, 1)?.left ??
     view.coordsAtPos(bounds.lineFrom, -1)?.left ??
-    view.coordsAtPos(bounds.lineFrom, 1)?.left ??
     0
   );
 };
