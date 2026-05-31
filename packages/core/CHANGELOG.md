@@ -1,5 +1,15 @@
 # @prosemark/core
 
+## 0.0.8
+
+### Patch Changes
+
+- 99b5cfc: Update `@codemirror/view` to `^6.42.1`.
+- 31e9266: Parse `$$...$$` display math as a single block-level `Math` node when the formula contains blank lines, matching the multi-line HTML block continuation behavior.
+- c4e4a13: Fix soft-indent layout when inline `$...$` math appears on list, blockquote, task, or indented lines.
+
+  `@prosemark/latex` renders inline math as `display: inline` on `cm-soft-indent-line` so hanging indent does not misplace MathJax widgets.
+
 ## 0.0.7
 
 ### Patch Changes
