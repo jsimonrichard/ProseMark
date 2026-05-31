@@ -78,12 +78,7 @@ Most ProseMark behavior falls into three kinds (see [Fold, Hide, & Theming](http
 | **Fold**  | Replace syntax with widgets (bullets, tasks, images, …) | `foldableSyntaxFacet`, `defaultFoldableSyntaxExtensions`     |
 | **Theme** | Syntax highlighting and editor chrome                   | `baseSyntaxHighlights`, `baseTheme`, `markdownTags`, …       |
 
-### Other exports
-
-- **`prosemarkMarkdownFormattingKeymap`** / **`prosemarkMarkdownFormattingKeymapExtension`** — Bold, italic, links, etc.
-- **`clickLinkExtension`**, **`softIndentExtension`**, **`fixedTabWidthExtension`**, **`codeFenceExtension`**
-- **`revealBlockOnArrowExtension`** — Arrow into a folded block reveals source
-- **`selectAllDecorationsOnSelectExtension`** — Select-all includes widget content where configured
+For additional exports (formatting keymaps, link handling, soft indent, code fences, and more), see the [@prosemark/core API reference](https://prosemark.com/api/prosemark/core/).
 
 ## Optional packages
 
