@@ -41,8 +41,6 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 ```
 
-See [`apps/vscode-extensions/cspell-integration`](https://github.com/jsimonrichard/ProseMark/tree/main/apps/vscode-extensions/cspell-integration) and [`latex-integration`](https://github.com/jsimonrichard/ProseMark/tree/main/apps/vscode-extensions/latex-integration) for full examples.
-
 ## Webview example
 
 ```ts
@@ -85,9 +83,9 @@ export default defineConfig({
 });
 ```
 
-The core ProseMark webview must populate `window.proseMark.externalModules` before sub-extension scripts run.
+Your webview bundle should treat those modules as externals (the plugin configures this); at runtime they resolve from `window.proseMark.externalModules` in the ProseMark editor webview.
 
 ## Reference implementations
 
-- [ProseMark - Code Spell Checker Integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration)
-- [ProseMark - LaTeX math (MathJax) integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration)
+- [ProseMark - Code Spell Checker Integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration) — [`apps/vscode-extensions/cspell-integration`](https://github.com/jsimonrichard/ProseMark/tree/main/apps/vscode-extensions/cspell-integration)
+- [ProseMark - LaTeX math (MathJax) integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration) — [`apps/vscode-extensions/latex-integration`](https://github.com/jsimonrichard/ProseMark/tree/main/apps/vscode-extensions/latex-integration)
