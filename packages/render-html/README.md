@@ -40,10 +40,7 @@ const extensions = [
 - **`renderHtmlMarkdownSyntaxExtensions`** — Parser support for multi-line HTML blocks and block continuation (CommonMark-style HTML blocks).
 - **`htmlBlockExtension`** — Fold/replace decorations for `HTMLBlock` nodes: parses HTML, sanitizes with [DOMPurify](https://github.com/cure53/DOMPurify), and mounts a block widget. Uses `flow-root` layout and `requestMeasure` / `ResizeObserver` so CodeMirror line height stays correct.
 
-Lower-level pieces (if you customize parsing):
-
-- **`multiParHTMLBlockMarkdownSyntaxExtension`**
-- **`htmlBlockContinuationMarkdownSyntaxExtension`**
+For lower-level parser extensions (if you customize parsing), see the [@prosemark/render-html API reference](https://prosemark.com/api/prosemark/render-html/).
 
 ## Behavior
 
