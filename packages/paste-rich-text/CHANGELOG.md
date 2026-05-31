@@ -1,5 +1,11 @@
 # @prosemark/paste-rich-text
 
+## 0.0.5
+
+### Patch Changes
+
+- 6b5b440: Add package README files with install instructions, usage examples, and links to prosemark.com documentation.
+
 ## 0.0.4
 
 ### Patch Changes

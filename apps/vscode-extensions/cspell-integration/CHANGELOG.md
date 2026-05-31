@@ -1,5 +1,13 @@
 # vscode-prosemark-cspell-integration
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies [6b5b440]
+  - @prosemark/vscode-extension-integrator@0.0.4
+  - @prosemark/spellcheck-frontend@0.0.6
+
 ## 0.0.5
 
 ### Patch Changes
