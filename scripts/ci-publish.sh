@@ -18,6 +18,11 @@ else
     PKG_FILE="${SAFE_NAME}-${VERSION}.tgz"
     PKG_PATH="${TMPDIR}/${PKG_FILE}"
 
-    bun pm pack --filename $PKG_PATH
-    npm publish $PKG_PATH
+    # `bun pm pack` resolves workspace:* in dependencies but also tries to
+    # resolve devDependencies (which npm install ignores for consumers anyway).
+    jq 'del(.devDependencies)' package.json >package.json.tmp
+    mv package.json.tmp package.json
+
+    bun pm pack --filename "${PKG_PATH}"
+    npm publish "${PKG_PATH}"
 fi
