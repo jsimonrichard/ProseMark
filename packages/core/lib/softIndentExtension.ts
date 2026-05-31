@@ -86,6 +86,9 @@ export const matchSoftIndentPrefix = (lineText: string): string | null => {
 const softIndentRefresh = Annotation.define<number>();
 const MAX_REFRESH_ROUNDS = 1;
 
+/** Base inset paired with {@link measureSoftIndentWidth} (blockquote border gutter). */
+const SOFT_INDENT_BASE_PADDING = 6;
+
 interface ChangedLine {
   lineNumber: number;
   lineText: string;
@@ -93,11 +96,37 @@ interface ChangedLine {
   newStyle?: string;
 }
 
-/** Left edge of the hung prefix (before list-mark replace widgets when present). */
-const measurePrefixStartLeft = (view: EditorView, lineFrom: number): number =>
-  view.coordsAtPos(lineFrom, -1)?.left ??
-  view.coordsAtPos(lineFrom, 1)?.left ??
-  0;
+/** DOM `.cm-line` element containing a document position, if mounted. */
+const lineElementAt = (view: EditorView, pos: number): HTMLElement | null => {
+  const domAt = view.domAtPos(pos);
+  const node = domAt.node;
+  if (node instanceof HTMLElement && node.classList.contains('cm-line')) {
+    return node;
+  }
+  return node.parentElement?.closest('.cm-line') ?? null;
+};
+
+/**
+ * Left edge where the hung prefix begins — the first-row text-indent origin.
+ *
+ * Always uses the line box plus {@link SOFT_INDENT_BASE_PADDING}, matching
+ * `padding-inline-start - text-indent` regardless of replace widgets or leading
+ * whitespace in the markdown prefix.
+ */
+const measurePrefixStartLeft = (
+  view: EditorView,
+  bounds: SoftIndentPrefixBounds,
+): number => {
+  const line = view.state.doc.lineAt(bounds.lineFrom);
+  const lineEl = lineElementAt(view, line.from);
+  if (!lineEl) {
+    throw new Error(
+      `Soft indent: no .cm-line DOM element for line ${line.number.toString()}`,
+    );
+  }
+
+  return lineEl.getBoundingClientRect().left + SOFT_INDENT_BASE_PADDING;
+};
 
 /**
  * Left edge where body text should begin — right edge of the visual prefix.
@@ -131,7 +160,7 @@ export const measureSoftIndentWidth = (
   view: EditorView,
   bounds: SoftIndentPrefixBounds,
 ): number => {
-  const start = measurePrefixStartLeft(view, bounds.lineFrom);
+  const start = measurePrefixStartLeft(view, bounds);
   const end = measureBodyStartLeft(view, bounds);
   return Math.max(0, end - start);
 };
@@ -238,7 +267,7 @@ export const softIndentExtension = ViewPlugin.fromClass(
 
       for (const { lineNumber, indentWidth } of indents) {
         const line = view.state.doc.line(lineNumber);
-        const padding = `${(indentWidth + 6).toString()}px`;
+        const padding = `${(indentWidth + SOFT_INDENT_BASE_PADDING).toString()}px`;
         const style = `padding-inline-start: ${padding}; text-indent: -${indentWidth.toString()}px;`;
         styles.set(lineNumber, style);
 
