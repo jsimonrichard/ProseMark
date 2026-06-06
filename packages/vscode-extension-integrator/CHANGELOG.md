@@ -1,5 +1,11 @@
 # @prosemark/vscode-extension-integrator
 
+## 0.0.5
+
+### Patch Changes
+
+- da39c71: Pass sub-extension callback context as a single object including `webview`, so companion extensions can resolve webview resource URLs.
+
 ## 0.0.4
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # vscode-prosemark
 
+## 0.0.11
+
+### Patch Changes
+
+- Updated dependencies [da39c71]
+  - @prosemark/vscode-extension-integrator@0.0.5
+
 ## 0.0.10
 
 ### Patch Changes

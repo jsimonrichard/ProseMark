@@ -1,5 +1,11 @@
 # @prosemark/latex
 
+## 0.0.4
+
+### Patch Changes
+
+- da39c71: Add `@prosemark/latex/vite-plugin-mathjax` to copy configurable paths from the `mathjax` npm package into a Vite build output.
+
 ## 0.0.3
 
 ### Patch Changes

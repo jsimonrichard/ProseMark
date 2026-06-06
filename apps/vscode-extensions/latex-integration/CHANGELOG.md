@@ -1,5 +1,15 @@
 # vscode-prosemark-latex-integration
 
+## 0.0.4
+
+### Patch Changes
+
+- da39c71: Fix LaTeX math rendering issue in the VS Code extension webview by self-hosting MathJax inside the extension instead of using a CDN.
+- Updated dependencies [da39c71]
+- Updated dependencies [da39c71]
+  - @prosemark/vscode-extension-integrator@0.0.5
+  - @prosemark/latex@0.0.4
+
 ## 0.0.3
 
 ### Patch Changes
