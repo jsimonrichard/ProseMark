@@ -25,3 +25,32 @@ Please report bugs on the [GitHub issues page](https://github.com/jsimonrichard/
 ## Developing this extension
 
 After `bun install`, run `bun run build`. **Vite** produces `dist/webview/webview.js` and copies `tex-svg.js` plus `sre/` from the **`mathjax`** npm package into `dist/webview/mathjax/` via `@prosemark/latex/vite-plugin-mathjax`. The webview loads MathJax with `url-import` from that folder. Bump the **`mathjax`** dependency when you want a different MathJax version.
+
+### MathJax load modes
+
+This extension uses **`url-import`**: the extension host passes a webview URL for `dist/webview/mathjax/`, and the webview dynamically imports `tex-svg.js` from there. That keeps `webview.js` small and lets MathJax load `sre/speech-worker.js` as a separate file (copied by the Vite plugin).
+
+If you switch to **`static-import`** (`import 'mathjax/tex-svg.js'` bundled into `webview.js`), note that the combined `tex-svg` startup includes MathJax **a11y** support. It tries to load **`sre/speech-worker.js` as a web worker** at runtime. A bundler usually only emits your main bundle, so the worker is missing unless you handle it explicitly.
+
+Pick one approach:
+
+1. **Disable a11y** (simplest for editor preview) — set options on `window.MathJax` **before** the static import:
+
+   ```ts
+   window.MathJax = {
+     options: {
+       skipStartupTypeset: true,
+       enableSpeech: false,
+       enableBraille: false,
+       enableEnrichment: false,
+       menuOptions: {
+         settings: { enrich: false, speech: false, braille: false },
+       },
+     },
+   };
+   import 'mathjax/tex-svg.js';
+   ```
+
+2. **Keep a11y** — copy `sre/` from the `mathjax` npm package next to where `tex-svg.js` is served, and point MathJax at that root (for example with `preconfigureMathJaxLoader` and `loader.paths.mathjax`, or `@prosemark/latex/vite-plugin-mathjax` with `url-import`). The worker cannot be inlined into an IIFE the way the main startup script can.
+
+The shipped extension uses **url-import + copied `sre/`** so math renders without bundling ~1.8 MB of MathJax into `webview.js`.
