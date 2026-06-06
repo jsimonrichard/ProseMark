@@ -5,7 +5,12 @@ export default defineConfig([
   ...baseConfig,
   globalIgnores(['out/']),
   {
-    files: ['**/*.ts', 'tsdown.config.mts', '.vscode-test.mjs'],
+    files: [
+      '**/*.ts',
+      'tsdown.config.mts',
+      'vite.config.mts',
+      '.vscode-test.mjs',
+    ],
     languageOptions: {
       parserOptions: {
         tsconfigRootDir: import.meta.dirname,

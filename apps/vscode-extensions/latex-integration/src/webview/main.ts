@@ -14,6 +14,22 @@ import {
 
 import './style.css';
 
+type LatexWebviewVscodeApi = WebviewVSCodeApiWithPostMessage<
+  CallbackFromProcMap<'latex-integration', WebviewProcMap>
+>;
+
+const isLatexWebviewVscodeApi = (
+  value: unknown,
+): value is LatexWebviewVscodeApi => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  if (!('postMessage' in value)) {
+    return false;
+  }
+  return typeof value.postMessage === 'function';
+};
+
 let latexSetupDone = false;
 
 const procs: WebviewProcMap = {
@@ -45,10 +61,9 @@ const procs: WebviewProcMap = {
   },
 };
 
-registerWebviewMessageHandler(
-  'latex-integration',
-  procs,
-  window.proseMark?.vscode as WebviewVSCodeApiWithPostMessage<
-    CallbackFromProcMap<'latex-integration', WebviewProcMap>
-  >,
-);
+const vscodeApi = window.proseMark?.vscode;
+if (isLatexWebviewVscodeApi(vscodeApi)) {
+  registerWebviewMessageHandler('latex-integration', procs, vscodeApi);
+} else {
+  console.error('[ProseMark] latex-integration: vscode API is not available');
+}
