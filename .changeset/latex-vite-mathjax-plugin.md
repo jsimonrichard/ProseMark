@@ -1,6 +1,6 @@
 ---
-'@prosemark/latex': minor
-'@prosemark/vscode-extension-integrator': minor
+'@prosemark/latex': patch
+'@prosemark/vscode-extension-integrator': patch
 'vscode-prosemark-latex-integration': patch
 ---
 
