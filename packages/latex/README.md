@@ -62,7 +62,7 @@ latexMarkdownEditorExtensions({
 
 **Accessibility / speech worker:** the combined `tex-svg.js` / `tex-chtml.js` startup includes MathJax a11y extensions. At runtime it loads **`sre/speech-worker.js` as a separate web worker**. Bundlers usually only emit your main bundle, so the worker is missing unless you copy `sre/` from the `mathjax` package and configure `loader.paths.mathjax`, or use **`url-import`** with `@prosemark/latex/vite-plugin-mathjax` instead.
 
-If you do not need speech/enrichment (typical for editor preview), disable a11y by setting `window.MathJax.options` **before** the static import:
+If you do not need speech or enrichment and want to avoid shipping the `sre/` worker, disable a11y by setting `window.MathJax.options` **before** the static import:
 
 ```ts
 window.MathJax = {

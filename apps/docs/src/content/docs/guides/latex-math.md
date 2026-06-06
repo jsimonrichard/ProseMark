@@ -115,7 +115,7 @@ import 'mathjax/tex-svg.js';
 
 **Accessibility / speech worker:** the combined startup bundle includes MathJax a11y support and loads **`sre/speech-worker.js` as a web worker** at runtime. Your bundler typically only ships the main JS file, so the worker is missing unless you also copy `sre/` and configure MathJax’s loader paths, or use **`url-import`** with a self-hosted `mathjax/` folder (see [`@prosemark/latex/vite-plugin-mathjax`](https://www.npmjs.com/package/@prosemark/latex) on npm).
 
-For editor-style preview where speech is not needed, disable a11y by configuring `window.MathJax` **before** importing MathJax:
+If you do not need speech or enrichment and want to avoid shipping the `sre/` worker, configure `window.MathJax` **before** importing MathJax:
 
 ```javascript
 window.MathJax = {

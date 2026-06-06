@@ -34,7 +34,7 @@ If you switch to **`static-import`** (`import 'mathjax/tex-svg.js'` bundled into
 
 Pick one approach:
 
-1. **Disable a11y** (simplest for editor preview) — set options on `window.MathJax` **before** the static import:
+1. **Disable a11y** (simplest with `static-import` when you are not copying `sre/`) — set options on `window.MathJax` **before** the static import:
 
    ```ts
    window.MathJax = {
