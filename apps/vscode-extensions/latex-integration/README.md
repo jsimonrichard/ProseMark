@@ -24,4 +24,4 @@ Please report bugs on the [GitHub issues page](https://github.com/jsimonrichard/
 
 ## Developing this extension
 
-After `bun install`, run `bun run build`. **Vite** produces `dist/webview/webview.js` with MathJax SVG output inlined into that bundle (see `src/webview/main.ts`). Bump the **`mathjax`** dependency when you want a different MathJax version.
+After `bun install`, run `bun run build`. **Vite** produces `dist/webview/webview.js` with MathJax SVG output inlined into that bundle (see `src/webview/main.ts`), and copies `mathjax/sre/` (speech worker + mathmaps) into `dist/webview/sre/` for MathJax a11y. Bump the **`mathjax`** dependency when you want a different MathJax version.
