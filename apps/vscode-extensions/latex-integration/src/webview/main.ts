@@ -31,7 +31,9 @@ const procs: WebviewProcMap = {
     latexSetupDone = true;
 
     try {
-      const mathJaxPackageUrl = mathJaxPackageUrlFromWebviewScript();
+      const mathJaxPackageUrl = mathJaxPackageUrlFromWebviewScript({
+        scriptSrcIncludes: 'latex-integration',
+      });
       appendToExtraCodeMirrorExtensions(view, [
         ...latexMarkdownSyntaxTheme,
         ...latexMarkdownEditorExtensions({

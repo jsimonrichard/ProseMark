@@ -148,10 +148,16 @@ export interface MathJaxPackageUrlFromWebviewScriptOptions {
    */
   mathjaxDir?: string;
   /**
-   * Script element whose `src` is the base URL. When omitted, uses the last
-   * `<script src>` in the document (typical for a companion webview bundle).
+   * Script element whose `src` is the base URL. When omitted, see
+   * {@link scriptSrcIncludes} or the last `<script src>` fallback.
    */
   script?: HTMLScriptElement | null;
+  /**
+   * When {@link script} is omitted: use the last `<script src>` whose URL
+   * contains this substring (e.g. your companion extension id). Prefer this in
+   * VS Code webviews where multiple `webview.js` bundles are loaded.
+   */
+  scriptSrcIncludes?: string;
 }
 
 /**
@@ -167,16 +173,25 @@ export function mathJaxPackageUrlFromWebviewScript(
     );
   }
 
-  const { mathjaxDir = 'mathjax', script } = options;
-  const baseScript =
-    script ??
-    [...document.getElementsByTagName('script')]
-      .reverse()
-      .find((el): el is HTMLScriptElement => !!el.src);
+  const { mathjaxDir = 'mathjax', script, scriptSrcIncludes } = options;
+
+  let baseScript: HTMLScriptElement | null | undefined = script;
+  if (!baseScript) {
+    const scripts = [...document.getElementsByTagName('script')].filter(
+      (el): el is HTMLScriptElement => !!el.src,
+    );
+    baseScript = scriptSrcIncludes
+      ? ([...scripts]
+          .reverse()
+          .find((el) => el.src.includes(scriptSrcIncludes)) ?? null)
+      : (scripts.at(-1) ?? null);
+  }
 
   if (!baseScript?.src) {
     throw new Error(
-      'mathJaxPackageUrlFromWebviewScript: could not find a script src to resolve against',
+      scriptSrcIncludes
+        ? `mathJaxPackageUrlFromWebviewScript: no script src includes ${JSON.stringify(scriptSrcIncludes)}`
+        : 'mathJaxPackageUrlFromWebviewScript: could not find a script src to resolve against',
     );
   }
 

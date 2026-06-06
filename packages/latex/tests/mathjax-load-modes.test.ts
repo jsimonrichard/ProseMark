@@ -37,6 +37,27 @@ describe('MathJax load helpers', () => {
     );
   });
 
+  test('mathJaxPackageUrlFromWebviewScript picks script by src substring', () => {
+    const g = globalThis as unknown as {
+      document: { getElementsByTagName: () => HTMLScriptElement[] };
+    };
+    g.document = {
+      getElementsByTagName: () => [
+        {
+          src: 'https://example.test/cspell-integration/webview.js',
+        } as HTMLScriptElement,
+        {
+          src: 'https://example.test/latex-integration/webview.js',
+        } as HTMLScriptElement,
+      ],
+    };
+    expect(
+      mathJaxPackageUrlFromWebviewScript({
+        scriptSrcIncludes: 'latex-integration',
+      }),
+    ).toBe('https://example.test/latex-integration/mathjax');
+  });
+
   test('preconfigureMathJaxLoader sets loader paths', () => {
     preconfigureMathJaxLoader('https://example.test/mj');
     expect(
