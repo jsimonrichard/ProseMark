@@ -1,6 +1,7 @@
 /// <reference types="bun" />
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import {
+  mathJaxPackageUrlFromWebviewScript,
   preconfigureMathJaxLoader,
   resetLatexMathJaxStateForTests,
 } from '../lib/main.ts';
@@ -27,6 +28,15 @@ afterEach(() => {
 });
 
 describe('MathJax load helpers', () => {
+  test('mathJaxPackageUrlFromWebviewScript resolves sibling mathjax dir', () => {
+    const script = {
+      src: 'https://example.test/dist/webview/webview.js',
+    } as HTMLScriptElement;
+    expect(mathJaxPackageUrlFromWebviewScript({ script })).toBe(
+      'https://example.test/dist/webview/mathjax',
+    );
+  });
+
   test('preconfigureMathJaxLoader sets loader paths', () => {
     preconfigureMathJaxLoader('https://example.test/mj');
     expect(

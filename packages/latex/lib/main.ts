@@ -141,6 +141,48 @@ export function preconfigureMathJaxLoader(packageUrl: string): void {
   };
 }
 
+export interface MathJaxPackageUrlFromWebviewScriptOptions {
+  /**
+   * Folder name next to the webview script that contains copied MathJax files.
+   * @default 'mathjax'
+   */
+  mathjaxDir?: string;
+  /**
+   * Script element whose `src` is the base URL. When omitted, uses the last
+   * `<script src>` in the document (typical for a companion webview bundle).
+   */
+  script?: HTMLScriptElement | null;
+}
+
+/**
+ * Resolve a self-hosted MathJax package root URL for {@link mathJaxLoadMode}
+ * `url-import` (e.g. VS Code webviews that copy `mathjax/` next to `webview.js`).
+ */
+export function mathJaxPackageUrlFromWebviewScript(
+  options: MathJaxPackageUrlFromWebviewScriptOptions = {},
+): string {
+  if (typeof document === 'undefined') {
+    throw new Error(
+      'mathJaxPackageUrlFromWebviewScript requires a browser environment (document).',
+    );
+  }
+
+  const { mathjaxDir = 'mathjax', script } = options;
+  const baseScript =
+    script ??
+    [...document.getElementsByTagName('script')]
+      .reverse()
+      .find((el): el is HTMLScriptElement => !!el.src);
+
+  if (!baseScript?.src) {
+    throw new Error(
+      'mathJaxPackageUrlFromWebviewScript: could not find a script src to resolve against',
+    );
+  }
+
+  return new URL(mathjaxDir, baseScript.src).href.replace(/\/$/, '');
+}
+
 async function awaitMathJaxStartupPromise(): Promise<void> {
   const mj = window.MathJax as MathJaxReady | undefined;
   const ready = mj?.startup.promise;
