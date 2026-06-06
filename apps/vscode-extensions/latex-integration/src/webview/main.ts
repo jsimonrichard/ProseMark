@@ -18,7 +18,8 @@ import './style.css';
 let latexSetupDone = false;
 
 const procs: WebviewProcMap = {
-  setup: () => {
+  // eslint-disable-next-line @typescript-eslint/require-await -- async setup matches other integrations
+  setup: async () => {
     const view = window.proseMark?.view;
     if (!view) {
       console.warn('[ProseMark] latex-integration setup: no view');
@@ -43,7 +44,6 @@ const procs: WebviewProcMap = {
       console.error('[ProseMark] latex-integration setup failed', err);
       throw err;
     }
-    return Promise.resolve();
   },
 };
 
