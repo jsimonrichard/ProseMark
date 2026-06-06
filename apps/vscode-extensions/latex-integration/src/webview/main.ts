@@ -12,10 +12,13 @@ import {
   latexMarkdownSyntaxTheme,
 } from '@prosemark/latex';
 
+import './mathjax-preload';
 import './style.css';
 
 // Peer dependency of @prosemark/latex; bundled into webview.js by Vite at build time.
 import 'mathjax/tex-svg.js';
+
+import { disableMathJaxA11y } from './disable-mathjax-a11y';
 
 const latexExtensions = [
   ...latexMarkdownSyntaxTheme,
@@ -40,6 +43,7 @@ const procs: WebviewProcMap = {
     latexSetupDone = true;
 
     try {
+      await disableMathJaxA11y();
       appendToExtraCodeMirrorExtensions(view, latexExtensions);
     } catch (err: unknown) {
       console.error('[ProseMark] latex-integration setup failed', err);
