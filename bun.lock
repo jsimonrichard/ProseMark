@@ -103,7 +103,7 @@
     },
     "apps/vscode-extensions/core": {
       "name": "vscode-prosemark",
-      "version": "0.0.10",
+      "version": "0.0.11",
       "dependencies": {
         "@codemirror/lang-markdown": "^6.5.0",
         "@codemirror/language": "^6.11.3",
@@ -136,7 +136,7 @@
     },
     "apps/vscode-extensions/cspell-integration": {
       "name": "vscode-prosemark-cspell-integration",
-      "version": "0.0.6",
+      "version": "0.0.7",
       "dependencies": {
         "@codemirror/lang-markdown": "^6.2.5",
         "@codemirror/language": "^6.10.2",
@@ -167,7 +167,7 @@
     },
     "apps/vscode-extensions/latex-integration": {
       "name": "vscode-prosemark-latex-integration",
-      "version": "0.0.3",
+      "version": "0.0.4",
       "dependencies": {
         "@codemirror/state": "^6.6.0",
         "@prosemark/latex": "workspace:*",
@@ -244,7 +244,7 @@
     },
     "packages/latex": {
       "name": "@prosemark/latex",
-      "version": "0.0.3",
+      "version": "0.0.4",
       "dependencies": {
         "@codemirror/language": "^6.11.3",
         "@codemirror/state": "^6.5.2",
@@ -319,7 +319,7 @@
     },
     "packages/vscode-extension-integrator": {
       "name": "@prosemark/vscode-extension-integrator",
-      "version": "0.0.4",
+      "version": "0.0.5",
       "dependencies": {
         "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.42.1",
