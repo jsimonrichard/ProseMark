@@ -141,63 +141,6 @@ export function preconfigureMathJaxLoader(packageUrl: string): void {
   };
 }
 
-export interface MathJaxPackageUrlFromWebviewScriptOptions {
-  /**
-   * Folder name next to the webview script that contains copied MathJax files.
-   * @default 'mathjax'
-   */
-  mathjaxDir?: string;
-  /**
-   * Script element whose `src` is the base URL. When omitted, see
-   * {@link scriptSrcIncludes} or the last `<script src>` fallback.
-   */
-  script?: HTMLScriptElement | null;
-  /**
-   * When {@link script} is omitted: use the last `<script src>` whose URL
-   * contains this substring (e.g. your companion extension id). Prefer this in
-   * VS Code webviews where multiple `webview.js` bundles are loaded.
-   */
-  scriptSrcIncludes?: string;
-}
-
-/**
- * Resolve a self-hosted MathJax package root URL for {@link mathJaxLoadMode}
- * `url-import` (e.g. VS Code webviews that copy `mathjax/` next to `webview.js`).
- */
-export function mathJaxPackageUrlFromWebviewScript(
-  options: MathJaxPackageUrlFromWebviewScriptOptions = {},
-): string {
-  if (typeof document === 'undefined') {
-    throw new Error(
-      'mathJaxPackageUrlFromWebviewScript requires a browser environment (document).',
-    );
-  }
-
-  const { mathjaxDir = 'mathjax', script, scriptSrcIncludes } = options;
-
-  let baseScript: HTMLScriptElement | null | undefined = script;
-  if (!baseScript) {
-    const scripts = [...document.getElementsByTagName('script')].filter(
-      (el): el is HTMLScriptElement => !!el.src,
-    );
-    baseScript = scriptSrcIncludes
-      ? ([...scripts]
-          .reverse()
-          .find((el) => el.src.includes(scriptSrcIncludes)) ?? null)
-      : (scripts.at(-1) ?? null);
-  }
-
-  if (!baseScript?.src) {
-    throw new Error(
-      scriptSrcIncludes
-        ? `mathJaxPackageUrlFromWebviewScript: no script src includes ${JSON.stringify(scriptSrcIncludes)}`
-        : 'mathJaxPackageUrlFromWebviewScript: could not find a script src to resolve against',
-    );
-  }
-
-  return new URL(mathjaxDir, baseScript.src).href.replace(/\/$/, '');
-}
-
 async function awaitMathJaxStartupPromise(): Promise<void> {
   const mj = window.MathJax as MathJaxReady | undefined;
   const ready = mj?.startup.promise;
