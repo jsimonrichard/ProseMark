@@ -10,7 +10,6 @@ import type {
 import {
   latexMarkdownEditorExtensions,
   latexMarkdownSyntaxTheme,
-  mathJaxPackageUrlFromWebviewScript,
 } from '@prosemark/latex';
 
 import './style.css';
@@ -19,7 +18,7 @@ let latexSetupDone = false;
 
 const procs: WebviewProcMap = {
   // eslint-disable-next-line @typescript-eslint/require-await -- async setup matches other integrations
-  setup: async () => {
+  setup: async ({ mathJaxPackageUrl }) => {
     const view = window.proseMark?.view;
     if (!view) {
       console.warn('[ProseMark] latex-integration setup: no view');
@@ -31,9 +30,6 @@ const procs: WebviewProcMap = {
     latexSetupDone = true;
 
     try {
-      const mathJaxPackageUrl = mathJaxPackageUrlFromWebviewScript({
-        scriptSrcIncludes: 'latex-integration',
-      });
       appendToExtraCodeMirrorExtensions(view, [
         ...latexMarkdownSyntaxTheme,
         ...latexMarkdownEditorExtensions({

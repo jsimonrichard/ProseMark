@@ -199,6 +199,7 @@ export type SubExtensionCallback<ExtId extends string, WebviewPM, VSCodePM> = (
   document: vscode.TextDocument,
   callProcAndForget: CallProc<WebviewPM>,
   callProcWithReturnValue: CallProcWithReturnValue<WebviewPM>,
+  webview: vscode.Webview,
 ) => SubExtension<ExtId, VSCodePM>;
 
 export interface ProseMarkExtensionApi {

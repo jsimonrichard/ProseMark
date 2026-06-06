@@ -67,7 +67,7 @@ export const createWordCountStatusBarItem: SubExtensionCallback<
   typeof extId,
   Record<string, never>,
   WordCountVSCodeProcs
-> = (document) => {
+> = (document, _callProcAndForget, _callProcWithReturnValue, _webview) => {
   return new WordCountStatusBarItem(document);
 };
 

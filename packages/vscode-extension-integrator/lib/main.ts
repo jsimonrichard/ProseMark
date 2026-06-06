@@ -114,6 +114,7 @@ export class SubExtensionManager {
         document,
         this.#callProcAndForget(key),
         this.#callProcWithReturnValue(key),
+        this.#webview,
       );
     }
 

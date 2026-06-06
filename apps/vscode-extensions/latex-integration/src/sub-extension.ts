@@ -14,15 +14,18 @@ export class LatexIntegration implements SubExtension<
   VSCodeExtensionProcMap
 > {
   #extensionUri: vscode.Uri;
+  #webview: vscode.Webview;
   #callProcWithReturnValue: CallProcWithReturnValue<WebviewProcMap>;
 
   constructor(
     extensionUri: vscode.Uri,
+    webview: vscode.Webview,
     _document: vscode.TextDocument,
     _callProcAndForget: CallProc<WebviewProcMap>,
     callProcWithReturnValue: CallProcWithReturnValue<WebviewProcMap>,
   ) {
     this.#extensionUri = extensionUri;
+    this.#webview = webview;
     this.#callProcWithReturnValue = callProcWithReturnValue;
   }
 
@@ -52,8 +55,20 @@ export class LatexIntegration implements SubExtension<
     return [this.#extensionUri];
   }
 
+  #getMathJaxPackageUrl(): string {
+    const mathJaxUri = vscode.Uri.joinPath(
+      this.#extensionUri,
+      'dist',
+      'webview',
+      'mathjax',
+    );
+    return this.#webview.asWebviewUri(mathJaxUri).toString().replace(/\/$/, '');
+  }
+
   onReady(): void {
-    void this.#callProcWithReturnValue('setup').catch((e: unknown) => {
+    void this.#callProcWithReturnValue('setup', {
+      mathJaxPackageUrl: this.#getMathJaxPackageUrl(),
+    }).catch((e: unknown) => {
       console.error(e);
     });
   }
@@ -64,9 +79,10 @@ export class LatexIntegration implements SubExtension<
 export function createLatexIntegration(
   extensionUri: vscode.Uri,
 ): SubExtensionCallback<typeof extId, WebviewProcMap, VSCodeExtensionProcMap> {
-  return (document, callProcAndForget, callProcWithReturnValue) => {
+  return (document, callProcAndForget, callProcWithReturnValue, webview) => {
     return new LatexIntegration(
       extensionUri,
+      webview,
       document,
       callProcAndForget,
       callProcWithReturnValue,
