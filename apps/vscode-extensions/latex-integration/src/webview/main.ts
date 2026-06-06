@@ -7,38 +7,45 @@ import type {
   CallbackFromProcMap,
   WebviewVSCodeApiWithPostMessage,
 } from '@prosemark/vscode-extension-integrator/types';
+import {
+  latexMarkdownEditorExtensions,
+  latexMarkdownSyntaxTheme,
+} from '@prosemark/latex';
 
 import './style.css';
+
+// Peer dependency of @prosemark/latex; bundled into webview.js by Vite at build time.
+import 'mathjax/tex-svg.js';
+
+const latexExtensions = [
+  ...latexMarkdownSyntaxTheme,
+  ...latexMarkdownEditorExtensions({
+    mathJaxLoadMode: 'static-import',
+    output: 'svg',
+  }),
+];
 
 let latexSetupDone = false;
 
 const procs: WebviewProcMap = {
-  setup: async () => {
+  setup: () => {
     const view = window.proseMark?.view;
     if (!view) {
       console.warn('[ProseMark] latex-integration setup: no view');
-      return;
+      return Promise.resolve();
     }
     if (latexSetupDone) {
-      return;
+      return Promise.resolve();
     }
+    latexSetupDone = true;
 
     try {
-      // Bundle MathJax tex-svg into webview.js (Vite resolves `mathjax/...` from npm).
-      await import('mathjax/tex-svg.js');
-      const latex = await import('@prosemark/latex');
-      appendToExtraCodeMirrorExtensions(view, [
-        ...latex.latexMarkdownSyntaxTheme,
-        ...latex.latexMarkdownEditorExtensions({
-          mathJaxLoadMode: 'static-import',
-          output: 'svg',
-        }),
-      ]);
-      latexSetupDone = true;
+      appendToExtraCodeMirrorExtensions(view, latexExtensions);
     } catch (err: unknown) {
       console.error('[ProseMark] latex-integration setup failed', err);
       throw err;
     }
+    return Promise.resolve();
   },
 };
 
