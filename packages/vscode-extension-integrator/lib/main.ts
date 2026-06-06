@@ -110,12 +110,12 @@ export class SubExtensionManager {
 
     const extensions: Record<string, UnknownSubExtension> = {};
     for (const [key, callback] of Object.entries(subExtensionCallbacks)) {
-      extensions[key] = callback(
+      extensions[key] = callback({
         document,
-        this.#callProcAndForget(key),
-        this.#callProcWithReturnValue(key),
-        this.#webview,
-      );
+        callProcAndForget: this.#callProcAndForget(key),
+        callProcWithReturnValue: this.#callProcWithReturnValue(key),
+        webview: this.#webview,
+      });
     }
 
     this.#subExtensions = extensions;

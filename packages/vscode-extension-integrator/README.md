@@ -6,12 +6,12 @@ Published on npm: [`@prosemark/vscode-extension-integrator`](https://www.npmjs.c
 
 ## Subpath exports
 
-| Import                                                   | Purpose                                                                 |
-| -------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `@prosemark/vscode-extension-integrator`                 | `SubExtensionManager`, `SubExtensionCallbackManager` (extension host)   |
-| `@prosemark/vscode-extension-integrator/webview`         | Webview message handlers, `appendToExtraCodeMirrorExtensions`           |
-| `@prosemark/vscode-extension-integrator/types`           | `ProseMarkExtensionApi`, `SubExtensionCallback`, proc maps, `Change`, … |
-| `@prosemark/vscode-extension-integrator/rolldown-plugin` | Rolldown/Vite plugin for webview bundles                                |
+| Import                                                   | Purpose                                                                                                |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `@prosemark/vscode-extension-integrator`                 | `SubExtensionManager`, `SubExtensionCallbackManager` (extension host)                                  |
+| `@prosemark/vscode-extension-integrator/webview`         | Webview message handlers, `appendToExtraCodeMirrorExtensions`                                          |
+| `@prosemark/vscode-extension-integrator/types`           | `ProseMarkExtensionApi`, `SubExtensionCallback`, `SubExtensionCallbackContext`, proc maps, `Change`, … |
+| `@prosemark/vscode-extension-integrator/rolldown-plugin` | Rolldown/Vite plugin for webview bundles                                                               |
 
 ## Architecture
 

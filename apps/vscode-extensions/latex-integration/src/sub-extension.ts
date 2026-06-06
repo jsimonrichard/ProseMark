@@ -79,7 +79,12 @@ export class LatexIntegration implements SubExtension<
 export function createLatexIntegration(
   extensionUri: vscode.Uri,
 ): SubExtensionCallback<typeof extId, WebviewProcMap, VSCodeExtensionProcMap> {
-  return (document, callProcAndForget, callProcWithReturnValue, webview) => {
+  return ({
+    document,
+    callProcAndForget,
+    callProcWithReturnValue,
+    webview,
+  }) => {
     return new LatexIntegration(
       extensionUri,
       webview,

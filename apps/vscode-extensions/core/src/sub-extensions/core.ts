@@ -249,7 +249,7 @@ export class Core implements SubExtension<
 export function createCore(
   extensionUri: vscode.Uri,
 ): SubExtensionCallback<typeof extId, unknown, unknown> {
-  return (document, callProcAndForget, _callProcWithReturnValue, _webview) => {
+  return ({ document, callProcAndForget }) => {
     return new Core(extensionUri, document, callProcAndForget);
   };
 }
