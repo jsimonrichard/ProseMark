@@ -42,5 +42,12 @@ describe('MathJax load helpers', () => {
   test('preconfigureMathJaxLoader sets loader paths', () => {
     preconfigureMathJaxLoader('https://example.test/mj');
     expect(getConfiguredMathJaxPackageUrl()).toBe('https://example.test/mj');
+    expect(
+      (
+        globalThis as typeof globalThis & {
+          MathJax?: { startup?: { typeset?: boolean } };
+        }
+      ).MathJax?.startup?.typeset,
+    ).toBe(false);
   });
 });

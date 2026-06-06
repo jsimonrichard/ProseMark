@@ -97,11 +97,11 @@ interface MathJaxReady {
 }
 
 interface MathJaxConfig {
-  options?: { skipStartupTypeset?: boolean };
+  startup?: { typeset?: boolean };
   loader?: { paths?: Record<string, string> };
+  options?: Record<string, unknown>;
   tex?: Record<string, unknown>;
   svg?: Record<string, unknown>;
-  startup?: Record<string, unknown>;
 }
 
 declare global {
@@ -130,8 +130,8 @@ export function preconfigureMathJaxLoader(packageUrl: string): void {
     );
   }
   window.MathJax = {
-    options: {
-      skipStartupTypeset: true,
+    startup: {
+      typeset: false,
     },
     loader: {
       paths: {
@@ -213,8 +213,8 @@ const ensureMathJax = (
     // modules from the app origin (`/input/...`, etc.) and `tex2svgPromise`
     // never resolves. Point `mathjax` at the published package tree instead.
     window.MathJax = {
-      options: {
-        skipStartupTypeset: true,
+      startup: {
+        typeset: false,
       },
       loader: {
         paths: {

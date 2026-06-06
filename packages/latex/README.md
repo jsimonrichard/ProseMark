@@ -25,7 +25,7 @@ Optionally add **`mathjax`** if you want to self-host it from npm (see below). I
 
 MathJax is **not** bundled into `@prosemark/latex`. See **How to load MathJax** below for **`url-import`** (default) vs **`static-import`**.
 
-Before the dynamic import runs in **`url-import`** mode, this package sets `window.MathJax = { options: { skipStartupTypeset: true }, loader: { paths: { … } } }`. MathJax’s startup must own the full `tex` / `svg` / `chtml` configuration.
+Before the dynamic import runs in **`url-import`** mode, this package sets `window.MathJax = { startup: { typeset: false }, loader: { paths: { … } } }`. MathJax’s startup must own the full `tex` / `svg` / `chtml` configuration.
 
 ### How to load MathJax
 
@@ -66,8 +66,10 @@ If you do not need speech/enrichment (typical for editor preview), disable a11y 
 
 ```ts
 window.MathJax = {
+  startup: {
+    typeset: false,
+  },
   options: {
-    skipStartupTypeset: true,
     enableSpeech: false,
     enableBraille: false,
     enableEnrichment: false,

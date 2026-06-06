@@ -4,4 +4,4 @@
 'vscode-prosemark-latex-integration': patch
 ---
 
-Add `@prosemark/latex/vite-plugin-mathjax` to copy configurable paths from the `mathjax` npm package into a Vite build output, pass sub-extension callback context as a single object (including `webview`), and switch the LaTeX VS Code webview to self-hosted `url-import` with the MathJax package URL from `webview.asWebviewUri` (`tex-svg.js` + `sre` under `dist/webview/mathjax/`).
+Add `@prosemark/latex/vite-plugin-mathjax` to copy configurable paths from the `mathjax` npm package into a Vite build output, pass sub-extension callback context as a single object (including `webview`), and switch the LaTeX VS Code webview to self-hosted `url-import` with the MathJax package URL from `webview.asWebviewUri` (`tex-svg.js` + `sre` under `dist/webview/mathjax/`). Use MathJax 4's `startup.typeset: false` instead of the removed `skipStartupTypeset` option in code and documentation.

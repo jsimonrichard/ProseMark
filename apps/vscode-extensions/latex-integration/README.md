@@ -38,8 +38,10 @@ Pick one approach:
 
    ```ts
    window.MathJax = {
+     startup: {
+       typeset: false,
+     },
      options: {
-       skipStartupTypeset: true,
        enableSpeech: false,
        enableBraille: false,
        enableEnrichment: false,

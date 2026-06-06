@@ -76,7 +76,7 @@ If you assemble markdown extensions yourself (without `prosemarkMarkdownSyntaxEx
 
 ## How MathJax is loaded
 
-In **`url-import`** mode (the default), this package sets `window.MathJax` with `skipStartupTypeset: true` and loader paths, then dynamically imports the startup bundle. Do not set conflicting `tex` / `svg` / `chtml` options on `window.MathJax` yourself before that runs.
+In **`url-import`** mode (the default), this package sets `window.MathJax` with `startup.typeset: false` and loader paths, then dynamically imports the startup bundle. Do not set conflicting `tex` / `svg` / `chtml` options on `window.MathJax` yourself before that runs.
 
 ### Runtime URL — `mathJaxLoadMode: 'url-import'` (default)
 
@@ -119,8 +119,10 @@ For editor-style preview where speech is not needed, disable a11y by configuring
 
 ```javascript
 window.MathJax = {
+  startup: {
+    typeset: false,
+  },
   options: {
-    skipStartupTypeset: true,
     enableSpeech: false,
     enableBraille: false,
     enableEnrichment: false,
