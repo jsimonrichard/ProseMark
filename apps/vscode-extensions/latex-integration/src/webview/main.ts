@@ -28,14 +28,14 @@ const latexExtensions = [
 let latexSetupDone = false;
 
 const procs: WebviewProcMap = {
-  setup: () => {
+  setup: async () => {
     const view = window.proseMark?.view;
     if (!view) {
       console.warn('[ProseMark] latex-integration setup: no view');
-      return Promise.resolve();
+      return;
     }
     if (latexSetupDone) {
-      return Promise.resolve();
+      return;
     }
     latexSetupDone = true;
 
@@ -45,7 +45,6 @@ const procs: WebviewProcMap = {
       console.error('[ProseMark] latex-integration setup failed', err);
       throw err;
     }
-    return Promise.resolve();
   },
 };
 
