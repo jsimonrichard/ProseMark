@@ -7,13 +7,34 @@ import type {
   CallbackFromProcMap,
   WebviewVSCodeApiWithPostMessage,
 } from '@prosemark/vscode-extension-integrator/types';
+import {
+  latexMarkdownEditorExtensions,
+  latexMarkdownSyntaxTheme,
+} from '@prosemark/latex';
 
 import './style.css';
+
+type LatexWebviewVscodeApi = WebviewVSCodeApiWithPostMessage<
+  CallbackFromProcMap<'latex-integration', WebviewProcMap>
+>;
+
+const isLatexWebviewVscodeApi = (
+  value: unknown,
+): value is LatexWebviewVscodeApi => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  if (!('postMessage' in value)) {
+    return false;
+  }
+  return typeof value.postMessage === 'function';
+};
 
 let latexSetupDone = false;
 
 const procs: WebviewProcMap = {
-  setup: async () => {
+  // eslint-disable-next-line @typescript-eslint/require-await -- async setup matches other integrations
+  setup: async ({ mathJaxPackageUrl }) => {
     const view = window.proseMark?.view;
     if (!view) {
       console.warn('[ProseMark] latex-integration setup: no view');
@@ -22,19 +43,17 @@ const procs: WebviewProcMap = {
     if (latexSetupDone) {
       return;
     }
+    latexSetupDone = true;
 
     try {
-      // Bundle MathJax tex-svg into webview.js (Vite resolves `mathjax/...` from npm).
-      await import('mathjax/tex-svg.js');
-      const latex = await import('@prosemark/latex');
       appendToExtraCodeMirrorExtensions(view, [
-        ...latex.latexMarkdownSyntaxTheme,
-        ...latex.latexMarkdownEditorExtensions({
-          mathJaxLoadMode: 'static-import',
+        ...latexMarkdownSyntaxTheme,
+        ...latexMarkdownEditorExtensions({
+          mathJaxLoadMode: 'url-import',
+          mathJaxPackageUrl,
           output: 'svg',
         }),
       ]);
-      latexSetupDone = true;
     } catch (err: unknown) {
       console.error('[ProseMark] latex-integration setup failed', err);
       throw err;
@@ -42,10 +61,9 @@ const procs: WebviewProcMap = {
   },
 };
 
-registerWebviewMessageHandler(
-  'latex-integration',
-  procs,
-  window.proseMark?.vscode as WebviewVSCodeApiWithPostMessage<
-    CallbackFromProcMap<'latex-integration', WebviewProcMap>
-  >,
-);
+const vscodeApi = window.proseMark?.vscode;
+if (isLatexWebviewVscodeApi(vscodeApi)) {
+  registerWebviewMessageHandler('latex-integration', procs, vscodeApi);
+} else {
+  console.error('[ProseMark] latex-integration: vscode API is not available');
+}

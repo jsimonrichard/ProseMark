@@ -76,7 +76,7 @@ If you assemble markdown extensions yourself (without `prosemarkMarkdownSyntaxEx
 
 ## How MathJax is loaded
 
-In **`url-import`** mode (the default), this package sets `window.MathJax` with `skipStartupTypeset: true` and loader paths, then dynamically imports the startup bundle. Do not set conflicting `tex` / `svg` / `chtml` options on `window.MathJax` yourself before that runs.
+In **`url-import`** mode (the default), this package sets `window.MathJax` with `startup.typeset: false` and loader paths, then dynamically imports the startup bundle. Do not set conflicting `tex` / `svg` / `chtml` options on `window.MathJax` yourself before that runs.
 
 ### Runtime URL — `mathJaxLoadMode: 'url-import'` (default)
 
@@ -111,6 +111,27 @@ import 'mathjax/tex-svg.js';
   mathJaxLoadMode: 'static-import',
   output: 'svg',
 }),
+```
+
+**Accessibility / speech worker:** the combined startup bundle includes MathJax a11y support and loads **`sre/speech-worker.js` as a web worker** at runtime. Your bundler typically only ships the main JS file, so the worker is missing unless you also copy `sre/` and configure MathJax’s loader paths, or use **`url-import`** with a self-hosted `mathjax/` folder (see [`@prosemark/latex/vite-plugin-mathjax`](https://www.npmjs.com/package/@prosemark/latex) on npm).
+
+If you do not need speech or enrichment and want to avoid shipping the `sre/` worker, configure `window.MathJax` **before** importing MathJax:
+
+```javascript
+window.MathJax = {
+  startup: {
+    typeset: false,
+  },
+  options: {
+    enableSpeech: false,
+    enableBraille: false,
+    enableEnrichment: false,
+    menuOptions: {
+      settings: { enrich: false, speech: false, braille: false },
+    },
+  },
+};
+import 'mathjax/tex-svg.js';
 ```
 
 Use one load mode per page (`url-import` or `static-import`, not both).

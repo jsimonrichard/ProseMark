@@ -24,6 +24,10 @@
     ".": {
       "types": "./dist/main.d.ts",
       "import": "./dist/main.js"
+    },
+    "./vite-plugin-mathjax": {
+      "types": "./dist/vite-plugin-mathjax.d.ts",
+      "import": "./dist/vite-plugin-mathjax.js"
     }
   },
   "main": "./dist/main.js",
@@ -48,10 +52,14 @@
     "@prosemark/core": "workspace:*"
   },
   "peerDependencies": {
-    "mathjax": "^4.0.0"
+    "mathjax": "^4.0.0",
+    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
   },
   "peerDependenciesMeta": {
     "mathjax": {
+      "optional": true
+    },
+    "vite": {
       "optional": true
     }
   },
@@ -62,6 +70,7 @@
     "eslint": "^9.39.2",
     "tsdown": "^0.15.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.50.0"
+    "typescript-eslint": "^8.50.0",
+    "vite": "^8.0.5"
   }
 }

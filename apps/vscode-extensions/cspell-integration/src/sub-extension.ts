@@ -151,7 +151,7 @@ export function createCSpellIntegration(
   extensionUri: vscode.Uri,
   cSpellApi: CSpell.ExtensionApi,
 ): SubExtensionCallback<typeof extId, WebviewProcMap, VSCodeExtensionProcMap> {
-  return (document, callProcAndForget, callProcWithReturnValue) => {
+  return ({ document, callProcAndForget, callProcWithReturnValue }) => {
     return new CSpellIntegration(
       extensionUri,
       cSpellApi,
