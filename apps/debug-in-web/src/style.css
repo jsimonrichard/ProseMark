@@ -1,0 +1,127 @@
+:root {
+  font-family:
+    ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
+  line-height: 1.5;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f0f1f3;
+  color: #1a1d26;
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.layout {
+  width: min(1400px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 280px minmax(400px, 1fr) minmax(280px, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.controls,
+.editor-panel,
+.log-panel {
+  background: #fff;
+  border: 1px solid #d8dce6;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgb(20 25 38 / 6%);
+}
+
+.controls {
+  padding: 1rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.controls h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.controls p {
+  margin-top: 0;
+  color: #4a5568;
+  font-size: 0.88rem;
+}
+
+.control-group {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+
+button {
+  font: inherit;
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid #c5cad6;
+  background: #f8f9fb;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #eef0f5;
+}
+
+.editor-panel {
+  padding: 0.75rem;
+  min-height: 420px;
+}
+
+#codemirror-container {
+  min-height: 380px;
+  border: 1px solid #e2e6ef;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.log-panel {
+  padding: 0.75rem 1rem;
+  max-height: min(80vh, 720px);
+  overflow: auto;
+}
+
+.log-panel h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+#log-output {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #2d3748;
+}
+
+code {
+  font-size: 0.85em;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .controls {
+    position: static;
+  }
+}
