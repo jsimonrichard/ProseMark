@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "d=\"$PWD\"; while [ \"$d\" != / ] && [ ! -x \"$d/.claude/gate.sh\" ]; do d=\"$(dirname \"$d\")\"; done; if [ -x \"$d/.claude/gate.sh\" ]; then exec \"$d/.claude/gate.sh\" full --event=claude-pretooluse; else jq -nc '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"Gate script .claude/gate.sh not found; nothing was verified.\"}}'; fi",
+            "timeout": 900,
+            "statusMessage": "Checking push against the quality gate"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "d=\"$PWD\"; while [ \"$d\" != / ] && [ ! -x \"$d/.claude/gate.sh\" ]; do d=\"$(dirname \"$d\")\"; done; if [ -x \"$d/.claude/gate.sh\" ]; then exec \"$d/.claude/gate.sh\" fast --event=claude-stop; fi",
+            "timeout": 300,
+            "statusMessage": "Checking pending changes"
+          }
+        ]
+      }
+    ]
+  }
+}

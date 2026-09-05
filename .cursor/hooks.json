@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "type": "command",
+        "command": "d=\"$PWD\"; while [ \"$d\" != / ] && [ ! -x \"$d/.claude/gate.sh\" ]; do d=\"$(dirname \"$d\")\"; done; if [ -x \"$d/.claude/gate.sh\" ]; then exec \"$d/.claude/gate.sh\" full --event=cursor-shell; else echo \"Gate script .claude/gate.sh not found; nothing was verified.\" >&2; exit 2; fi",
+        "timeout": 900,
+        "failClosed": true
+      }
+    ],
+    "stop": [
+      {
+        "type": "command",
+        "command": "d=\"$PWD\"; while [ \"$d\" != / ] && [ ! -x \"$d/.claude/gate.sh\" ]; do d=\"$(dirname \"$d\")\"; done; if [ -x \"$d/.claude/gate.sh\" ]; then exec \"$d/.claude/gate.sh\" fast --event=cursor-stop; fi",
+        "timeout": 300,
+        "loop_limit": 3
+      }
+    ]
+  }
+}
