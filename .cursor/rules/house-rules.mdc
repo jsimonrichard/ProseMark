@@ -1,0 +1,62 @@
+---
+description: House rules for every change — no silent fallbacks, upstream before workaround, generalize don't special-case, one concern per change, plan first, state what is not done.
+alwaysApply: true
+---
+
+# House rules
+
+Rationale, examples, and this repo's specifics: **`AGENTS.md` § House rules**.
+Short form — check each before handing work back:
+
+1. **No silent fallbacks.** Impossible state → throw, don't degrade. Unclear
+   permission → deny. Dangerous capability → the guard is a *required* argument.
+   User-reachable error → surface it in the UI, not just the log. Expected
+   failures are data, not exceptions.
+2. **Upstream before workaround.** Prefer the framework's own mechanism, even if
+   local code already works. Needed a workaround? Name the upstream mechanism you
+   checked and why it failed. Derive values from their source; never restate
+   them. Type guard over cast. Check sibling repos for prior art.
+3. **Generalize; don't special-case.** Fixed one case? Check whether the general
+   rule holds and unify on one path. A host never branches on plugin identity —
+   add the hook to the contract instead. Then **delete** the special case or
+   fallback you replaced.
+4. **One concern per change.** No batching unrelated modules. N modules = N
+   changes. Stop between steps of a multi-step feature. Narrower and complete
+   beats wider and unpickable.
+5. **Plan first for anything substantial.** Write it to a file: Goal /
+   Principles / numbered sections / out of scope / success criteria. Get the plan
+   reviewed before writing code.
+6. **State what is not done.** Gaps, deferrals, and assumptions as precisely as
+   the work. Skipped a check — say so. Quote failing output. Baseline
+   pre-existing failures and report them as inherited. Verify doc claims against
+   behavior, not against the prose around them.
+
+## Required outputs
+
+- **Before writing code — reuse survey.** Name the existing modules, tables,
+  routes, and helpers that already touch this area and say which you are
+  extending. Adding instead of extending? Say why the existing abstraction did
+  not fit.
+- **At handoff — diff shape.** Files changed, lines added/removed, and what the
+  change let you delete. Adding far more than you remove is a signal to
+  re-check, not progress.
+
+## Where these bite in this repo
+
+- **Layer first.** `packages/core` is the CodeMirror toolkit. `packages/{latex,
+  render-html,paste-rich-text,spellcheck-frontend}` are opt-in extensions.
+  `apps/vscode-extensions/*`, `apps/demo`, `apps/docs` are hosts. A behavior that
+  belongs to an optional feature is a package, not a core flag.
+- **Rule 1** — a missing `.cm-line`, a null `syntaxTree` node, or an absent
+  webview API means a broken editor state: throw rather than fall back. See
+  ProseMark #147, which removed exactly such a `coordsAtPos` fallback.
+- **Rule 2** — CodeMirror, MathJax, and the VS Code webview API are upstream.
+  Prefer a documented facet, `eq()`, or a type guard over coordinate math,
+  `posAtDOM` probing, or an `as` cast.
+- **Rule 3** — one measurement/decoration path for all nesting levels, not a
+  branch per case. A single keymap facet, not per-field maps.
+- **Rule 6** — user-facing changes get a `.changeset/` file; never hand-edit a
+  package `CHANGELOG.md` (`.cursor/rules/changesets.mdc`).
+
+Gate before every push: `bun run turbo build check-types lint format:check` —
+the exact set CI runs. See `.cursor/rules/pre-push-quality.mdc`.
