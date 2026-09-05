@@ -121,6 +121,25 @@ run_checks() {
   bun run turbo build check-types lint format:check || return 1
 }
 
+# --- an unconfigured gate must not pretend to have checked anything ---------
+if [ -n "${GATE_UNCONFIGURED:-}" ]; then
+  case "$EVENT" in
+    claude-pretooluse|cursor-shell)
+      fail "Push blocked: this repo's quality gate is not configured yet.
+$GATE_UNCONFIGURED
+Fill in run_checks in .claude/gate.sh (recipes are in the file), then delete the
+GATE_UNCONFIGURED line. Do not stub run_checks out to get past this." ;;
+    claude-stop|cursor-stop)
+      # Warn, but do not block every turn on a setup task.
+      printf 'gate: not configured for this repo (%s); end-of-turn checks skipped.\n' \
+        "$GATE_UNCONFIGURED" >&2
+      exit 0 ;;
+    *)
+      printf 'gate: not configured (%s)\n' "$GATE_UNCONFIGURED" >&2
+      exit 1 ;;
+  esac
+fi
+
 # --- run --------------------------------------------------------------------
 # preflight runs at top level, NOT inside a command substitution, so a fail()
 # here can actually emit its decision and exit. Anything meaning "cannot
