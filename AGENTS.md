@@ -136,9 +136,15 @@ Wiring lives in `.claude/settings.json` (Claude Code) and `.cursor/hooks.json`
 (Cursor). Run it yourself at any point — don't wait to be blocked:
 
 ```bash
-.claude/gate.sh fast    # the quick checks
-.claude/gate.sh full    # everything, same as the push gate
+.claude/gate.sh fast       # the quick checks
+.claude/gate.sh full       # everything, same as the push gate
+.claude/gate.sh full -v    # stream every command's output
 ```
+
+It prints each check's label before running it and `ok`/`FAILED` with a
+duration after, so a slow `full` run never looks hung. A failure names the
+failing step. Under a hook that progress goes to stderr, because a hook's
+stdout is parsed as JSON.
 
 Do not work around the gate. `CLAUDE_GATE_SKIP=1` exists for a failure that is
 pre-existing or that the user has explicitly accepted for a specific change —
