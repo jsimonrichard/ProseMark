@@ -119,5 +119,36 @@ render-html,paste-rich-text,spellcheck-frontend}` are opt-in extensions.
 - **Rule 6** — user-facing changes get a `.changeset/` file; never hand-edit a
   package `CHANGELOG.md` (`.cursor/rules/changesets.mdc`).
 
-Gate before every push: `bun run turbo build check-types lint format:check` —
-the exact set CI runs. See `.cursor/rules/pre-push-quality.mdc`.
+Gate before every push: **enforced by hooks, not by your memory of this file.**
+See § Enforced gate below.
+
+## Enforced gate
+
+The quality gate is executed by the harness, so skipping it is not an option
+available to you:
+
+| When                                    | What runs              | Effect on failure                                          |
+| --------------------------------------- | ---------------------- | ---------------------------------------------------------- |
+| A `git push` command                    | `.claude/gate.sh full` | The push is **denied**; the failure is handed to you       |
+| End of a turn, with uncommitted changes | `.claude/gate.sh fast` | The failure is handed back for you to fix before finishing |
+
+Wiring lives in `.claude/settings.json` (Claude Code) and `.cursor/hooks.json`
+(Cursor). Run it yourself at any point — don't wait to be blocked:
+
+```bash
+.claude/gate.sh fast    # the quick checks
+.claude/gate.sh full    # everything, same as the push gate
+```
+
+Do not work around the gate. `CLAUDE_GATE_SKIP=1` exists for a failure that is
+pre-existing or that the user has explicitly accepted for a specific change —
+per rule 6, establish that baseline and **ask** before using it.
+
+Works under **git and Jujutsu**, colocated or not (`jj` wins when both are
+present, matching `vcs_kind_at()` in tsk-core). `git push` and `jj git push` are
+both gated, including behind a `cd x &&`. If no repo or no gate script is found,
+the push is denied rather than allowed unverified.
+
+`fast` = `turbo run check-types lint` + format:check. `full` runs
+`bun run turbo build check-types lint format:check`, the exact set CI runs.
+Requires `bun install`.
