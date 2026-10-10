@@ -2,4 +2,4 @@
 '@prosemark/render-html': patch
 ---
 
-Route clicks on sanitized `<a href>` tags inside HTML block widgets through the shared `clickLinkHandler` facet, while still letting non-link clicks place the editor cursor.
+Open links inside HTML widgets through the shared `clickLinkHandler` facet (pointer and keyboard), while non-link clicks still place the editor cursor.
