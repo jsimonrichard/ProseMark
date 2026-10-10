@@ -1,11 +1,13 @@
 import { Decoration, EditorView, WidgetType } from '@codemirror/view';
 import {
+  clickLinkHandler,
   foldableSyntaxFacet,
   selectAllDecorationsOnSelectExtension,
 } from '@prosemark/core';
 import type { EditorState } from '@codemirror/state';
 import DOMPurify from 'dompurify';
 import type { SyntaxNodeRef } from '@lezer/common';
+import { eventTargetForClosest, htmlWidgetLinkHref } from './htmlWidgetLink';
 
 export {
   multiParHTMLBlockMarkdownSyntaxExtension,
@@ -59,6 +61,23 @@ class HTMLWidget extends WidgetType {
     inner.append(...parsed.body.childNodes);
     root.appendChild(inner);
 
+    // Same activation path as markdown links (`clickLink.ts`): mousedown → facet.
+    root.addEventListener('mousedown', (event) => {
+      const href = htmlWidgetLinkHref(eventTargetForClosest(event.target));
+      if (href == null) return;
+      event.preventDefault();
+      view.state.facet(clickLinkHandler).map((handler) => {
+        handler(href);
+      });
+    });
+    // Real `<a>` nodes still fire click navigation unless cancelled.
+    root.addEventListener('click', (event) => {
+      if (htmlWidgetLinkHref(eventTargetForClosest(event.target)) == null) {
+        return;
+      }
+      event.preventDefault();
+    });
+
     if (typeof ResizeObserver !== 'undefined') {
       const ro = new ResizeObserver(() => {
         view.requestMeasure();
@@ -74,8 +93,9 @@ class HTMLWidget extends WidgetType {
     return root;
   }
 
-  ignoreEvent(_event: Event): boolean {
-    return false;
+  ignoreEvent(event: Event): boolean {
+    // True → editor ignores (widget owns the event). False → cursor placement.
+    return htmlWidgetLinkHref(eventTargetForClosest(event.target)) != null;
   }
 
   destroy(dom: HTMLElement): void {

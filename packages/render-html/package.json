@@ -29,7 +29,8 @@
     "check-types": "tsc --noEmit",
     "ci:publish": "bash ../../scripts/ci-publish.sh",
     "dev": "tsdown --watch",
-    "lint": "eslint --max-warnings=0"
+    "lint": "eslint --max-warnings=0",
+    "test": "bun test tests"
   },
   "dependencies": {
     "@codemirror/state": "^6.5.2",
