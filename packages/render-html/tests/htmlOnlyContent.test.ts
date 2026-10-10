@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { GFM, parser } from '@lezer/markdown';
 import type { SyntaxNode } from '@lezer/common';
 import { prosemarkMarkdownSyntaxExtensions } from '@prosemark/core';
-import { isHtmlOnlyContent } from '../lib/htmlOnlyContent.ts';
+import { findHtmlTagEnd, isHtmlOnlyContent } from '../lib/htmlOnlyContent.ts';
 import { renderHtmlMarkdownSyntaxExtensions } from '../lib/markdown.ts';
 
 const markdownParser = parser.configure([
@@ -20,6 +20,15 @@ const topLevelBlockNames = (node: SyntaxNode): string[] => {
   return names;
 };
 
+describe('findHtmlTagEnd', () => {
+  test('ignores greater-than inside quoted attributes', () => {
+    const tag = '<img src="a>b.png" />';
+    expect(findHtmlTagEnd(tag, 0)).toBe(tag.length - 1);
+    expect(findHtmlTagEnd('<span title="a>b">', 0)).toBe(17);
+    expect(findHtmlTagEnd("<span title='a>b'>", 0)).toBe(17);
+  });
+});
+
 describe('isHtmlOnlyContent', () => {
   test('accepts standalone inline elements', () => {
     expect(isHtmlOnlyContent('<span>hello</span>')).toBe(true);
@@ -28,6 +37,11 @@ describe('isHtmlOnlyContent', () => {
     );
     expect(isHtmlOnlyContent('<button>Click</button>')).toBe(true);
     expect(isHtmlOnlyContent('<img src="x.png" alt="y" />')).toBe(true);
+  });
+
+  test('accepts tags with quoted greater-than in attributes', () => {
+    expect(isHtmlOnlyContent('<img src="a>b.png" alt="y" />')).toBe(true);
+    expect(isHtmlOnlyContent('<span title="a>b">hello</span>')).toBe(true);
   });
 
   test('rejects mixed prose and tags', () => {

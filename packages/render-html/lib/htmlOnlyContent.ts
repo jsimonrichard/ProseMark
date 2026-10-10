@@ -18,6 +18,31 @@ const VOID_TAG_NAMES = new Set([
 const TAG_NAME = /^[a-z][\w-]*$/i;
 
 /**
+ * Index of the `>` that closes the tag starting at `start` (`s[start] === '<'`),
+ * ignoring `>` inside single- or double-quoted attribute values. Returns -1 if
+ * the tag is unterminated.
+ */
+export function findHtmlTagEnd(s: string, start: number): number {
+  if (s[start] !== '<') return -1;
+
+  let quote: '"' | "'" | null = null;
+  for (let i = start + 1; i < s.length; i++) {
+    const c = s[i];
+    if (c === undefined) return -1;
+    if (quote) {
+      if (c === quote) quote = null;
+      continue;
+    }
+    if (c === '"' || c === "'") {
+      quote = c;
+      continue;
+    }
+    if (c === '>') return i;
+  }
+  return -1;
+}
+
+/**
  * True when `text` is only HTML tags (plus text/whitespace inside or between
  * them) — e.g. `<span>hi</span>` or `<img src="x.png" />`, but not
  * `Text <span>x</span>` or markdown autolinks like `<https://example.com>`.
@@ -40,7 +65,7 @@ export function isHtmlOnlyContent(text: string): boolean {
         continue;
       }
 
-      const close = s.indexOf('>', i + 1);
+      const close = findHtmlTagEnd(s, i);
       if (close === -1) return false;
       const rawTag = s.slice(i, close + 1);
       const isClose = rawTag.startsWith('</');

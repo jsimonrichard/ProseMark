@@ -69,21 +69,21 @@ class HTMLWidget extends WidgetType {
     }
     root.appendChild(inner);
 
-    // Same activation path as markdown links (`clickLink.ts`): mousedown → facet.
+    // Suppress native/editor handling on press; activate on click so keyboard
+    // (Enter/Space on a focused `<a>`) and pointer share one path.
     root.addEventListener('mousedown', (event) => {
-      const href = htmlWidgetLinkHref(eventTargetForClosest(event.target));
-      if (href == null) return;
-      event.preventDefault();
-      event.stopPropagation();
-      view.state.facet(clickLinkHandler)(href);
-    });
-    // Real `<a>` nodes still fire click navigation unless cancelled.
-    root.addEventListener('click', (event) => {
       if (htmlWidgetLinkHref(eventTargetForClosest(event.target)) == null) {
         return;
       }
       event.preventDefault();
       event.stopPropagation();
+    });
+    root.addEventListener('click', (event) => {
+      const href = htmlWidgetLinkHref(eventTargetForClosest(event.target));
+      if (href == null) return;
+      event.preventDefault();
+      event.stopPropagation();
+      view.state.facet(clickLinkHandler)(href);
     });
 
     if (typeof ResizeObserver !== 'undefined') {
