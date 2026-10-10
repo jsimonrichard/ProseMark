@@ -36,7 +36,20 @@
           }
         ]
       }
-    ]
+    ],
+    "configuration": {
+      "title": "ProseMark",
+      "properties": {
+        "prosemark.vimModeEnabled": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "default": null,
+          "markdownDescription": "Enable vim-style editing in the ProseMark editor. When unset (`null`), follows whether [VS Code Vim](https://marketplace.visualstudio.com/items?itemName=vscodevim.vim) or [vscode-neovim](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim) is enabled. Set `true` or `false` to force on or off."
+        }
+      }
+    }
   },
   "extensionPack": [
     "streetsidesoftware.code-spell-checker",
@@ -59,9 +72,11 @@
     "test": "vscode-test"
   },
   "dependencies": {
+    "@codemirror/commands": "^6.10.1",
     "@codemirror/lang-markdown": "^6.5.0",
     "@codemirror/language": "^6.11.3",
     "@codemirror/language-data": "^6.5.2",
+    "@codemirror/search": "^6.5.11",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.42.1",
     "@cspell/cspell-types": "^9.5.0",
@@ -70,7 +85,8 @@
     "@prosemark/core": "workspace:*",
     "@prosemark/paste-rich-text": "workspace:*",
     "@prosemark/render-html": "workspace:*",
-    "@prosemark/vscode-extension-integrator": "workspace:*"
+    "@prosemark/vscode-extension-integrator": "workspace:*",
+    "@replit/codemirror-vim": "^6.3.0"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

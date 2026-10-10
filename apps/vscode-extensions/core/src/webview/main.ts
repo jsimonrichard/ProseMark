@@ -1,6 +1,7 @@
 import { EditorView } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
+import { vim } from '@replit/codemirror-vim';
 import * as ProseMarkCore from '@prosemark/core';
 import {
   prosemarkBasicSetup,
@@ -260,7 +261,8 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
   const state = EditorState.create({
     doc: text,
     extensions: [
-      vimModeEnabled ? [] : [], // A no-op for now
+      // vim() must precede other keymaps so normal-mode bindings win.
+      vimModeEnabled ? vim() : [],
       markdown({
         codeLanguages: languages,
         extensions: [

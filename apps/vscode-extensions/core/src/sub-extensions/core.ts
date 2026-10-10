@@ -10,6 +10,7 @@ import type {
   VSCodeExtensionProcMap,
   WebviewProcMap,
 } from '../common';
+import { getVimModeEnabledFromWorkspace } from '../vimExtensions';
 import path from 'path';
 
 const extId = 'core';
@@ -72,11 +73,8 @@ export class Core implements SubExtension<
     const tabSize = editorConfig.get('tabSize', 2);
     const insertSpaces = editorConfig.get('insertSpaces', true);
 
-    // const config = vscode.workspace.getConfiguration('prosemark');
-    // const vimModeEnabled = config.get<boolean>('vimModeEnabled', false);
-
     return {
-      vimModeEnabled: false,
+      vimModeEnabled: getVimModeEnabledFromWorkspace(),
       tabSize,
       insertSpaces,
     };

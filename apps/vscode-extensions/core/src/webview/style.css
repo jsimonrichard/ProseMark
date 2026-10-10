@@ -62,6 +62,15 @@
     cursor: text;
 }
 
+/* @replit/codemirror-vim defaults the fat cursor to #ff9696; match the editor caret. */
+#codemirror-container .cm-fat-cursor {
+    background: var(--pm-cursor-color) !important;
+}
+#codemirror-container .cm-editor:not(.cm-focused) .cm-fat-cursor {
+    background: none !important;
+    outline: solid 1px var(--pm-cursor-color);
+}
+
 @media (min-width: 800px) {
     #codemirror-container {
         margin-top: 3rem;
