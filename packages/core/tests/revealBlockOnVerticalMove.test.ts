@@ -76,4 +76,19 @@ describe('reveal folded blocks on vertical moves', () => {
 
     expect(next.state.selection.main.head).toBe(blankAboveB);
   });
+
+  test('extending selection keeps the anchor when revealing', () => {
+    const bLine = doc.indexOf('b');
+    const state = createState(bLine);
+    const hr = horizontalRuleRange(state);
+    const blankAboveB = state.doc.line(state.doc.lineAt(bLine).number - 1).from;
+
+    const next = state.update({
+      selection: EditorSelection.range(bLine, blankAboveB),
+    });
+
+    expect(next.state.selection.main.anchor).toBe(bLine);
+    expect(next.state.selection.main.head).toBe(hr.to);
+    expect(next.state.selection.main.empty).toBe(false);
+  });
 });

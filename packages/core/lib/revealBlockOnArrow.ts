@@ -105,8 +105,17 @@ const revealOnSingleLineSelectionMove = (tr: Transaction) => {
   const target = computeVerticalRevealTarget(tr.startState, direction);
   if (target == null || target === newHead) return tr;
 
+  // Keep anchors / other ranges so Shift+arrow (and multi-cursor) do not collapse.
+  const ranges = tr.newSelection.ranges.slice();
+  const mainIndex = tr.newSelection.mainIndex;
+  const main = ranges[mainIndex];
+  if (!main) return tr;
+  ranges[mainIndex] = main.empty
+    ? EditorSelection.cursor(target)
+    : EditorSelection.range(main.anchor, target);
+
   return {
-    selection: EditorSelection.single(target),
+    selection: EditorSelection.create(ranges, mainIndex),
   };
 };
 
