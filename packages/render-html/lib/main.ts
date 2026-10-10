@@ -7,11 +7,13 @@ import {
 import type { EditorState } from '@codemirror/state';
 import DOMPurify from 'dompurify';
 import type { SyntaxNodeRef } from '@lezer/common';
+import { htmlBlockNeedsDivWrapper } from './htmlBlockRoot';
 import { eventTargetForClosest, htmlWidgetLinkHref } from './htmlWidgetLink';
 
 export {
   multiParHTMLBlockMarkdownSyntaxExtension,
   htmlBlockContinuationMarkdownSyntaxExtension,
+  htmlOnlyParagraphAsBlockMarkdownSyntaxExtension,
   renderHtmlMarkdownSyntaxExtensions,
 } from './markdown';
 
@@ -58,7 +60,13 @@ class HTMLWidget extends WidgetType {
     };
 
     walk(parsed.body);
-    inner.append(...parsed.body.childNodes);
+    if (htmlBlockNeedsDivWrapper(parsed.body)) {
+      const wrap = document.createElement('div');
+      wrap.append(...parsed.body.childNodes);
+      inner.appendChild(wrap);
+    } else {
+      inner.append(...parsed.body.childNodes);
+    }
     root.appendChild(inner);
 
     // Same activation path as markdown links (`clickLink.ts`): mousedown → facet.

@@ -1,5 +1,6 @@
 import type { Input } from '@lezer/common';
 import type { BlockContext, Line, MarkdownConfig } from '@lezer/markdown';
+import { isHtmlOnlyContent } from './htmlOnlyContent';
 
 const EMPTY_LINE = /^[ \t]*$/;
 const STYLE_1_TAG_NAMES = new Set(['script', 'pre', 'style']);
@@ -146,6 +147,58 @@ export const multiParHTMLBlockMarkdownSyntaxExtension: MarkdownConfig = {
 export const htmlBlockContinuationMarkdownSyntaxExtension =
   multiParHTMLBlockMarkdownSyntaxExtension;
 
+const peekParagraphText = (cx: BlockContext, line: Line): string | null => {
+  const input = (cx as unknown as { input?: Input }).input;
+  if (!input) return null;
+
+  const from = cx.lineStart + line.pos;
+  const rest = input.read(from, input.length);
+  const lines: string[] = [];
+  for (const currentLine of rest.split('\n')) {
+    if (lines.length > 0 && EMPTY_LINE.test(currentLine)) break;
+    lines.push(currentLine);
+  }
+  return lines.length > 0 ? lines.join('\n') : null;
+};
+
+/**
+ * Promote a paragraph that is only HTML (e.g. `<span>hi</span>` on its own
+ * line) to an `HTMLBlock` so the existing fold/widget path renders it. Mixed
+ * prose + tags (`Text <span>x</span>`) stays a normal paragraph.
+ */
+export const htmlOnlyParagraphAsBlockMarkdownSyntaxExtension: MarkdownConfig = {
+  parseBlock: [
+    {
+      name: 'HTMLOnlyParagraphAsBlock',
+      before: 'HTMLBlock',
+      parse: (cx: BlockContext, line: Line): boolean => {
+        if (line.next !== 60 /* < */) return false;
+
+        const content = peekParagraphText(cx, line);
+        if (content == null || !isHtmlOnlyContent(content)) return false;
+
+        // Let CommonMark styles 1–7 / MultiParHTMLBlock own real HTML blocks.
+        // Style 6/7 opening lines already become HTMLBlock; skip so we don't
+        // change their blank-line termination rules.
+        const firstLine = line.text.slice(line.pos);
+        if (startsAsStyle6OrStyle7HtmlBlock(firstLine)) return false;
+
+        const from = cx.lineStart + line.pos;
+        const lineCount = content.split('\n').length;
+        for (let i = 1; i < lineCount; i++) {
+          if (!cx.nextLine()) break;
+          if (leftCurrentCompositeContext(cx, line)) break;
+        }
+        // Advance past the last content line (same trailing pattern as HTMLBlock).
+        cx.nextLine();
+        cx.addElement(cx.elt('HTMLBlock', from, cx.prevLineEnd()));
+        return true;
+      },
+    },
+  ],
+};
+
 export const renderHtmlMarkdownSyntaxExtensions = [
   multiParHTMLBlockMarkdownSyntaxExtension,
+  htmlOnlyParagraphAsBlockMarkdownSyntaxExtension,
 ];
