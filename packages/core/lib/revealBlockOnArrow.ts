@@ -1,4 +1,3 @@
-import { EditorView, keymap } from '@codemirror/view';
 import {
   EditorSelection,
   EditorState,
@@ -85,22 +84,10 @@ export const computeVerticalRevealTarget = (
   revealTargetAtWidgetBoundary(state, direction) ??
   revealTargetOnAdjacentLine(state, direction);
 
-const moveVerticallyWithReveal =
-  (direction: VerticalRevealDirection) =>
-  (view: EditorView): boolean => {
-    const target = computeVerticalRevealTarget(view.state, direction);
-    if (target == null) return false;
-    view.dispatch({ selection: EditorSelection.single(target) });
-    return true;
-  };
-
-const arrowUp = moveVerticallyWithReveal('up');
-const arrowDown = moveVerticallyWithReveal('down');
-
 /**
- * Vim (and other non-keymap movers) never hit the ArrowUp/ArrowDown bindings.
- * For single-line selection moves, rewrite the landing position the same way
- * those bindings would — so `j`/`k` match the arrows for fold reveal.
+ * Single path for ArrowUp/ArrowDown and vim `j`/`k`: when a selection-only
+ * move changes the head by exactly one line, land on the fold-reveal target
+ * those keys would have used.
  */
 const revealOnSingleLineSelectionMove = (tr: Transaction) => {
   if (tr.docChanged || !tr.selection) return tr;
@@ -124,14 +111,9 @@ const revealOnSingleLineSelectionMove = (tr: Transaction) => {
 };
 
 /**
- * Reveal folded replace-widgets when moving vertically into them.
- * Covers ArrowUp/ArrowDown via keymap, and single-line movers (e.g. vim `j`/`k`)
- * via a transaction filter.
+ * Reveal folded replace-widgets on single-line vertical selection moves
+ * (arrow keys, vim `j`/`k`, and any other one-line mover).
  */
 export const revealBlockOnArrowExtension = [
-  keymap.of([
-    { key: 'ArrowUp', run: arrowUp },
-    { key: 'ArrowDown', run: arrowDown },
-  ]),
   EditorState.transactionFilter.of(revealOnSingleLineSelectionMove),
 ];

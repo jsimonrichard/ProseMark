@@ -9,8 +9,6 @@ export const KNOWN_VIM_EXTENSION_IDS = [
   'asvetliakov.vscode-neovim',
 ] as const;
 
-export type KnownVimExtensionId = (typeof KNOWN_VIM_EXTENSION_IDS)[number];
-
 /**
  * Resolve whether the webview should install the vim keymap.
  * Explicit setting wins; when unset, follow known vim-extension presence.
