@@ -8,7 +8,7 @@ import type { InlineContext, MarkdownConfig } from '@lezer/markdown';
 import { markdownTags } from '../markdown/tags';
 import { stateWORDAt } from '../utils';
 
-export { hideExtension } from './core';
+export { hideExtension, posInHiddenToken, visiblePosAtCoords } from './core';
 
 const renderedLinkDecoration = Decoration.mark({
   class: 'cm-rendered-link',
@@ -45,9 +45,23 @@ const defaultHidableSpecs: HidableNodeSpec[] = [
   },
   {
     nodeName: 'Link',
-    subNodeNameToHide: ['LinkMark', 'URL'],
-    onHide: (_state, node) => {
-      return renderedLinkDecoration.range(node.from, node.to);
+    // Hide LinkMarks and the destination URL only. With GFM, a label that is
+    // itself a URL becomes a `URL` child *before* `](`; hiding every `URL`
+    // under `Link` would erase `[http://…](http://…)` entirely.
+    onHide: (state, node) => {
+      const ranges = [renderedLinkDecoration.range(node.from, node.to)];
+      let pastLabel = false;
+      for (let child = node.node.firstChild; child; child = child.nextSibling) {
+        if (child.name === 'LinkMark') {
+          ranges.push(hideInlineDecoration.range(child.from, child.to));
+          if (state.doc.sliceString(child.from, child.to) === ']') {
+            pastLabel = true;
+          }
+        } else if (child.name === 'URL' && pastLabel) {
+          ranges.push(hideInlineDecoration.range(child.from, child.to));
+        }
+      }
+      return ranges;
     },
   },
   {
