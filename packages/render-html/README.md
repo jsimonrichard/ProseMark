@@ -1,6 +1,6 @@
 # `@prosemark/render-html`
 
-Renders **HTML blocks** inside a ProseMark Markdown editor as sanitized DOM widgets. A paragraph that is only HTML (for example a lone `<span>` or `<a>`) is promoted to an `HTMLBlock` and rendered the same way; mixed prose with inline tags is still not widgetized.
+Renders **HTML blocks** inside a ProseMark Markdown editor as sanitized DOM widgets. A paragraph that is only HTML (for example a lone `<span>` or `<a>`) is folded with the same widget; mixed prose with inline tags is still not widgetized.
 
 Published on npm: [`@prosemark/render-html`](https://www.npmjs.com/package/@prosemark/render-html).
 
@@ -37,15 +37,15 @@ const extensions = [
 
 ### Exports
 
-- **`renderHtmlMarkdownSyntaxExtensions`** — Parser support for multi-line HTML blocks, HTML-only paragraphs promoted to blocks, and block continuation (CommonMark-style HTML blocks).
-- **`htmlBlockExtension`** — Fold/replace decorations for `HTMLBlock` nodes: parses HTML, sanitizes with [DOMPurify](https://github.com/cure53/DOMPurify), and mounts a block widget (wrapping inline roots in a `<div>` when needed). Uses `flow-root` layout and `requestMeasure` / `ResizeObserver` so CodeMirror line height stays correct.
+- **`renderHtmlMarkdownSyntaxExtensions`** — Parser support for multi-line HTML blocks and block continuation (CommonMark-style HTML blocks).
+- **`htmlBlockExtension`** — Fold/replace decorations for `HTMLBlock` nodes and for HTML-only `Paragraph`s (only `HTMLTag` children): sanitizes with [DOMPurify](https://github.com/cure53/DOMPurify), and mounts a block widget (wrapping inline roots in a `<div>` when needed). Uses `flow-root` layout and `requestMeasure` / `ResizeObserver` so CodeMirror line height stays correct.
 
 For lower-level parser extensions (if you customize parsing), see the [@prosemark/render-html API reference](https://prosemark.com/api/prosemark/render-html/).
 
 ## Behavior
 
 - HTML content is **sanitized** before insertion into the DOM.
-- Paragraphs that contain only HTML are parsed as `HTMLBlock`s; inline roots are wrapped in a `<div>` for the widget when needed.
+- Paragraphs that contain only `HTMLTag` nodes are folded with the same widget as `HTMLBlock`s; inline roots are wrapped in a `<div>` when needed.
 - Block widgets use an outer shell with **padding only** (no vertical margin on the widget root) and an inner `flow-root` wrapper so margins from headings and lists do not break line layout.
 - Widgets set **`proseMarkSkipAdjacentArrowReveal`** so arrow-key reveal behavior from `@prosemark/core` interacts predictably with adjacent folded blocks.
 

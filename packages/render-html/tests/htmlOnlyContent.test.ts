@@ -1,16 +1,21 @@
 /// <reference types="bun" />
 import { describe, expect, test } from 'bun:test';
+import { EditorState } from '@codemirror/state';
+import { markdown } from '@codemirror/lang-markdown';
 import { GFM, parser } from '@lezer/markdown';
 import type { SyntaxNode } from '@lezer/common';
+import { syntaxTree } from '@codemirror/language';
 import { prosemarkMarkdownSyntaxExtensions } from '@prosemark/core';
-import { findHtmlTagEnd, isHtmlOnlyContent } from '../lib/htmlOnlyContent.ts';
+import { isHtmlOnlyParagraph } from '../lib/htmlOnlyContent.ts';
 import { renderHtmlMarkdownSyntaxExtensions } from '../lib/markdown.ts';
 
-const markdownParser = parser.configure([
+const markdownExtensions = [
   GFM,
   prosemarkMarkdownSyntaxExtensions,
   renderHtmlMarkdownSyntaxExtensions,
-]);
+];
+
+const markdownParser = parser.configure(markdownExtensions);
 
 const topLevelBlockNames = (node: SyntaxNode): string[] => {
   const names: string[] = [];
@@ -20,75 +25,61 @@ const topLevelBlockNames = (node: SyntaxNode): string[] => {
   return names;
 };
 
-describe('findHtmlTagEnd', () => {
-  test('ignores greater-than inside quoted attributes', () => {
-    const tag = '<img src="a>b.png" />';
-    expect(findHtmlTagEnd(tag, 0)).toBe(tag.length - 1);
-    expect(findHtmlTagEnd('<span title="a>b">', 0)).toBe(17);
-    expect(findHtmlTagEnd("<span title='a>b'>", 0)).toBe(17);
+const stateWithDoc = (doc: string): EditorState =>
+  EditorState.create({
+    doc,
+    extensions: [
+      markdown({
+        extensions: markdownExtensions,
+      }),
+    ],
   });
-});
 
-describe('isHtmlOnlyContent', () => {
+const firstParagraph = (state: EditorState): SyntaxNode => {
+  const top = syntaxTree(state).topNode.firstChild;
+  if (top?.name !== 'Paragraph') {
+    throw new Error(`expected Paragraph, got ${top?.name ?? 'null'}`);
+  }
+  return top;
+};
+
+describe('isHtmlOnlyParagraph', () => {
   test('accepts standalone inline elements', () => {
-    expect(isHtmlOnlyContent('<span>hello</span>')).toBe(true);
-    expect(isHtmlOnlyContent('<a href="https://example.com">link</a>')).toBe(
-      true,
-    );
-    expect(isHtmlOnlyContent('<button>Click</button>')).toBe(true);
-    expect(isHtmlOnlyContent('<img src="x.png" alt="y" />')).toBe(true);
+    for (const doc of [
+      '<span>hello</span>',
+      '<a href="https://example.com">link</a>',
+      '<button>Click</button>',
+      '<img src="x.png" alt="y" />',
+    ]) {
+      const state = stateWithDoc(doc);
+      expect(isHtmlOnlyParagraph(state, firstParagraph(state))).toBe(true);
+    }
   });
 
   test('accepts tags with quoted greater-than in attributes', () => {
-    expect(isHtmlOnlyContent('<img src="a>b.png" alt="y" />')).toBe(true);
-    expect(isHtmlOnlyContent('<span title="a>b">hello</span>')).toBe(true);
+    for (const doc of [
+      '<img src="a>b.png" alt="y" />',
+      '<span title="a>b">hello</span>',
+    ]) {
+      const state = stateWithDoc(doc);
+      expect(isHtmlOnlyParagraph(state, firstParagraph(state))).toBe(true);
+    }
   });
 
   test('rejects mixed prose and tags', () => {
-    expect(isHtmlOnlyContent('Text <span>x</span>')).toBe(false);
-    expect(isHtmlOnlyContent('<span>x</span> trailing')).toBe(false);
+    for (const doc of ['Text <span>x</span>', '<span>x</span> trailing']) {
+      const state = stateWithDoc(doc);
+      expect(isHtmlOnlyParagraph(state, firstParagraph(state))).toBe(false);
+    }
   });
 
   test('rejects markdown autolinks', () => {
-    expect(isHtmlOnlyContent('<https://example.com>')).toBe(false);
-    expect(isHtmlOnlyContent('<foo@bar.com>')).toBe(false);
-  });
-});
-
-describe('HTML-only paragraphs become HTMLBlock', () => {
-  test('promotes a lone span paragraph', () => {
-    const input = `<span>hello</span>\n`;
-    const tree = markdownParser.parse(input);
-    expect(topLevelBlockNames(tree.topNode)).toEqual(['HTMLBlock']);
-    expect(tree.topNode.firstChild?.from).toBe(0);
-    expect(tree.topNode.firstChild?.to).toBe(input.length - 1);
+    const state = stateWithDoc('<https://example.com>');
+    expect(isHtmlOnlyParagraph(state, firstParagraph(state))).toBe(false);
   });
 
-  test('promotes a lone anchor paragraph', () => {
-    const input = `<a href="https://example.com">link</a>\n`;
-    const tree = markdownParser.parse(input);
-    expect(topLevelBlockNames(tree.topNode)).toEqual(['HTMLBlock']);
-  });
-
-  test('does not promote mixed prose', () => {
-    const input = `Text <span>x</span>\n`;
-    const tree = markdownParser.parse(input);
+  test('does not rewrite the parse tree to HTMLBlock', () => {
+    const tree = markdownParser.parse('<span>hello</span>\n');
     expect(topLevelBlockNames(tree.topNode)).toEqual(['Paragraph']);
-  });
-
-  test('leaves following paragraphs alone', () => {
-    const input = `<span>hello</span>\n\nNext paragraph.\n`;
-    const tree = markdownParser.parse(input);
-    expect(topLevelBlockNames(tree.topNode)).toEqual([
-      'HTMLBlock',
-      'Paragraph',
-    ]);
-  });
-
-  test('does not steal autolinks', () => {
-    const input = `<https://example.com>\n`;
-    const tree = markdownParser.parse(input);
-    expect(topLevelBlockNames(tree.topNode)).toEqual(['Paragraph']);
-    expect(tree.topNode.firstChild?.firstChild?.name).toBe('Autolink');
   });
 });

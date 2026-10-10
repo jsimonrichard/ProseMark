@@ -8,12 +8,12 @@ import type { EditorState } from '@codemirror/state';
 import DOMPurify from 'dompurify';
 import type { SyntaxNodeRef } from '@lezer/common';
 import { htmlBlockNeedsDivWrapper } from './htmlBlockRoot';
+import { isHtmlOnlyParagraph } from './htmlOnlyContent';
 import { eventTargetForClosest, htmlWidgetLinkHref } from './htmlWidgetLink';
 
 export {
   multiParHTMLBlockMarkdownSyntaxExtension,
   htmlBlockContinuationMarkdownSyntaxExtension,
-  htmlOnlyParagraphAsBlockMarkdownSyntaxExtension,
   renderHtmlMarkdownSyntaxExtensions,
 } from './markdown';
 
@@ -129,16 +129,26 @@ const htmlBlockTheme = EditorView.theme({
   },
 });
 
+const htmlWidgetReplaceDecoration = (state: EditorState, node: SyntaxNodeRef) =>
+  Decoration.replace({
+    widget: new HTMLWidget(state.doc.sliceString(node.from, node.to)),
+    block: true,
+    inclusive: true,
+    proseMarkSkipAdjacentArrowReveal: true,
+  }).range(node.from, node.to);
+
 export const htmlBlockExtension = [
   foldableSyntaxFacet.of({
     nodePath: 'HTMLBlock',
-    buildDecorations: (state: EditorState, node: SyntaxNodeRef) => {
-      return Decoration.replace({
-        widget: new HTMLWidget(state.doc.sliceString(node.from, node.to)),
-        block: true,
-        inclusive: true,
-        proseMarkSkipAdjacentArrowReveal: true,
-      }).range(node.from, node.to);
+    buildDecorations: htmlWidgetReplaceDecoration,
+  }),
+  // Lone inline HTML in a paragraph (e.g. `<span>…</span>`) stays a Paragraph
+  // with HTMLTag children — fold it when the paragraph is HTML-only.
+  foldableSyntaxFacet.of({
+    nodePath: 'Paragraph',
+    buildDecorations: (state, node) => {
+      if (!isHtmlOnlyParagraph(state, node)) return;
+      return htmlWidgetReplaceDecoration(state, node);
     },
   }),
   htmlBlockTheme,
