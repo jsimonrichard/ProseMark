@@ -23,12 +23,7 @@ export interface DynamicConfig {
 }
 
 export interface WebviewProcMap {
-  init: (
-    text: string,
-    initConfig: {
-      vimModeEnabled?: boolean;
-    } & DynamicConfig,
-  ) => void;
+  init: (text: string, initConfig: DynamicConfig) => void;
   set: (text: string) => void;
   update: (changes: Change[]) => void;
   focus: () => void;

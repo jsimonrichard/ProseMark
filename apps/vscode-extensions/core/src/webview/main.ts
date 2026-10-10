@@ -1,7 +1,6 @@
 import { EditorView } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
-import { vim } from '@replit/codemirror-vim';
 import * as ProseMarkCore from '@prosemark/core';
 import {
   prosemarkBasicSetup,
@@ -253,7 +252,7 @@ const updateVSCodeExtension = EditorView.updateListener.of((update) => {
   }
 });
 
-const buildEditor = (text: string, vimModeEnabled?: boolean) => {
+const buildEditor = (text: string) => {
   if (!window.proseMark?.extraCodeMirrorExtensions) {
     console.warn('[ProseMark] extraCodeMirrorExtensions is not set');
   }
@@ -261,8 +260,6 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
   const state = EditorState.create({
     doc: text,
     extensions: [
-      // vim() must precede other keymaps so normal-mode bindings win.
-      vimModeEnabled ? vim() : [],
       markdown({
         codeLanguages: languages,
         extensions: [
@@ -324,10 +321,10 @@ const buildEditor = (text: string, vimModeEnabled?: boolean) => {
 };
 
 const procs: WebviewProcMap = {
-  init: (text, { vimModeEnabled, ...dynamicConfig }) => {
+  init: (text, dynamicConfig) => {
     window.proseMark ??= {};
     window.proseMark.view?.destroy();
-    window.proseMark.view = buildEditor(text, vimModeEnabled);
+    window.proseMark.view = buildEditor(text);
     procs.setDynamicConfig(dynamicConfig);
     procs.focus();
   },

@@ -1,5 +1,5 @@
 ---
-'vscode-prosemark': minor
+'vscode-prosemark-vim-integration': minor
 ---
 
-Enable vim-style editing in the ProseMark custom editor via `@replit/codemirror-vim`, turning on automatically when VS Code Vim or vscode-neovim is enabled, with `prosemark.vimModeEnabled` to force on or off.
+Add an optional ProseMark companion extension for vim-style editing (`@replit/codemirror-vim`), controlled by `prosemark.vimModeEnabled` (default true). Not part of the ProseMark extension pack — install separately when wanted.

@@ -22,6 +22,10 @@ The published **ProseMark** extension lists companion extensions so installs get
 
 - **LaTeX math:** [**ProseMark - LaTeX math (MathJax) integration**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration) loads [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) in the webview so folded `$...$` / `$$...$$` renders with MathJax. For library apps, see [LaTeX math setup](https://prosemark.com/guides/latex-math/).
 
+### Optional companion (not in the extension pack)
+
+- **Vim mode:** [**ProseMark - Vim mode**](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-vim-integration) adds vim-style editing in the ProseMark webview. Install it only if you want modal editing in ProseMark (independent of VS Code Vim / vscode-neovim). Toggle with `prosemark.vimModeEnabled`.
+
 ## How to Use
 
 1.  Open any file with a `.md` extension.
