@@ -19,13 +19,35 @@ import {
 } from '../utils';
 
 import type { SyntaxNodeRef } from '@lezer/common';
-import { syntaxTree } from '@codemirror/language';
+import { foldState, foldedRanges, syntaxTree } from '@codemirror/language';
+
+/** True when [from, to] lies fully inside a CodeMirror language fold. */
+export const rangeInsideLanguageFold = (
+  state: EditorState,
+  from: number,
+  to: number,
+): boolean => {
+  let inside = false;
+  foldedRanges(state).between(from, to, (foldFrom, foldTo) => {
+    if (foldFrom <= from && foldTo >= to) {
+      inside = true;
+      return false;
+    }
+  });
+  return inside;
+};
 
 const buildDecorations = (state: EditorState) => {
   const decorations: Range<Decoration>[] = [];
   const specs = state.facet(foldableSyntaxFacet);
   syntaxTree(state).iterate({
     enter: (node) => {
+      // Language folds hide their range; nested ProseMark widgets (e.g. images)
+      // must not paint through the placeholder when the fold is still closed.
+      if (rangeInsideLanguageFold(state, node.from, node.to)) {
+        return false;
+      }
+
       const selectionTouchesNodeRange = selectionTouchesRange(
         state.selection.ranges,
         node,
@@ -94,7 +116,8 @@ export const foldExtension = StateField.define<DecorationSet>({
     if (
       tr.docChanged ||
       tr.selection ||
-      syntaxTree(tr.startState) !== syntaxTree(tr.state)
+      syntaxTree(tr.startState) !== syntaxTree(tr.state) ||
+      tr.startState.field(foldState, false) !== tr.state.field(foldState, false)
     ) {
       return buildDecorations(tr.state);
     }

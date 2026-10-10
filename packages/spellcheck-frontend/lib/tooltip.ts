@@ -128,8 +128,7 @@ class SpellcheckTooltipView implements TooltipView {
   readonly #from: number;
   readonly #to: number;
   readonly #fetchSuggestions:
-    | ((word: string) => Promise<Suggestion[]>)
-    | undefined;
+    ((word: string) => Promise<Suggestion[]>) | undefined;
   // Keyboard handling when focus is already inside the tooltip.
   readonly #onTooltipKeydown = (event: KeyboardEvent): void => {
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {

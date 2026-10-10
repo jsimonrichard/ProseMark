@@ -1,8 +1,20 @@
-/* @replit/codemirror-vim defaults the fat cursor to #ff9696; match the editor caret. */
+/* @replit/codemirror-vim defaults the fat cursor to #ff9696; match the editor caret.
+   The glyph under the block cursor inherits syntax colors — force a dark letter so
+   light caret + light syntax still contrast. */
 #codemirror-container .cm-fat-cursor {
-  background: var(--pm-cursor-color) !important;
+    background: var(--pm-cursor-color) !important;
+    color: #1a1a1a !important;
 }
 #codemirror-container .cm-editor:not(.cm-focused) .cm-fat-cursor {
-  background: none !important;
-  outline: solid 1px var(--pm-cursor-color);
+    background: none !important;
+    outline: solid 1px var(--pm-cursor-color);
+    color: transparent !important;
+}
+
+/* Vim makes native ::selection transparent; CM drawSelection uses this layer. */
+#codemirror-container {
+    --pm-selection-background-color: var(--vscode-editor-selectionBackground);
+}
+#codemirror-container .cm-selectionBackground {
+    background-color: var(--pm-selection-background-color) !important;
 }

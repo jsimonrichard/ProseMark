@@ -123,6 +123,6 @@ const revealOnSingleLineSelectionMove = (tr: Transaction) => {
  * Reveal folded replace-widgets on single-line vertical selection moves
  * (arrow keys, vim `j`/`k`, and any other one-line mover).
  */
-export const revealBlockOnArrowExtension = [
-  EditorState.transactionFilter.of(revealOnSingleLineSelectionMove),
-];
+export const revealBlockOnArrowExtension = EditorState.transactionFilter.of(
+  revealOnSingleLineSelectionMove,
+);

@@ -76,12 +76,23 @@ fail() {
     claude-stop)
       jq -nc --arg r "$reason" '{decision:"block",reason:$r}'
       exit 0 ;;
-    cursor-shell|cursor-stop)
-      # Cursor documents exit code 2 as "block"; don't guess at its JSON shape.
+    cursor-shell)
+      # failClosed requires valid JSON; exit 2 alone is not enough.
+      jq -nc --arg r "$reason" '{permission:"deny",agent_message:$r}'
+      exit 0 ;;
+    cursor-stop)
       printf '%s\n' "$reason" >&2; exit 2 ;;
     *)
       printf '%s\n' "$reason" >&2; exit 1 ;;
   esac
+}
+
+# Cursor beforeShellExecution + failClosed: empty stdout is treated as failure.
+allow_and_exit() {
+  case "$EVENT" in
+    cursor-shell) printf '%s\n' '{"permission":"allow"}' ;;
+  esac
+  exit 0
 }
 
 # --- cheapest possible exit for the common case ----------------------------
@@ -98,13 +109,13 @@ case "$EVENT" in
     printf '%s' "$CMD" | grep -Eq \
       -e '(^|[;&|])[[:space:]]*git([[:space:]]+-[^[:space:]]+)*[[:space:]]+push([[:space:]]|$)' \
       -e '(^|[;&|])[[:space:]]*jj([[:space:]]+-[^[:space:]]+)*[[:space:]]+git([[:space:]]+-[^[:space:]]+)*[[:space:]]+push([[:space:]]|$)' \
-      || exit 0
+      || allow_and_exit
     ;;
 esac
 
 if [ -n "${CLAUDE_GATE_SKIP:-}" ]; then
   [ "$is_hook" = 0 ] && echo "gate: skipped (CLAUDE_GATE_SKIP set)"
-  exit 0
+  allow_and_exit
 fi
 
 # --- VCS shim ---------------------------------------------------------------
@@ -211,7 +222,7 @@ esac
 GATE_ELAPSED=$((SECONDS - GATE_T0))
 if [ "$RC" -eq 0 ]; then
   say "gate: $MODE checks passed in ${GATE_ELAPSED}s"
-  exit 0
+  allow_and_exit
 fi
 say "gate: $MODE checks FAILED after ${GATE_ELAPSED}s"
 

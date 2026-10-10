@@ -1,4 +1,5 @@
 import { Compartment } from '@codemirror/state';
+import { drawSelection } from '@codemirror/view';
 import { vim } from '@replit/codemirror-vim';
 import type { WebviewProcMap } from '../common';
 import {
@@ -15,6 +16,9 @@ import './style.css';
 const vimCompartment = new Compartment();
 let vimCompartmentInstalled = false;
 
+/** Vim clears native `::selection`; `drawSelection` paints the CM selection layer. */
+const vimEditorExtensions = [vim(), drawSelection()];
+
 const procs: WebviewProcMap = {
   setup: (vimModeEnabled) => {
     const view = window.proseMark?.view;
@@ -23,7 +27,7 @@ const procs: WebviewProcMap = {
       return Promise.resolve();
     }
 
-    const next = vimModeEnabled ? vim() : [];
+    const next = vimModeEnabled ? vimEditorExtensions : [];
 
     try {
       if (!vimCompartmentInstalled) {
@@ -37,7 +41,9 @@ const procs: WebviewProcMap = {
       return Promise.resolve();
     } catch (err: unknown) {
       console.error('[ProseMark] vim-integration setup failed', err);
-      return Promise.reject(err instanceof Error ? err : new Error(String(err)));
+      return Promise.reject(
+        err instanceof Error ? err : new Error(String(err)),
+      );
     }
   },
 };

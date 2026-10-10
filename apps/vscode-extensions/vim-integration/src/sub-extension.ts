@@ -87,7 +87,7 @@ export class VimIntegration implements SubExtension<
 export function createVimIntegration(
   extensionUri: vscode.Uri,
 ): SubExtensionCallback<typeof extId, WebviewProcMap, VSCodeExtensionProcMap> {
-  return (document, callProcAndForget, callProcWithReturnValue) => {
+  return ({ document, callProcAndForget, callProcWithReturnValue }) => {
     return new VimIntegration(
       extensionUri,
       document,

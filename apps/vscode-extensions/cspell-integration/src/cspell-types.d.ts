@@ -108,8 +108,7 @@ export interface ConfigTargetWithResource extends ConfigTargetWithOptionalResour
 }
 
 export type ConfigTargetResourceFree =
-  | ConfigurationTarget.Global
-  | ConfigurationTarget.Workspace;
+  ConfigurationTarget.Global | ConfigurationTarget.Workspace;
 export type ConfigTargetLegacy =
   | ConfigTargetResourceFree
   | ConfigTargetWithResource
