@@ -44,9 +44,9 @@ const visibleText = (doc: string, hidden: { from: number; to: number }[]) => {
   return out;
 };
 
-// Click/caret mapping over font-size-0 tokens is covered by
-// `visiblePosAtCoords` in hide/core.ts; verify in the demo on initDoc L3
-// (or personal-repo demo.md L1): click mid-label on the CodeMirror link.
+// Discrete hit-test for font-size-0 hide: unit tests in
+// posFromVisibleCharRects.test.ts. Full EditorView coordsForChar path still
+// needs a browser — verify in the demo on initDoc L3 (or demo.md L1).
 
 describe('Link hide decorations', () => {
   const cases = [

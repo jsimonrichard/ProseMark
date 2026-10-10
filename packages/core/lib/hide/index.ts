@@ -8,7 +8,12 @@ import type { InlineContext, MarkdownConfig } from '@lezer/markdown';
 import { markdownTags } from '../markdown/tags';
 import { stateWORDAt } from '../utils';
 
-export { hideExtension, posInHiddenToken, visiblePosAtCoords } from './core';
+export {
+  hideExtension,
+  posFromVisibleCharRects,
+  visiblePosAtCoords,
+  type VisibleCharRect,
+} from './core';
 
 const renderedLinkDecoration = Decoration.mark({
   class: 'cm-rendered-link',

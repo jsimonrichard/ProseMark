@@ -1,8 +1,14 @@
-import { Decoration, type DecorationSet, EditorView } from '@codemirror/view';
+import {
+  Decoration,
+  type DecorationSet,
+  Direction,
+  EditorView,
+} from '@codemirror/view';
 import {
   EditorSelection,
   type EditorState,
   Facet,
+  findClusterBreak,
   type Range,
   StateField,
 } from '@codemirror/state';
@@ -11,8 +17,6 @@ import type { SyntaxNodeRef } from '@lezer/common';
 import { type RangeLike, rangeTouchesRange, stateWORDAt } from '../utils';
 
 const HIDDEN_TOKEN_CLASS = 'cm-hidden-token';
-/** When naive posAtCoords is farther from the click than this, re-resolve. */
-const CLICK_COORD_MISMATCH_PX = 8;
 
 const hideTheme = EditorView.theme({
   [`.${HIDDEN_TOKEN_CLASS}`]: {
@@ -36,79 +40,148 @@ export const hideBlockDecoration = Decoration.replace({
 const isZeroSizeHiddenDecoration = (deco: Decoration): boolean =>
   (deco.spec as { class?: string }).class === HIDDEN_TOKEN_CLASS;
 
-/** True when `pos` lies inside a font-size-0 hidden token decoration. */
-export function posInHiddenToken(
-  decorations: DecorationSet,
-  pos: number,
-): boolean {
-  let inside = false;
-  // RangeSet.between treats end as inclusive for touching; mark content is
-  // [from, to), so require pos < to.
-  decorations.between(pos, pos, (from, to, value) => {
-    if (isZeroSizeHiddenDecoration(value) && from <= pos && pos < to) {
-      inside = true;
-      return false;
-    }
-  });
-  return inside;
+/** Positive-width cluster geometry for visible hit-testing. */
+export interface VisibleCharRect {
+  from: number;
+  to: number;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
 }
 
 /**
- * Map screen coordinates to a document position, preferring visible (non
- * font-size-0) characters. `font-size: 0` hide marks keep document offsets but
- * collapse visually; CodeMirror's `posAtCoords` can then snap to those marks
- * or to a distant visible character on the same line.
+ * Map client coordinates to a document position using only positive-width
+ * character rects — the same closest-horizontally / midpoint-assoc rule as
+ * CodeMirror's InlineCoordsScan, but never considering width-0 clusters.
+ */
+export function posFromVisibleCharRects(
+  coords: { x: number; y: number },
+  rects: readonly VisibleCharRect[],
+  ltr = true,
+): number | null {
+  if (rects.length === 0) return null;
+
+  let closest: VisibleCharRect | undefined;
+  let closestDx = 1e9;
+  let above: VisibleCharRect | undefined;
+  let below: VisibleCharRect | undefined;
+
+  for (const rect of rects) {
+    if (rect.bottom < coords.y) {
+      if (!above || above.bottom < rect.bottom) above = rect;
+      continue;
+    }
+    if (rect.top > coords.y) {
+      if (!below || below.top > rect.top) below = rect;
+      continue;
+    }
+    const off =
+      rect.left > coords.x
+        ? coords.x - rect.left
+        : rect.right < coords.x
+          ? coords.x - rect.right
+          : 0;
+    const dx = Math.abs(off);
+    if (dx < closestDx) {
+      closestDx = dx;
+      closest = rect;
+    }
+  }
+
+  // Parallel to InlineCoordsScan.scan when no y-overlapping rect: pick the
+  // nearer vertical neighbor, move y into it, and retry (CM mutates this.y).
+  if (!closest) {
+    const side =
+      above && (!below || coords.y - above.bottom < below.top - coords.y)
+        ? above
+        : below;
+    if (!side) return null;
+    return posFromVisibleCharRects(
+      { x: coords.x, y: (side.top + side.bottom) / 2 },
+      rects,
+      ltr,
+    );
+  }
+
+  // Same midpoint assoc as InlineCoordsScan.scan (LTR/RTL via `ltr`).
+  const after = coords.x > (closest.left + closest.right) / 2 === ltr;
+  return after ? closest.to : closest.from;
+}
+
+const lineHasZeroSizeHidden = (
+  decorations: DecorationSet,
+  from: number,
+  to: number,
+): boolean => {
+  let found = false;
+  decorations.between(from, to, (_from, _to, value) => {
+    if (isZeroSizeHiddenDecoration(value)) {
+      found = true;
+      return false;
+    }
+  });
+  return found;
+};
+
+const collectVisibleCharRects = (
+  view: EditorView,
+  lineFrom: number,
+  lineTo: number,
+): VisibleCharRect[] => {
+  const text = view.state.doc.sliceString(lineFrom, lineTo);
+  const rects: VisibleCharRect[] = [];
+  for (let i = 0; i < text.length; ) {
+    const next = findClusterBreak(text, i);
+    const from = lineFrom + i;
+    const to = lineFrom + next;
+    const rect = view.coordsForChar(from);
+    if (rect != null && rect.left < rect.right && rect.top < rect.bottom) {
+      rects.push({
+        from,
+        to,
+        left: rect.left,
+        right: rect.right,
+        top: rect.top,
+        bottom: rect.bottom,
+      });
+    }
+    i = next;
+  }
+  return rects;
+};
+
+/**
+ * Map screen coordinates to a document position, ignoring font-size-0 hide
+ * marks. CodeMirror's `posAtCoords` includes sole width-0 `getClientRects()`
+ * in InlineCoordsScan, so many hidden offsets share dx=0 and the caret walks.
+ * When the line has zero-size hide marks, hit-test only positive-width
+ * `coordsForChar` clusters (no pixel drift threshold).
  */
 export function visiblePosAtCoords(
   view: EditorView,
   coords: { x: number; y: number },
 ): number | null {
-  const naive = view.posAtCoords(coords);
-  if (naive == null) return null;
-
   const decorations = view.state.field(hideExtension, false);
-  if (!decorations) return naive;
+  if (!decorations) return view.posAtCoords(coords);
 
-  const naiveCoords = view.coordsAtPos(naive);
-  const naiveHeight =
-    naiveCoords == null ? 0 : naiveCoords.bottom - naiveCoords.top;
-  const naiveDx =
-    naiveCoords == null ? Infinity : Math.abs(naiveCoords.left - coords.x);
-  const naiveDy =
-    naiveCoords == null
-      ? Infinity
-      : Math.abs((naiveCoords.top + naiveCoords.bottom) / 2 - coords.y);
-  const suspicious =
-    posInHiddenToken(decorations, naive) ||
-    naiveHeight < 1 ||
-    naiveDx > CLICK_COORD_MISMATCH_PX ||
-    naiveDy > CLICK_COORD_MISMATCH_PX;
-
-  if (!suspicious) return naive;
-
-  const line = view.state.doc.lineAt(naive);
-  let best = naive;
-  let bestDist = Infinity;
-
-  for (let pos = line.from; pos <= line.to; pos++) {
-    if (pos < line.to && posInHiddenToken(decorations, pos)) continue;
-    const c = view.coordsAtPos(pos);
-    if (c == null || c.bottom - c.top < 1) continue;
-    const dx = c.left - coords.x;
-    const dy = (c.top + c.bottom) / 2 - coords.y;
-    const dist = dx * dx + dy * dy;
-    // Zero-width hidden marks make the preceding visible pos share a screen x
-    // with the next label char — prefer the later doc position on a tie.
-    if (
-      dist < bestDist - 0.25 ||
-      (Math.abs(dist - bestDist) <= 0.25 && pos > best)
-    ) {
-      bestDist = dist;
-      best = pos;
-    }
+  const content = view.contentDOM.getBoundingClientRect();
+  const yOffset = coords.y - content.top - view.documentPadding.top;
+  if (yOffset < 0 || yOffset > view.contentHeight) {
+    return view.posAtCoords(coords);
   }
 
-  return best;
+  const block = view.lineBlockAtHeight(yOffset);
+  if (!lineHasZeroSizeHidden(decorations, block.from, block.to)) {
+    return view.posAtCoords(coords);
+  }
+
+  const line = view.state.doc.lineAt(block.from);
+  const rects = collectVisibleCharRects(view, line.from, line.to);
+  if (rects.length === 0) return null;
+
+  const ltr = view.textDirectionAt(line.from) === Direction.LTR;
+  return posFromVisibleCharRects(coords, rects, ltr);
 }
 
 const rangeForVisibleClick = (
