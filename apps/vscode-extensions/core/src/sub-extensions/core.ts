@@ -11,8 +11,13 @@ import type {
   WebviewProcMap,
 } from '../common';
 import path from 'path';
+import { DocumentChangeEchoGate } from './documentChangeEchoGate';
 
 const extId = 'core';
+
+const scheduleMacrotask = (fn: () => void) => {
+  setTimeout(fn, 0);
+};
 
 export class Core implements SubExtension<
   typeof extId,
@@ -21,7 +26,7 @@ export class Core implements SubExtension<
   #extensionUri: vscode.Uri;
   #document: vscode.TextDocument;
   #callProcAndForget: CallProc<WebviewProcMap>;
-  #isApplyingWebviewUpdate = false;
+  #documentChangeEchoGate = new DocumentChangeEchoGate();
   #pendingWebviewUpdates: Promise<void> = Promise.resolve();
   #hasShownFatalErrorMessage = false;
 
@@ -79,9 +84,15 @@ export class Core implements SubExtension<
   }
 
   onTextDocumentChange(changes: Change[]): void {
-    if (!this.#isApplyingWebviewUpdate && changes.length) {
-      this.#callProcAndForget('update', changes);
+    if (
+      !this.#documentChangeEchoGate.shouldForward(
+        this.#document.version,
+        changes.length,
+      )
+    ) {
+      return;
     }
+    this.#callProcAndForget('update', changes);
   }
 
   procMap: VSCodeExtensionProcMap = {
@@ -130,25 +141,30 @@ export class Core implements SubExtension<
         );
       })
       .then(async () => {
-        this.#isApplyingWebviewUpdate = true;
+        this.#documentChangeEchoGate.beginApply();
         try {
           const result = await this.#updateTextDocument(changes);
           if (!result) {
+            this.#documentChangeEchoGate.endApplyFailed(scheduleMacrotask);
             this.#recoverFromStateMismatch(
               'VS Code rejected an update from the ProseMark webview.',
             );
+            return;
           }
+          this.#documentChangeEchoGate.endApply(
+            this.#document.version,
+            scheduleMacrotask,
+          );
         } catch (error: unknown) {
           console.error(
             'Encountered an error while trying to update the document:',
             error,
           );
+          this.#documentChangeEchoGate.endApplyFailed(scheduleMacrotask);
           this.#recoverFromStateMismatch(
             'Applying an update from the ProseMark webview failed.',
             error,
           );
-        } finally {
-          this.#isApplyingWebviewUpdate = false;
         }
       });
   }

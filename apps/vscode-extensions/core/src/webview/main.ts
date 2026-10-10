@@ -17,7 +17,12 @@ import {
   pasteRichTextExtension,
 } from '@prosemark/paste-rich-text';
 import { GFM } from '@lezer/markdown';
-import { Compartment, EditorState, StateEffect } from '@codemirror/state';
+import {
+  Compartment,
+  EditorState,
+  StateEffect,
+  Transaction,
+} from '@codemirror/state';
 import type {
   Change,
   FrontendError,
@@ -26,6 +31,7 @@ import type {
   WordCountVSCodeProcs,
 } from '../common';
 import './style.css';
+import { planDocumentReplace } from './documentReplace';
 import { indentUnit } from '@codemirror/language';
 import {
   registerWebviewMessageHandler,
@@ -123,24 +129,34 @@ const replaceEditorDocumentText = (
     return false;
   }
 
+  const plan = planDocumentReplace(
+    view.state.doc.toString(),
+    view.state.selection,
+    text,
+  );
+  if (plan.kind === 'unchanged') {
+    return true;
+  }
+
+  // Move the selection to a position that survives the replace before
+  // decorations map the old range. The mapped selection is restored in
+  // the same update that applies the text.
   if (options?.resetSelectionBeforeReplace) {
     const selection = view.state.selection.main;
     if (selection.anchor !== 0 || selection.head !== 0) {
       view.dispatch({
         selection: { anchor: 0 },
         userEvent: 'updateFromVSCode',
+        annotations: Transaction.addToHistory.of(false),
       });
     }
   }
 
   view.dispatch({
-    changes: {
-      from: 0,
-      to: view.state.doc.length,
-      insert: text,
-    },
-    selection: { anchor: 0 },
+    changes: plan.changes,
+    selection: plan.selection,
     userEvent: 'updateFromVSCode',
+    annotations: Transaction.addToHistory.of(false),
   });
   return true;
 };
@@ -381,6 +397,7 @@ const procs: WebviewProcMap = {
       window.proseMark.view.dispatch({
         changes: mappedChanges,
         userEvent: 'updateFromVSCode',
+        annotations: Transaction.addToHistory.of(false),
       });
     } catch (error: unknown) {
       void recoverFromStateMismatch(
