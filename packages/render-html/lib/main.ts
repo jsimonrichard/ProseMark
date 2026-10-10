@@ -1,11 +1,15 @@
 import { Decoration, EditorView, WidgetType } from '@codemirror/view';
 import {
+  clickLinkHandler,
   foldableSyntaxFacet,
   selectAllDecorationsOnSelectExtension,
 } from '@prosemark/core';
 import type { EditorState } from '@codemirror/state';
 import DOMPurify from 'dompurify';
 import type { SyntaxNodeRef } from '@lezer/common';
+import { htmlBlockNeedsDivWrapper } from './htmlBlockRoot';
+import { isHtmlOnlyParagraph } from './htmlOnlyContent';
+import { eventTargetForClosest, htmlWidgetLinkHref } from './htmlWidgetLink';
 
 export {
   multiParHTMLBlockMarkdownSyntaxExtension,
@@ -56,8 +60,31 @@ class HTMLWidget extends WidgetType {
     };
 
     walk(parsed.body);
-    inner.append(...parsed.body.childNodes);
+    if (htmlBlockNeedsDivWrapper(parsed.body)) {
+      const wrap = document.createElement('div');
+      wrap.append(...parsed.body.childNodes);
+      inner.appendChild(wrap);
+    } else {
+      inner.append(...parsed.body.childNodes);
+    }
     root.appendChild(inner);
+
+    // Suppress native/editor handling on press; activate on click so keyboard
+    // (Enter/Space on a focused `<a>`) and pointer share one path.
+    root.addEventListener('mousedown', (event) => {
+      if (htmlWidgetLinkHref(eventTargetForClosest(event.target)) == null) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    root.addEventListener('click', (event) => {
+      const href = htmlWidgetLinkHref(eventTargetForClosest(event.target));
+      if (href == null) return;
+      event.preventDefault();
+      event.stopPropagation();
+      view.state.facet(clickLinkHandler)(href);
+    });
 
     if (typeof ResizeObserver !== 'undefined') {
       const ro = new ResizeObserver(() => {
@@ -74,8 +101,9 @@ class HTMLWidget extends WidgetType {
     return root;
   }
 
-  ignoreEvent(_event: Event): boolean {
-    return false;
+  ignoreEvent(event: Event): boolean {
+    // True → editor ignores (widget owns the event). False → cursor placement.
+    return htmlWidgetLinkHref(eventTargetForClosest(event.target)) != null;
   }
 
   destroy(dom: HTMLElement): void {
@@ -101,16 +129,26 @@ const htmlBlockTheme = EditorView.theme({
   },
 });
 
+const htmlWidgetReplaceDecoration = (state: EditorState, node: SyntaxNodeRef) =>
+  Decoration.replace({
+    widget: new HTMLWidget(state.doc.sliceString(node.from, node.to)),
+    block: true,
+    inclusive: true,
+    proseMarkSkipAdjacentArrowReveal: true,
+  }).range(node.from, node.to);
+
 export const htmlBlockExtension = [
   foldableSyntaxFacet.of({
     nodePath: 'HTMLBlock',
-    buildDecorations: (state: EditorState, node: SyntaxNodeRef) => {
-      return Decoration.replace({
-        widget: new HTMLWidget(state.doc.sliceString(node.from, node.to)),
-        block: true,
-        inclusive: true,
-        proseMarkSkipAdjacentArrowReveal: true,
-      }).range(node.from, node.to);
+    buildDecorations: htmlWidgetReplaceDecoration,
+  }),
+  // Lone inline HTML in a paragraph (e.g. `<span>…</span>`) stays a Paragraph
+  // with HTMLTag children — fold it when the paragraph is HTML-only.
+  foldableSyntaxFacet.of({
+    nodePath: 'Paragraph',
+    buildDecorations: (state, node) => {
+      if (!isHtmlOnlyParagraph(state, node)) return;
+      return htmlWidgetReplaceDecoration(state, node);
     },
   }),
   htmlBlockTheme,
