@@ -34,7 +34,26 @@ function getUrlFromLink(view: EditorView, pos: number): string | undefined {
 
 export type ClickLinkHandler = (link: string) => void;
 
-export const clickLinkHandler = Facet.define<ClickLinkHandler>();
+/**
+ * Hosts override the default by providing a later `clickLinkHandler.of(...)`.
+ * Only the highest-precedence handler runs (last registered wins).
+ */
+export const clickLinkHandler = Facet.define<
+  ClickLinkHandler,
+  ClickLinkHandler
+>({
+  combine(handlers) {
+    const handler = handlers[handlers.length - 1];
+    if (!handler) {
+      return (url: string) => {
+        throw new Error(
+          `No clickLinkHandler registered (url=${JSON.stringify(url)})`,
+        );
+      };
+    }
+    return handler;
+  },
+});
 
 export const defaultClickLinkHandler = clickLinkHandler.of((url) => {
   window.open(url, '_blank');
@@ -54,9 +73,7 @@ const clickFullLinkExtension = EditorView.domEventHandlers(
           return;
         }
 
-        view.state.facet(clickLinkHandler).map((handler) => {
-          handler(url);
-        });
+        view.state.facet(clickLinkHandler)(url);
       },
     },
   }),
@@ -105,9 +122,7 @@ const clickRawUrlExtension = EditorView.domEventHandlers(
           return;
         }
 
-        view.state.facet(clickLinkHandler).map((handler) => {
-          handler(url);
-        });
+        view.state.facet(clickLinkHandler)(url);
       },
     },
   }),

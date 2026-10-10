@@ -66,9 +66,8 @@ class HTMLWidget extends WidgetType {
       const href = htmlWidgetLinkHref(eventTargetForClosest(event.target));
       if (href == null) return;
       event.preventDefault();
-      view.state.facet(clickLinkHandler).map((handler) => {
-        handler(href);
-      });
+      event.stopPropagation();
+      view.state.facet(clickLinkHandler)(href);
     });
     // Real `<a>` nodes still fire click navigation unless cancelled.
     root.addEventListener('click', (event) => {
@@ -76,6 +75,7 @@ class HTMLWidget extends WidgetType {
         return;
       }
       event.preventDefault();
+      event.stopPropagation();
     });
 
     if (typeof ResizeObserver !== 'undefined') {
