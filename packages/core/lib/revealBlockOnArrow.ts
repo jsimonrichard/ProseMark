@@ -1,49 +1,49 @@
 import { EditorView, keymap } from '@codemirror/view';
+import {
+  EditorSelection,
+  EditorState,
+  type Transaction,
+} from '@codemirror/state';
 import { foldExtension } from './fold';
-import { EditorSelection } from '@codemirror/state';
 import { decorationHasReplaceWidget } from './utils';
+
+export type VerticalRevealDirection = 'up' | 'down';
 
 /**
  * When the caret sits immediately outside a block-replace *widget*, jump
  * inside so the hidden source can be edited. (Hide-only `Decoration.replace`
  * ranges are ignored — they share spans with visible text and would steal
- * arrow keys from neighboring lines.)
+ * vertical movement from neighboring lines.)
  */
-const maybeRevealAtWidgetBoundary = (
-  view: EditorView,
-  direction: 'up' | 'down',
-): boolean => {
-  const decorations = view.state.field(foldExtension);
-  const cursorAt = view.state.selection.main.head;
+const revealTargetAtWidgetBoundary = (
+  state: EditorState,
+  direction: VerticalRevealDirection,
+): number | null => {
+  const decorations = state.field(foldExtension);
+  const cursorAt = state.selection.main.head;
 
   // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
   for (let iter = decorations.iter(); iter.value; iter.next()) {
     if (!decorationHasReplaceWidget(iter.value)) continue;
     if (direction === 'down' && cursorAt == iter.from - 1) {
-      view.dispatch({
-        selection: EditorSelection.single(iter.from),
-      });
-      return true;
+      return iter.from;
     }
     if (direction === 'up' && cursorAt == iter.to + 1) {
-      view.dispatch({
-        selection: EditorSelection.single(iter.to),
-      });
-      return true;
+      return iter.to;
     }
   }
 
-  return false;
+  return null;
 };
 
-const revealWidgetOnAdjacentLine = (
-  view: EditorView,
-  direction: 'up' | 'down',
+const revealTargetOnAdjacentLine = (
+  state: EditorState,
+  direction: VerticalRevealDirection,
 ): number | null => {
-  const decorations = view.state.field(foldExtension);
-  const cursorAt = view.state.selection.main.head;
-  const line = view.state.doc.lineAt(cursorAt);
-  const docText = view.state.doc;
+  const decorations = state.field(foldExtension);
+  const cursorAt = state.selection.main.head;
+  const line = state.doc.lineAt(cursorAt);
+  const docText = state.doc;
   let candidate: number | null = null;
 
   // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
@@ -77,25 +77,61 @@ const revealWidgetOnAdjacentLine = (
   return candidate;
 };
 
-const arrowUp = (view: EditorView): boolean => {
-  if (maybeRevealAtWidgetBoundary(view, 'up')) return true;
-  const adjacentWidgetBoundary = revealWidgetOnAdjacentLine(view, 'up');
-  if (adjacentWidgetBoundary == null) return false;
-  view.dispatch({ selection: EditorSelection.single(adjacentWidgetBoundary) });
-  return true;
+/** Document position to move to in order to reveal a folded replace-widget, if any. */
+export const computeVerticalRevealTarget = (
+  state: EditorState,
+  direction: VerticalRevealDirection,
+): number | null =>
+  revealTargetAtWidgetBoundary(state, direction) ??
+  revealTargetOnAdjacentLine(state, direction);
+
+const moveVerticallyWithReveal =
+  (direction: VerticalRevealDirection) =>
+  (view: EditorView): boolean => {
+    const target = computeVerticalRevealTarget(view.state, direction);
+    if (target == null) return false;
+    view.dispatch({ selection: EditorSelection.single(target) });
+    return true;
+  };
+
+const arrowUp = moveVerticallyWithReveal('up');
+const arrowDown = moveVerticallyWithReveal('down');
+
+/**
+ * Vim (and other non-keymap movers) never hit the ArrowUp/ArrowDown bindings.
+ * For single-line selection moves, rewrite the landing position the same way
+ * those bindings would — so `j`/`k` match the arrows for fold reveal.
+ */
+const revealOnSingleLineSelectionMove = (tr: Transaction) => {
+  if (tr.docChanged || !tr.selection) return tr;
+  if (tr.isUserEvent('select.pointer')) return tr;
+
+  const oldHead = tr.startState.selection.main.head;
+  const newHead = tr.newSelection.main.head;
+  if (oldHead === newHead) return tr;
+
+  const oldLine = tr.startState.doc.lineAt(oldHead).number;
+  const newLine = tr.newDoc.lineAt(newHead).number;
+  if (Math.abs(newLine - oldLine) !== 1) return tr;
+
+  const direction: VerticalRevealDirection = newLine > oldLine ? 'down' : 'up';
+  const target = computeVerticalRevealTarget(tr.startState, direction);
+  if (target == null || target === newHead) return tr;
+
+  return {
+    selection: EditorSelection.single(target),
+  };
 };
 
-const arrowDown = (view: EditorView): boolean => {
-  if (maybeRevealAtWidgetBoundary(view, 'down')) return true;
-  const adjacentWidgetBoundary = revealWidgetOnAdjacentLine(view, 'down');
-  if (adjacentWidgetBoundary == null) return false;
-  view.dispatch({ selection: EditorSelection.single(adjacentWidgetBoundary) });
-  return true;
-};
-
+/**
+ * Reveal folded replace-widgets when moving vertically into them.
+ * Covers ArrowUp/ArrowDown via keymap, and single-line movers (e.g. vim `j`/`k`)
+ * via a transaction filter.
+ */
 export const revealBlockOnArrowExtension = [
   keymap.of([
     { key: 'ArrowUp', run: arrowUp },
     { key: 'ArrowDown', run: arrowDown },
   ]),
+  EditorState.transactionFilter.of(revealOnSingleLineSelectionMove),
 ];
