@@ -81,7 +81,7 @@ window.MathJax = {
 import 'mathjax/tex-svg.js';
 ```
 
-**Note:** `@prosemark/latex` does not read `node_modules` at runtime for `url-import`. Serving a copied tree under `public/` (or similar) is enough for self-hosting. You still need the **parser** section above so `Math` nodes exist.
+**Note:** `@prosemark/latex` does not read `node_modules` at runtime for `url-import`. Serving a copied tree under `public/` (or similar) is enough for self-hosting. For Vite apps and the VS Code webview, `@prosemark/latex/vite-plugin-mathjax` can copy selected files from the `mathjax` package into your build output. You still need the **parser** section above so `Math` nodes exist.
 
 ## Usage
 

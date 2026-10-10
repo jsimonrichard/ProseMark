@@ -24,7 +24,7 @@ Please report bugs on the [GitHub issues page](https://github.com/jsimonrichard/
 
 ## Developing this extension
 
-After `bun install`, run `bun run build`. **Vite** produces `dist/webview/webview.js` and copies `tex-svg.js` plus `sre/` from the **`mathjax`** npm package into `dist/webview/mathjax/` via `@prosemark/latex/vite-plugin-mathjax`. The webview loads MathJax with `url-import` from that folder. Bump the **`mathjax`** dependency when you want a different MathJax version.
+After `bun install`, run `bun run build`. **Vite** produces `dist/webview/webview.js` and copies `tex-svg.js` plus `sre/` from the **`mathjax`** npm package into `dist/webview/mathjax/` via `@prosemark/latex/vite-plugin-mathjax`. The webview loads MathJax with `url-import` from that folder (package URL from `webview.asWebviewUri`). Bump the **`mathjax`** dependency when you want a different MathJax version.
 
 ### MathJax load modes
 

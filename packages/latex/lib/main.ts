@@ -53,8 +53,10 @@ export type MathJaxLoadMode = 'url-import' | 'static-import';
 
 export interface LatexMarkdownEditorOptions {
   /**
-   * How formulas are rendered. `svg` uses MathJax SVG (`tex-svg-nofont.js`).
-   * `html` uses CHTML (`tex-chtml-nofont.js`) when SVG is problematic.
+   * How formulas are rendered. `svg` uses MathJax SVG (`tex-svg.js`, fonts
+   * embedded in the combined component). `html` uses CHTML (`tex-chtml.js`)
+   * when SVG is problematic. Prefer these over the `-nofont` variants so the
+   * browser does not need a separate font CDN fetch.
    */
   output?: LatexMathOutput;
   /**

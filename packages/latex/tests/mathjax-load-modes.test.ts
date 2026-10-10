@@ -1,9 +1,15 @@
 /// <reference types="bun" />
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
   preconfigureMathJaxLoader,
   resetLatexMathJaxStateForTests,
 } from '../lib/main.ts';
+import {
+  MATHJAX_TEX_SVG_COPY_ENTRIES,
+  resolveMathJaxPackageRoot,
+} from '../lib/vite-plugin-mathjax.ts';
 
 function getConfiguredMathJaxPackageUrl(): string {
   const mathJaxPackageUrl = (
@@ -49,5 +55,14 @@ describe('MathJax load helpers', () => {
         }
       ).MathJax?.startup?.typeset,
     ).toBe(false);
+  });
+});
+
+describe('vite-plugin-mathjax copy defaults', () => {
+  test('default tex-svg copy entries exist under the mathjax package', () => {
+    const root = resolveMathJaxPackageRoot();
+    for (const entry of MATHJAX_TEX_SVG_COPY_ENTRIES) {
+      expect(existsSync(resolve(root, entry))).toBe(true);
+    }
   });
 });
