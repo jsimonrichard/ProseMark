@@ -1,5 +1,18 @@
 # @prosemark/render-html
 
+## 0.0.11
+
+### Patch Changes
+
+- a50efea: Open links inside HTML widgets through the shared `clickLinkHandler` facet (pointer and keyboard), while non-link clicks still place the editor cursor.
+- a50efea: Render HTML-only paragraphs (for example a lone `<span>` or `<a>`) with the HTML block widget, wrapping inline roots in a `<div>` when needed.
+- Updated dependencies [a50efea]
+- Updated dependencies [6a9e9d9]
+- Updated dependencies [6a9e9d9]
+- Updated dependencies [e7704c3]
+- Updated dependencies [efa9cf3]
+  - @prosemark/core@0.0.10
+
 ## 0.0.10
 
 ### Patch Changes

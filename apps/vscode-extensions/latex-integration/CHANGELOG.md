@@ -1,5 +1,16 @@
 # vscode-prosemark-latex-integration
 
+## 0.0.5
+
+### Patch Changes
+
+- ea4d2ce: Fix empty math widgets in stock VS Code by disabling MathJax SRE there (webview workers cannot `importScripts` extension resources). Keep SRE on in Cursor. Add `enableMathJaxA11y` / `preconfigureMathJaxLoader({ enableA11y })` for other hosts.
+- Updated dependencies [26387ea]
+- Updated dependencies [efa9cf3]
+- Updated dependencies [ea4d2ce]
+  - @prosemark/latex@0.0.5
+  - @prosemark/vscode-extension-integrator@0.0.6
+
 ## 0.0.4
 
 ### Patch Changes

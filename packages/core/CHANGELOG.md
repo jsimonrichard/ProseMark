@@ -1,5 +1,15 @@
 # @prosemark/core
 
+## 0.0.10
+
+### Patch Changes
+
+- a50efea: Make `clickLinkHandler` last-wins so a host handler replaces `defaultClickLinkHandler`.
+- 6a9e9d9: Reveal folded replace-widgets on one-step vertical moves: ArrowUp/Down when the caret is on a reveal trigger, and vim `j`/`k` (including multi-line HTML/math skips from that trigger only—not pointer jumps).
+- 6a9e9d9: Suppress ProseMark fold decorations inside traditional language folds so nested widgets (e.g. images) do not paint through a collapsed section.
+- e7704c3: Add `visiblePosAtCoords` so pointer selection maps past font-size-0 hide marks (discrete `coordsForChar` hit-test), wire it through `hideExtension`, document it for hide hosts, and keep autolink-style link labels visible when the label is itself a `URL` node.
+- efa9cf3: Fix custom-editor undo: the VS Code TextDocument owns undo/redo (the webview forwards Mod-z/y and skips CodeMirror document history), keep the caret on the edit through document sync at the end of the mapped range, and drop late applyEdit echoes so typed text cannot race back into the webview.
+
 ## 0.0.9
 
 ### Patch Changes
