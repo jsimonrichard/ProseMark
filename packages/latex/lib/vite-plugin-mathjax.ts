@@ -5,7 +5,12 @@ import type { Plugin } from 'vite';
 
 const require = createRequire(import.meta.url);
 
-/** Default copy set for self-hosted `tex-svg` + speech worker (VS Code webviews, static apps). */
+/**
+ * Default copy set for self-hosted `tex-svg` plus the SRE speech worker tree.
+ * Needed when MathJax a11y stays on (hosts whose webviews allow worker
+ * `importScripts` of those files). Stock VS Code forbids that `importScripts` —
+ * disable a11y there even if `sre/` is present.
+ */
 export const MATHJAX_TEX_SVG_COPY_ENTRIES = ['tex-svg.js', 'sre'] as const;
 
 export interface CopyMathJaxAssetsOptions {

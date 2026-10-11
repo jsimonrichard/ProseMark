@@ -13,6 +13,8 @@ export default defineConfig({
     proseMarkVSCodeExtensionIntegratorPlugin(),
     copyMathJaxAssets({
       outDir: webviewOutDir,
+      // Include sre/ for hosts that enable MathJax a11y (e.g. Cursor). Stock VS
+      // Code disables a11y at runtime — see host-mathjax-a11y.ts.
       copy: MATHJAX_TEX_SVG_COPY_ENTRIES,
     }),
   ],

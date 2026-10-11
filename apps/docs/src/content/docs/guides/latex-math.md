@@ -113,9 +113,11 @@ import 'mathjax/tex-svg.js';
 }),
 ```
 
-**Accessibility / speech worker:** the combined startup bundle includes MathJax a11y support and loads **`sre/speech-worker.js` as a web worker** at runtime. Your bundler typically only ships the main JS file, so the worker is missing unless you also copy `sre/` and configure MathJax’s loader paths, or use **`url-import`** with a self-hosted `mathjax/` folder (see [`@prosemark/latex/vite-plugin-mathjax`](https://www.npmjs.com/package/@prosemark/latex) on npm).
+**Accessibility / speech worker:** the combined startup bundle includes MathJax a11y support and loads **`sre/speech-worker.js` as a web worker** at runtime (blob worker + `importScripts`). In a normal browser, copy `sre/` and configure MathJax’s loader paths, or use **`url-import`** with a self-hosted tree that includes `sre/` (see [`@prosemark/latex/vite-plugin-mathjax`](https://www.npmjs.com/package/@prosemark/latex)).
 
-If you do not need speech or enrichment and want to avoid shipping the `sre/` worker, configure `window.MathJax` **before** importing MathJax:
+**Stock VS Code webviews** cannot `importScripts` extension resource URLs inside workers ([Using Web Workers](https://code.visualstudio.com/api/extension-guides/webview#using-web-workers)) — copying `sre/` does not help. Pass **`enableMathJaxA11y: false`** on `latexMarkdownEditorExtensions`, or disable a11y before a static import; otherwise `tex2svgPromise` may hang. Cursor allows the `importScripts`; the ProseMark latex extension enables a11y only when `vscode.env.appName` indicates Cursor.
+
+If you do not need speech or enrichment and want to avoid shipping the `sre/` worker, configure `window.MathJax` **before** importing MathJax (or use `preconfigureMathJaxLoader(url, { enableA11y: false })`):
 
 ```javascript
 window.MathJax = {

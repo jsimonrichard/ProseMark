@@ -53,8 +53,10 @@ export type MathJaxLoadMode = 'url-import' | 'static-import';
 
 export interface LatexMarkdownEditorOptions {
   /**
-   * How formulas are rendered. `svg` uses MathJax SVG (`tex-svg-nofont.js`).
-   * `html` uses CHTML (`tex-chtml-nofont.js`) when SVG is problematic.
+   * How formulas are rendered. `svg` uses MathJax SVG (`tex-svg.js`, fonts
+   * embedded in the combined component). `html` uses CHTML (`tex-chtml.js`)
+   * when SVG is problematic. Prefer these over the `-nofont` variants so the
+   * browser does not need a separate font CDN fetch.
    */
   output?: LatexMathOutput;
   /**
@@ -82,6 +84,22 @@ export interface LatexMarkdownEditorOptions {
    * (configure `window.MathJax` yourself; see {@link preconfigureMathJaxLoader}).
    */
   mathJaxPackageUrl?: string;
+  /**
+   * When {@link mathJaxLoadMode} is **`url-import`**: whether MathJax may start
+   * its SRE speech worker and enrichment. Default `true`.
+   *
+   * Set to **`false`** in hosts where web workers cannot `importScripts`
+   * extension or webview resource URLs (VS Code webviews). Otherwise MathJax
+   * loads `sre/speech-worker.js` via a blob worker + `importScripts`, the
+   * worker fails, and `tex2svgPromise` / `tex2chtmlPromise` never settle.
+   *
+   * When {@link mathJaxLoadMode} is **`static-import`**, this option is
+   * **ignored** — set `window.MathJax.options` yourself before the static
+   * import (see {@link preconfigureMathJaxLoader}).
+   *
+   * @default true
+   */
+  enableMathJaxA11y?: boolean;
 }
 
 interface MathJaxReady {
@@ -113,23 +131,50 @@ declare global {
 /** Sentinel for {@link configuredPackageUrl} when using `static-import` mode. */
 const STATIC_IMPORT_PACKAGE_KEY = 'static-import';
 
+/** MathJax `options` that skip SRE speech/enrichment (no speech-worker load). */
+const mathJaxDisabledA11yOptions = (): NonNullable<
+  MathJaxConfig['options']
+> => ({
+  enableSpeech: false,
+  enableBraille: false,
+  enableEnrichment: false,
+  menuOptions: {
+    settings: { enrich: false, speech: false, braille: false },
+  },
+});
+
+export interface PreconfigureMathJaxLoaderOptions {
+  /**
+   * When `false`, disables MathJax speech/enrichment before the static import
+   * so the SRE speech worker is never started. See
+   * {@link LatexMarkdownEditorOptions.enableMathJaxA11y}.
+   * @default true
+   */
+  enableA11y?: boolean;
+}
+
 let loadedOutput: LatexMathOutput | null = null;
 let loadedLoadMode: MathJaxLoadMode | null = null;
 let mathJaxReady: Promise<void> | null = null;
 let configuredPackageUrl: string | null = null;
+let configuredEnableA11y: boolean | null = null;
 
 /**
  * Assign `window.MathJax` loader options **before** a static
  * `import 'mathjax/tex-svg.js'` or `import 'mathjax/tex-chtml.js'` so MathJax can
  * resolve extra modules (fonts, input jax, etc.).
  */
-export function preconfigureMathJaxLoader(packageUrl: string): void {
+export function preconfigureMathJaxLoader(
+  packageUrl: string,
+  options: PreconfigureMathJaxLoaderOptions = {},
+): void {
   if (typeof window === 'undefined') {
     throw new Error(
       'preconfigureMathJaxLoader requires a browser environment (window).',
     );
   }
-  window.MathJax = {
+  const enableA11y = options.enableA11y ?? true;
+  const config: MathJaxConfig = {
     startup: {
       typeset: false,
     },
@@ -139,6 +184,10 @@ export function preconfigureMathJaxLoader(packageUrl: string): void {
       },
     },
   };
+  if (!enableA11y) {
+    config.options = mathJaxDisabledA11yOptions();
+  }
+  window.MathJax = config;
 }
 
 async function awaitMathJaxStartupPromise(): Promise<void> {
@@ -154,6 +203,7 @@ const ensureMathJax = (
   output: LatexMathOutput,
   loadMode: MathJaxLoadMode,
   packageUrl: string,
+  enableA11y: boolean,
 ): Promise<void> => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     throw new Error(
@@ -168,6 +218,7 @@ const ensureMathJax = (
     loadedOutput === output &&
     loadedLoadMode === loadMode &&
     configuredPackageUrl === configKey &&
+    configuredEnableA11y === enableA11y &&
     mathJaxReady
   ) {
     return mathJaxReady;
@@ -195,9 +246,20 @@ const ensureMathJax = (
     );
   }
 
+  if (
+    loadMode === 'url-import' &&
+    configuredEnableA11y !== null &&
+    configuredEnableA11y !== enableA11y
+  ) {
+    throw new Error(
+      'enableMathJaxA11y is fixed after the first MathJax load in this page.',
+    );
+  }
+
   loadedOutput = output;
   loadedLoadMode = loadMode;
   configuredPackageUrl = configKey;
+  configuredEnableA11y = enableA11y;
   mathJaxReady = (async () => {
     if (loadMode === 'static-import') {
       await awaitMathJaxStartupPromise();
@@ -212,7 +274,7 @@ const ensureMathJax = (
     // `loader.paths.mathjax` becomes `/`, so MathJax tries to fetch extra
     // modules from the app origin (`/input/...`, etc.) and `tex2svgPromise`
     // never resolves. Point `mathjax` at the published package tree instead.
-    window.MathJax = {
+    const config: MathJaxConfig = {
       startup: {
         typeset: false,
       },
@@ -222,6 +284,12 @@ const ensureMathJax = (
         },
       },
     };
+    if (!enableA11y) {
+      // VS Code webviews: blob workers may not importScripts webview resource
+      // URLs; a failed SRE speech-worker leaves tex2svgPromise pending forever.
+      config.options = mathJaxDisabledA11yOptions();
+    }
+    window.MathJax = config;
 
     const bundleUrl =
       output === 'svg'
@@ -245,6 +313,7 @@ export function resetLatexMathJaxStateForTests(): void {
   loadedLoadMode = null;
   mathJaxReady = null;
   configuredPackageUrl = null;
+  configuredEnableA11y = null;
 }
 
 interface RenderCacheEntry {
@@ -423,6 +492,7 @@ class LatexMathWidget extends WidgetType {
     public readonly output: LatexMathOutput,
     public readonly loadMode: MathJaxLoadMode,
     public readonly packageUrl: string,
+    public readonly enableA11y: boolean,
   ) {
     super();
   }
@@ -433,7 +503,8 @@ class LatexMathWidget extends WidgetType {
       this.display === other.display &&
       this.output === other.output &&
       this.loadMode === other.loadMode &&
-      this.packageUrl === other.packageUrl
+      this.packageUrl === other.packageUrl &&
+      this.enableA11y === other.enableA11y
     );
   }
 
@@ -455,7 +526,12 @@ class LatexMathWidget extends WidgetType {
       latexWidgetResizeObservers.set(wrap, ro);
     }
 
-    void ensureMathJax(this.output, this.loadMode, this.packageUrl)
+    void ensureMathJax(
+      this.output,
+      this.loadMode,
+      this.packageUrl,
+      this.enableA11y,
+    )
       .then(() => renderOrCloneFromCache(this.tex, this.display, this.output))
       .then((node) => {
         wrap.replaceChildren(node);
@@ -608,6 +684,7 @@ export function latexMarkdownEditorExtensions(
     loadMode === 'url-import'
       ? (options.mathJaxPackageUrl ?? mathjaxPackageRoot())
       : '';
+  const enableA11y = options.enableMathJaxA11y ?? true;
   const cacheSize = options.renderCacheSize ?? 128;
   renderCache = cacheSize > 0 ? new RenderLru(cacheSize) : null;
 
@@ -633,6 +710,7 @@ export function latexMarkdownEditorExtensions(
             output,
             loadMode,
             packageUrl,
+            enableA11y,
           ),
           block: display,
           inclusive: true,
