@@ -9,6 +9,7 @@ import { taskExtension } from './task';
 export {
   foldExtension,
   foldableSyntaxFacet,
+  rangeInsideLanguageFold,
   selectAllDecorationsOnSelectExtension,
 } from './core';
 export { bulletListExtension } from './bulletList';

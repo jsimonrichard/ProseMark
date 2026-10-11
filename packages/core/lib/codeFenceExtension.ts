@@ -59,7 +59,7 @@ const codeBlockDecorations = (view: EditorView) => {
             code = view.state.doc.sliceString(codeStart, codeEnd);
           }
 
-          for (let pos = node.from; pos <= node.to; ) {
+          for (let pos = node.from; pos <= node.to;) {
             const line = view.state.doc.lineAt(pos);
             const isFirstLine = pos === node.from;
             const isLastLine = line.to >= node.to;

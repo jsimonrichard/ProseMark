@@ -1,0 +1,81 @@
+{
+  "name": "vscode-prosemark-vim-integration",
+  "displayName": "ProseMark - Vim mode",
+  "description": "Vim-style editing in the ProseMark editor via @replit/codemirror-vim",
+  "publisher": "jsimonrichard",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jsimonrichard/ProseMark.git",
+    "directory": "apps/vscode-extensions/vim-integration"
+  },
+  "author": {
+    "name": "J. Simon Richard",
+    "url": "https://jsimonrichard.com"
+  },
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other",
+    "Keymaps"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension/extension.js",
+  "extensionDependencies": [
+    "jsimonrichard.vscode-prosemark"
+  ],
+  "contributes": {
+    "configuration": {
+      "title": "ProseMark Vim",
+      "properties": {
+        "prosemark.vimModeEnabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Enable vim-style editing in the ProseMark editor. Requires this ProseMark Vim integration extension."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "bun run build",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "ci:publish": "bash ../../../scripts/ci-publish-vscode-extension.sh",
+    "ci:publish:dry-run": "DRY_RUN=1 bash ../../../scripts/ci-publish-vscode-extension.sh",
+    "build": "tsdown && vite build",
+    "dev": "tsc --noEmit && concurrently \"tsc -w\" \"tsdown --watch\" \"vite build --watch\"",
+    "dev-tests": "tsc -p . -w --outDir out",
+    "pretest": "bun run build-tests && bun run build && bun run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint --max-warnings=0",
+    "test": "vscode-test"
+  },
+  "dependencies": {
+    "@codemirror/commands": "^6.10.1",
+    "@codemirror/language": "^6.11.3",
+    "@codemirror/search": "^6.5.11",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.42.1",
+    "@prosemark/vscode-extension-integrator": "workspace:*",
+    "@replit/codemirror-vim": "^6.3.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.10.4",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/parser": "^8.50.0",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.7.1",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.2",
+    "@prosemark/eslint-config": "workspace:*",
+    "tsdown": "^0.15.6",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.5"
+  }
+}

@@ -120,8 +120,7 @@ export type CallbackFromProcMap<ExtId extends string, P = CompleteProcMap> = {
 export type AnyCallbackMessage = CallbackFromProcMap<string>;
 
 export type AnyMessageOrCallback =
-  | MessageFromProcMap<string>
-  | CallbackFromProcMap<string>;
+  MessageFromProcMap<string> | CallbackFromProcMap<string>;
 
 export interface WebviewVSCodeApiWithPostMessage<MsgType> {
   postMessage: (msg: MsgType) => void;
