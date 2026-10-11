@@ -2,4 +2,4 @@
 '@prosemark/core': patch
 ---
 
-Reveal folded replace-widgets on single-line vertical selection moves (arrow keys and vim `j`/`k`), and suppress ProseMark fold decorations inside traditional language folds so nested widgets (e.g. images) do not paint through a collapsed section.
+Reveal folded replace-widgets on one-step vertical moves: ArrowUp/Down when the caret is on a reveal trigger, and vim `j`/`k` (including multi-line HTML/math skips from that trigger only—not pointer jumps).

@@ -3,6 +3,7 @@ import {
   EditorState,
   type Transaction,
 } from '@codemirror/state';
+import { EditorView, keymap } from '@codemirror/view';
 import { foldExtension } from './fold';
 import { decorationHasReplaceWidget } from './utils';
 
@@ -84,12 +85,104 @@ export const computeVerticalRevealTarget = (
   revealTargetAtWidgetBoundary(state, direction) ??
   revealTargetOnAdjacentLine(state, direction);
 
+const dispatchReveal = (
+  view: EditorView,
+  target: number,
+  extend: boolean,
+): boolean => {
+  const main = view.state.selection.main;
+  view.dispatch({
+    selection: extend
+      ? EditorSelection.range(main.anchor, target)
+      : EditorSelection.cursor(target),
+  });
+  return true;
+};
+
 /**
- * Single path for ArrowUp/ArrowDown and vim `j`/`k`: when a selection-only
- * move changes the head by exactly one line, land on the fold-reveal target
- * those keys would have used.
+ * Arrow keys: only reveal when a target exists at the *current* caret
+ * (boundary / adjacent). Consumes the key so default movement never skips the
+ * widget — clear “pressed ArrowDown here” intent.
  */
-const revealOnSingleLineSelectionMove = (tr: Transaction) => {
+const arrowUp = (view: EditorView): boolean => {
+  const target = computeVerticalRevealTarget(view.state, 'up');
+  return target == null ? false : dispatchReveal(view, target, false);
+};
+
+const arrowDown = (view: EditorView): boolean => {
+  const target = computeVerticalRevealTarget(view.state, 'down');
+  return target == null ? false : dispatchReveal(view, target, false);
+};
+
+const arrowUpSelect = (view: EditorView): boolean => {
+  const target = computeVerticalRevealTarget(view.state, 'up');
+  return target == null ? false : dispatchReveal(view, target, true);
+};
+
+const arrowDownSelect = (view: EditorView): boolean => {
+  const target = computeVerticalRevealTarget(view.state, 'down');
+  return target == null ? false : dispatchReveal(view, target, true);
+};
+
+/**
+ * Widget that `target` would open into, if any (down enters at `from`, up at `to`).
+ */
+const widgetForRevealTarget = (
+  state: EditorState,
+  direction: VerticalRevealDirection,
+  target: number,
+): { from: number; to: number } | null => {
+  const decorations = state.field(foldExtension);
+  // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
+  for (let iter = decorations.iter(); iter.value; iter.next()) {
+    if (!decorationHasReplaceWidget(iter.value)) continue;
+    if (direction === 'down' && iter.from === target) {
+      return { from: iter.from, to: iter.to };
+    }
+    if (direction === 'up' && iter.to === target) {
+      return { from: iter.from, to: iter.to };
+    }
+  }
+  return null;
+};
+
+/**
+ * Vim `j`/`k` (and similar) may skip a multi-line block widget in one
+ * selection update. Only treat that as “down/up one” when:
+ * - the caret *started* on a reveal trigger (`computeVerticalRevealTarget`),
+ * - the move is not a pointer selection,
+ * - the head landed immediately past that one widget (not PageDown-scale).
+ *
+ * A click from somewhere above to below does not qualify: no trigger at the
+ * start caret, and pointer events are ignored.
+ */
+const isSingleStepSkipOverRevealWidget = (
+  state: EditorState,
+  direction: VerticalRevealDirection,
+  oldHead: number,
+  newHead: number,
+  target: number,
+): boolean => {
+  const widget = widgetForRevealTarget(state, direction, target);
+  if (!widget) return false;
+
+  if (direction === 'down') {
+    if (!(oldHead < widget.from && newHead >= widget.to)) return false;
+    const after = Math.min(widget.to + 1, state.doc.length);
+    return newHead <= state.doc.lineAt(after).to;
+  }
+
+  if (!(oldHead > widget.to && newHead <= widget.from)) return false;
+  const before = Math.max(widget.from - 1, 0);
+  return newHead >= state.doc.lineAt(before).from;
+};
+
+/**
+ * Selection-filter path for movers that are not ArrowUp/Down (notably vim
+ * `j`/`k`). Requires a reveal trigger at the start caret — never “any
+ * selection above the widget”.
+ */
+const revealOnVerticalSelectionMove = (tr: Transaction) => {
   if (tr.docChanged || !tr.selection) return tr;
   if (tr.isUserEvent('select.pointer')) return tr;
 
@@ -99,13 +192,26 @@ const revealOnSingleLineSelectionMove = (tr: Transaction) => {
 
   const oldLine = tr.startState.doc.lineAt(oldHead).number;
   const newLine = tr.newDoc.lineAt(newHead).number;
-  if (Math.abs(newLine - oldLine) !== 1) return tr;
+  if (oldLine === newLine) return tr;
 
   const direction: VerticalRevealDirection = newLine > oldLine ? 'down' : 'up';
+  // Start caret must already be at a reveal trigger (boundary / adjacent).
   const target = computeVerticalRevealTarget(tr.startState, direction);
   if (target == null || target === newHead) return tr;
 
-  // Keep anchors / other ranges so Shift+arrow (and multi-cursor) do not collapse.
+  const lineDelta = Math.abs(newLine - oldLine);
+  const oneDocumentLine = lineDelta === 1;
+  const oneStepOverWidget =
+    lineDelta > 1 &&
+    isSingleStepSkipOverRevealWidget(
+      tr.startState,
+      direction,
+      oldHead,
+      newHead,
+      target,
+    );
+  if (!oneDocumentLine && !oneStepOverWidget) return tr;
+
   const ranges = tr.newSelection.ranges.slice();
   const mainIndex = tr.newSelection.mainIndex;
   const main = ranges[mainIndex];
@@ -120,9 +226,14 @@ const revealOnSingleLineSelectionMove = (tr: Transaction) => {
 };
 
 /**
- * Reveal folded replace-widgets on single-line vertical selection moves
- * (arrow keys, vim `j`/`k`, and any other one-line mover).
+ * Reveal folded replace-widgets on vertical moves:
+ * - ArrowUp/Down (+ Shift) via keymap when the caret is on a reveal trigger
+ * - other one-step vertical movers (e.g. vim `j`/`k`) via transaction filter
  */
-export const revealBlockOnArrowExtension = EditorState.transactionFilter.of(
-  revealOnSingleLineSelectionMove,
-);
+export const revealBlockOnArrowExtension = [
+  keymap.of([
+    { key: 'ArrowUp', run: arrowUp, shift: arrowUpSelect },
+    { key: 'ArrowDown', run: arrowDown, shift: arrowDownSelect },
+  ]),
+  EditorState.transactionFilter.of(revealOnVerticalSelectionMove),
+];
