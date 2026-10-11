@@ -77,7 +77,7 @@ preconfigureMathJaxLoader(packageUrl, { enableA11y: false });
 import 'mathjax/tex-svg.js';
 ```
 
-**Note:** `@prosemark/latex` does not read `node_modules` at runtime for `url-import`. Serving a copied tree under `public/` (or similar) is enough for self-hosting. `@prosemark/latex/vite-plugin-mathjax` can copy selected files from the `mathjax` package into your build output (the VS Code latex extension copies `tex-svg.js` only). You still need the **parser** section above so `Math` nodes exist.
+**Note:** `@prosemark/latex` does not read `node_modules` at runtime for `url-import`. Serving a copied tree under `public/` (or similar) is enough for self-hosting. `@prosemark/latex/vite-plugin-mathjax` can copy selected files from the `mathjax` package into your build output (the VS Code latex extension copies `tex-svg.js` and `sre/` for hosts that enable a11y). You still need the **parser** section above so `Math` nodes exist.
 
 ## Usage
 
@@ -170,6 +170,7 @@ latexMarkdownEditorExtensions({
   renderCacheSize: 128, // default; LRU of rendered trees, 0 to disable
   mathJaxLoadMode: 'url-import', // default; use 'static-import' if you load MathJax via your bundler
   // mathJaxPackageUrl — only for url-import; omit for default jsDelivr
+  // enableMathJaxA11y: false — required in stock VS Code webviews (see Accessibility above)
 });
 ```
 

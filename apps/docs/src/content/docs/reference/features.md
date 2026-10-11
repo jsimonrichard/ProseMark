@@ -9,6 +9,8 @@ These features are illustrated in our [Demo](/demo).
 
 - Inline styles including italics, bold text, code spans, and strike-throughs. Highlights using the `==highlight==` syntax are planned.
 
+- Links (`[label](url)` and GFM autolinks). Hosts can override open behavior with the last-wins [`clickLinkHandler`](/api/prosemark/core/variables/clicklinkhandler/) facet. Pointer placement over hidden marks uses [`visiblePosAtCoords`](/api/prosemark/core/functions/visibleposatcoords/) (see [Fold, Hide, & Theming](/reference/fold-hide-theme-extensions/#pointer-coordinates-visibleposatcoords)).
+
 - Both ATX Headings (`# My Heading`) and Setext Headings (headings over a line with `=====` or `-----`) are supported.
 
 - Unordered lists using `-` and ordered lists using `1.` are supported. Ordered lists using `+` are not yet supported.
@@ -19,6 +21,8 @@ These features are illustrated in our [Demo](/demo).
 
 - Block quotes (including nested block quotes) are supported.
 
+- Fenced code blocks with language highlighting (via `@codemirror/language-data` or your own `codeLanguages`).
+
 - Horizontal rules using the `---` syntax are supported.
 
 - YAML frontmatter blocks at the top of a document (`---` ... `---`) are supported and parsed as YAML.
@@ -27,13 +31,17 @@ These features are illustrated in our [Demo](/demo).
 
 - HTML Blocks inside markdown can be rendered. HTML content is sanitized using [DOMPurify](https://github.com/cure53/DOMPurify).
 
+- Paragraphs that contain **only** HTML tags (for example a lone `<span>` or `<a>`) are folded with the same block widget; mixed prose with inline HTML tags is not widgetized yet.
+
 - Folded HTML blocks use **block** replace widgets: an outer shell avoids vertical margins (padding only), and an inner `flow-root` wrapper contains margins from rendered elements (for example headings) so CodeMirror’s line layout stays accurate. `requestMeasure` runs after updates and when the widget resizes (`ResizeObserver` where available).
 
-- Inline HTML is not supported yet.
+- Links inside HTML widgets open through the shared [`clickLinkHandler`](/api/prosemark/core/variables/clicklinkhandler/) facet (pointer and keyboard); non-link clicks still place the editor cursor.
 
 ## `@prosemark/paste-rich-text`
 
 - Makes it possible to paste rich text as fully-formatted markdown.
+
+- Pastes HTML anchors whose visible text equals the `href` as a bare URL (instead of `[url](url)`), so GFM autolink rendering can apply.
 
 - Provides the `Ctrl/Cmd+Shift+V` command for pasting without formatting.
 

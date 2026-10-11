@@ -16,7 +16,7 @@ Published on npm: [`@prosemark/vscode-extension-integrator`](https://www.npmjs.c
 ## Architecture
 
 1. The **core ProseMark** extension exposes `registerSubExtension(extId, callback)` on its API.
-2. A **companion extension** (cSpell, LaTeX, etc.) calls that API from `activate`.
+2. A **companion extension** (cSpell, LaTeX, Vim, etc.) calls that API from `activate`.
 3. The callback receives a typed bridge to register webview procedures and push CodeMirror extensions into `window.proseMark.extraCodeMirrorExtensions`.
 
 Extension IDs must not contain `:` (used as a namespace separator in messages).
@@ -89,3 +89,4 @@ Your webview bundle should treat those modules as externals (the plugin configur
 
 - [ProseMark - Code Spell Checker Integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration) — [`apps/vscode-extensions/cspell-integration`](https://github.com/jsimonrichard/ProseMark/tree/main/apps/vscode-extensions/cspell-integration)
 - [ProseMark - LaTeX math (MathJax) integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration) — [`apps/vscode-extensions/latex-integration`](https://github.com/jsimonrichard/ProseMark/tree/main/apps/vscode-extensions/latex-integration)
+- [ProseMark - Vim mode](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-vim-integration) — [`apps/vscode-extensions/vim-integration`](https://github.com/jsimonrichard/ProseMark/tree/main/apps/vscode-extensions/vim-integration) (optional; not in the extension pack)

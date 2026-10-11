@@ -50,9 +50,11 @@ Style the editor with **`--pm-*` CSS variables** on the editor root. See [Stylin
 
 ### Setup bundles
 
-- **`prosemarkBasicSetup()`** — Default hide/fold extensions, link clicking, soft indent, code-fence decorations, reveal folded blocks on arrow keys, and common CodeMirror keymaps (history, search, fold gutter, markdown formatting shortcuts, etc.).
+- **`prosemarkBasicSetup()`** — Default hide/fold extensions, link clicking, soft indent, code-fence decorations, reveal folded blocks on arrow keys (and one-step vertical moves), and common CodeMirror keymaps (history, search, fold gutter, markdown formatting shortcuts, etc.).
 - **`prosemarkBaseThemeSetup()`** — Base syntax highlighting and theme tokens for ProseMark markdown.
 - **`prosemarkLightThemeSetup()`** — Optional light color scheme (see `basicSetup.ts`).
+
+Link opens go through **`clickLinkHandler`** (last registered handler wins; `defaultClickLinkHandler` opens in a new tab). Pointer selection over `font-size: 0` hide marks uses **`visiblePosAtCoords`** (wired into `hideExtension`; see [Fold, Hide, & Theming](https://prosemark.com/reference/fold-hide-theme-extensions/#pointer-coordinates-visibleposatcoords)).
 
 ### Markdown parsing
 
