@@ -4,6 +4,11 @@ Companion extension that enables **vim-style editing** in the [ProseMark](https:
 
 This is separate from VS Code Vim / vscode-neovim: install this extension only if you want modal editing inside ProseMark.
 
+The extension can be downloaded on either of these marketplaces:
+
+- The Official VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-vim-integration
+- Open VSX: https://open-vsx.org/extension/jsimonrichard/vscode-prosemark-vim-integration
+
 ## How to use
 
 1. Install **ProseMark** and this **ProseMark - Vim mode** integration.

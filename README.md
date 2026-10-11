@@ -36,6 +36,10 @@ The **[ProseMark](https://marketplace.visualstudio.com/items?itemName=jsimonrich
 - **[ProseMark - Code Spell Checker (cSpell) Integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-cspell-integration)** — bridges cSpell into the ProseMark webview using [`@prosemark/spellcheck-frontend`](https://www.npmjs.com/package/@prosemark/spellcheck-frontend).
 - **[ProseMark - LaTeX math (MathJax) integration](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-latex-integration)** — registers [`@prosemark/latex`](https://www.npmjs.com/package/@prosemark/latex) in the webview so folded math renders with MathJax.
 
+**Optional companion** (not in the extension pack):
+
+- **[ProseMark - Vim mode](https://marketplace.visualstudio.com/items?itemName=jsimonrichard.vscode-prosemark-vim-integration)** ([Open VSX](https://open-vsx.org/extension/jsimonrichard/vscode-prosemark-vim-integration)) — vim-style editing in the ProseMark webview via [`@replit/codemirror-vim`](https://www.npmjs.com/package/@replit/codemirror-vim). Toggle with `prosemark.vimModeEnabled`.
+
 ## Getting started
 
 https://prosemark.com/guides/getting-started/
