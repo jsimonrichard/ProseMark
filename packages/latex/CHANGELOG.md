@@ -1,5 +1,18 @@
 # @prosemark/latex
 
+## 0.0.5
+
+### Patch Changes
+
+- 26387ea: Add nested TeX highlighting inside `$...$` / `$$...$$` via `latexMathNestedHighlightExtension` (`stexMath` + `parseMixed`), export `latexLanguageDescription` for fenced LaTeX blocks, and style delimiters / braces / commands in `latexMarkdownSyntaxTheme`. Wire the nested parser into the VS Code webview.
+- ea4d2ce: Fix empty math widgets in stock VS Code by disabling MathJax SRE there (webview workers cannot `importScripts` extension resources). Keep SRE on in Cursor. Add `enableMathJaxA11y` / `preconfigureMathJaxLoader({ enableA11y })` for other hosts.
+- Updated dependencies [a50efea]
+- Updated dependencies [6a9e9d9]
+- Updated dependencies [6a9e9d9]
+- Updated dependencies [e7704c3]
+- Updated dependencies [efa9cf3]
+  - @prosemark/core@0.0.10
+
 ## 0.0.4
 
 ### Patch Changes

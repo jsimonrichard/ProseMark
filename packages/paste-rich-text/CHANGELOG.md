@@ -1,5 +1,11 @@
 # @prosemark/paste-rich-text
 
+## 0.0.6
+
+### Patch Changes
+
+- e7704c3: Paste HTML anchors whose text equals the href as a bare URL instead of `[url](url)`.
+
 ## 0.0.5
 
 ### Patch Changes

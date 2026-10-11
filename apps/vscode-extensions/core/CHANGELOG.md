@@ -1,5 +1,27 @@
 # vscode-prosemark
 
+## 0.0.12
+
+### Patch Changes
+
+- 26387ea: Add nested TeX highlighting inside `$...$` / `$$...$$` via `latexMathNestedHighlightExtension` (`stexMath` + `parseMixed`), export `latexLanguageDescription` for fenced LaTeX blocks, and style delimiters / braces / commands in `latexMarkdownSyntaxTheme`. Wire the nested parser into the VS Code webview.
+- efa9cf3: Fix custom-editor undo: the VS Code TextDocument owns undo/redo (the webview forwards Mod-z/y and skips CodeMirror document history), keep the caret on the edit through document sync at the end of the mapped range, and drop late applyEdit echoes so typed text cannot race back into the webview.
+- Updated dependencies [a50efea]
+- Updated dependencies [a50efea]
+- Updated dependencies [a50efea]
+- Updated dependencies [26387ea]
+- Updated dependencies [e7704c3]
+- Updated dependencies [6a9e9d9]
+- Updated dependencies [6a9e9d9]
+- Updated dependencies [e7704c3]
+- Updated dependencies [efa9cf3]
+- Updated dependencies [ea4d2ce]
+  - @prosemark/core@0.0.10
+  - @prosemark/render-html@0.0.11
+  - @prosemark/latex@0.0.5
+  - @prosemark/paste-rich-text@0.0.6
+  - @prosemark/vscode-extension-integrator@0.0.6
+
 ## 0.0.11
 
 ### Patch Changes
