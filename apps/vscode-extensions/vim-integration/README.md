@@ -15,6 +15,8 @@ This is separate from VS Code Vim / vscode-neovim: install this extension only i
 
 ## Known issues
 
+No known issues at this time.
+
 Please report bugs on the [GitHub issues page](https://github.com/jsimonrichard/ProseMark/issues).
 
 ## Developing this extension
