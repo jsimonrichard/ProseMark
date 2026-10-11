@@ -1,7 +1,6 @@
 /// <reference types="bun" />
 import { describe, expect, test } from 'bun:test';
 import { EditorSelection, EditorState, Transaction } from '@codemirror/state';
-import { history, redo, undo } from '@codemirror/commands';
 import { planDocumentReplace } from './documentReplace.ts';
 
 const applyReplace = (state: EditorState, after: string): EditorState => {
@@ -14,14 +13,7 @@ const applyReplace = (state: EditorState, after: string): EditorState => {
     return state;
   }
 
-  let next = state;
-  if (next.selection.main.anchor !== 0 || next.selection.main.head !== 0) {
-    next = next.update({
-      selection: { anchor: 0 },
-      annotations: Transaction.addToHistory.of(false),
-    }).state;
-  }
-  return next.update({
+  return state.update({
     changes: plan.changes,
     selection: plan.selection,
     annotations: Transaction.addToHistory.of(false),
@@ -109,49 +101,10 @@ describe('planDocumentReplace', () => {
   });
 });
 
-describe('document replace and history', () => {
-  test('undo and redo keep the cursor on an edit below the top of the document', () => {
+describe('document replace resync', () => {
+  test('a resync that removes an edit keeps the caret on that edit', () => {
     let state = EditorState.create({
       doc: 'paragraph one\n\nparagraph two stays here\n',
-      extensions: [history()],
-    });
-    const at = state.doc.line(3).from + 10;
-    state = state.update({ selection: { anchor: at } }).state;
-    state = state.update({
-      changes: { from: at, insert: 'UNDOWORD' },
-      selection: { anchor: at + 'UNDOWORD'.length },
-    }).state;
-
-    state = applyReplace(state, state.doc.toString());
-    let undone = false;
-    undo({
-      state,
-      dispatch: (transaction: Transaction) => {
-        state = transaction.state;
-        undone = true;
-      },
-    });
-    expect(undone).toBe(true);
-    expect(state.doc.toString().includes('UNDOWORD')).toBe(false);
-    expect(state.selection.main.head).toBe(at);
-
-    let redone = false;
-    redo({
-      state,
-      dispatch: (transaction: Transaction) => {
-        state = transaction.state;
-        redone = true;
-      },
-    });
-    expect(redone).toBe(true);
-    expect(state.doc.toString().includes('UNDOWORD')).toBe(true);
-    expect(state.selection.main.head).toBe(at + 'UNDOWORD'.length);
-  });
-
-  test('a resync to the undone text keeps the cursor on that edit', () => {
-    let state = EditorState.create({
-      doc: 'paragraph one\n\nparagraph two stays here\n',
-      extensions: [history()],
     });
     const at = state.doc.line(3).from + 10;
     const beforeEdit = state.doc.toString();

@@ -53,7 +53,7 @@ describe('DocumentChangeEchoGate', () => {
     scheduler.flushAll();
   });
 
-  test('reproduces the first-undo flash race and keeps the echo dropped', () => {
+  test('drops a late typing echo that arrives after TextDocument undo', () => {
     const gate = new DocumentChangeEchoGate();
     const scheduler = createScheduler();
 
@@ -62,16 +62,12 @@ describe('DocumentChangeEchoGate', () => {
     gate.endApply(5, scheduler.schedule);
     scheduler.flushOne(); // suppress cleared; version 5 still remembered
 
-    // User undoes in CodeMirror (local). Before the undo's applyEdit runs,
-    // a late onDidChangeTextDocument for the insert arrives at version 5.
+    // Host undoes via TextDocument. Before/around that, a late
+    // onDidChangeTextDocument for the insert can still arrive at version 5.
     expect(gate.shouldForward(5, 1)).toBe(false);
 
-    // Undo's applyEdit runs → version 6.
-    gate.beginApply();
-    gate.endApply(6, scheduler.schedule);
-    scheduler.flushAll();
-
-    // A later external (or genuine host) edit at version 7 is forwarded.
+    // Undo is not an applyEdit from the webview, so it is not gated here;
+    // a later genuine host edit at version 7 is forwarded.
     expect(gate.shouldForward(7, 1)).toBe(true);
   });
 

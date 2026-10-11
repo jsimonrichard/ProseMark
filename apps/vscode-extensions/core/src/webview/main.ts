@@ -123,10 +123,7 @@ const getDocOffset = (
   return line.from + clampedChar;
 };
 
-const replaceEditorDocumentText = (
-  text: string,
-  options?: { resetSelectionBeforeReplace?: boolean },
-): boolean => {
+const replaceEditorDocumentText = (text: string): boolean => {
   const view = window.proseMark?.view;
   if (!view) {
     return false;
@@ -139,20 +136,6 @@ const replaceEditorDocumentText = (
   );
   if (plan.kind === 'unchanged') {
     return true;
-  }
-
-  // Move the selection to a position that survives the replace before
-  // decorations map the old range. The mapped selection is restored in
-  // the same update that applies the text.
-  if (options?.resetSelectionBeforeReplace) {
-    const selection = view.state.selection.main;
-    if (selection.anchor !== 0 || selection.head !== 0) {
-      view.dispatch({
-        selection: { anchor: 0 },
-        userEvent: 'updateFromVSCode',
-        annotations: Transaction.addToHistory.of(false),
-      });
-    }
   }
 
   view.dispatch({
@@ -177,9 +160,7 @@ const recoverFromStateMismatch = async (
 
   try {
     const latestText = await callProcWithReturnValue('requestFullDocument');
-    const didReplaceText = replaceEditorDocumentText(latestText, {
-      resetSelectionBeforeReplace: true,
-    });
+    const didReplaceText = replaceEditorDocumentText(latestText);
     if (!didReplaceText) {
       reportFrontendError({
         source,
@@ -378,11 +359,7 @@ const procs: WebviewProcMap = {
     procs.focus();
   },
   set: (text) => {
-    if (
-      !replaceEditorDocumentText(text, {
-        resetSelectionBeforeReplace: true,
-      })
-    ) {
+    if (!replaceEditorDocumentText(text)) {
       reportFrontendError({
         source: 'core.set',
         severity: 'fatal',

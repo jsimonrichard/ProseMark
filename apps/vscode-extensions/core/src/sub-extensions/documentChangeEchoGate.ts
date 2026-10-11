@@ -3,10 +3,11 @@
  * forwarded into the ProseMark webview.
  *
  * Webview→document `applyEdit` calls produce document-change events that must
- * not be echoed back. Those events can arrive while `applyEdit` is still
- * awaiting, or one or more macrotasks later — after a local CodeMirror undo
- * has already reverted the edit. A late echo of the original insert is what
- * makes the first undo "flash" and then snap back to the latest text.
+ * not be echoed back (typing would otherwise re-apply into the webview). Those
+ * events can arrive while `applyEdit` is still awaiting, or one or more
+ * macrotasks later — including after a TextDocument undo has already moved the
+ * document past that version. Dropping late echoes for versions we applied
+ * keeps host undo from racing a stale insert back into the webview.
  */
 export class DocumentChangeEchoGate {
   #suppressDepth = 0;
