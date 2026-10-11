@@ -28,13 +28,15 @@ jobs:
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
 
-      - name: Setup Node.js 20.x
+      # Trusted publishing needs Node >= 22.14 and npm >= 11.5.1.
+      # npm@latest (12+) requires Node ^22.22.2 || ^24.15.0 || >=26, so stay
+      # on the current Node LTS rather than Node 20.
+      - name: Setup Node.js 24.x
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: 20.x
+          node-version: 24.x
           registry-url: 'https://registry.npmjs.org'
 
-      # npm 11.5.1 or later must be installed of OIDC to work
       - name: Update npm
         run: npm install -g npm@latest
 
