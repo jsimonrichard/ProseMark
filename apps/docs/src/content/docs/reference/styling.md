@@ -50,13 +50,13 @@ These follow CodeMirror tag names mapped in the ProseMark theme:
 
 Used by `latexMarkdownSyntaxTheme` and MathJax widgets from `latexMarkdownEditorExtensions()`. See the [LaTeX math guide](/guides/latex-math/) for setup.
 
-| Variable                                 | Purpose                                                           |
-| ---------------------------------------- | ----------------------------------------------------------------- |
-| `--pm-latex-math-delimiter-color`        | `$` / `$$` delimiter color (defaults to `--pm-link-color`)        |
-| `--pm-latex-math-formula-color`          | Raw formula text before render                                    |
-| `--pm-latex-math-formula-font`           | Monospace stack for formula source (defaults to `--pm-code-font`) |
-| `--pm-latex-math-error-color`            | Failed render message (defaults to `--pm-syntax-invalid`)         |
-| `--pm-latex-math-error-background-color` | Failed render background (defaults to semi-transparent gray)      |
+| Variable                                 | Purpose                                                                    |
+| ---------------------------------------- | -------------------------------------------------------------------------- |
+| `--pm-latex-math-delimiter-color`        | `$` / `$$` delimiter color (defaults to `--pm-syntax-keyword`)             |
+| `--pm-latex-math-formula-font`           | Monospace stack for formula source (defaults to `--pm-code-font`)          |
+| `--pm-latex-math-bracket-color`          | `{` `}` / `[` `]` / `(` `)` in nested TeX (defaults to `--pm-syntax-atom`) |
+| `--pm-latex-math-error-color`            | Failed render message (defaults to `--pm-syntax-invalid`)                  |
+| `--pm-latex-math-error-background-color` | Failed render background (defaults to semi-transparent gray)               |
 
 ## `@prosemark/spellcheck-frontend`
 

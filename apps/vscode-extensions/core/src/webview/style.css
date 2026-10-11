@@ -44,6 +44,8 @@
     --pm-syntax-invalid: var(--vscode-errorForeground);
     --pm-spellcheck-issue-underline-color: var(--vscode-editorInfo-foreground);
     --pm-cursor-color: var(--vscode-editorCursor-foreground);
+    --pm-latex-math-delimiter-color: var(--pm-syntax-keyword);
+    --pm-latex-math-bracket-color: var(--pm-syntax-literal);
 }
 
 #codemirror-container {

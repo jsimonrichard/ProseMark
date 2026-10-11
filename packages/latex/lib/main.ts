@@ -7,13 +7,18 @@ import {
 import type { EditorState, Extension } from '@codemirror/state';
 import type { SyntaxNodeRef } from '@lezer/common';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { tags } from '@lezer/highlight';
 
 import { latexMathDelimiterTag, latexMathFormulaTag } from './markdown';
 
 export {
+  latexLanguageDescription,
   latexMathDelimiterTag,
   latexMathFormulaTag,
   latexMathMarkdownSyntaxExtension,
+  latexMathNestedHighlightExtension,
+  latexMathStreamLanguage,
+  latexStreamLanguage,
 } from './markdown';
 
 const WIDGET_CLASS = 'cm-latex-math';
@@ -557,11 +562,10 @@ class LatexMathWidget extends WidgetType {
 }
 
 const latexMathSourceTheme = EditorView.theme({
-  '.cm-latex-math-delimiter': {
-    color: 'var(--pm-latex-math-delimiter-color, var(--pm-link-color))',
-  },
+  // Font only — do not set `color` here. A formula-wide color (even `inherit`)
+  // can land on the same span as nested stex tokens and wipe bracket/command
+  // colors depending on stylesheet order.
   '.cm-latex-math-formula': {
-    color: 'var(--pm-latex-math-formula-color, inherit)',
     fontFamily: `var(
       --pm-latex-math-formula-font,
       var(
@@ -578,6 +582,12 @@ const latexMathSourceTheme = EditorView.theme({
     )`,
     fontSize: '0.92em',
   },
+  '.cm-latex-math-delimiter': {
+    color: 'var(--pm-latex-math-delimiter-color, var(--pm-syntax-keyword))',
+  },
+  '.cm-latex-math-bracket': {
+    color: 'var(--pm-latex-math-bracket-color, var(--pm-syntax-atom))',
+  },
 });
 
 /**
@@ -590,10 +600,39 @@ export const latexMathSyntaxHighlighting = syntaxHighlighting(
     {
       tag: latexMathDelimiterTag,
       class: 'cm-latex-math-delimiter',
+      color: 'var(--pm-latex-math-delimiter-color, var(--pm-syntax-keyword))',
     },
     {
       tag: latexMathFormulaTag,
       class: 'cm-latex-math-formula',
+    },
+  ]),
+);
+
+/**
+ * Colors for nested `stex` / `stexMath` tokens inside math (and fenced LaTeX).
+ * Stream styles map `tag` → {@link tags.tagName}; core’s
+ * `generalSyntaxHighlights` does not style that tag, so without this the
+ * nested parse produces no visible command colors.
+ */
+export const latexNestedTokenSyntaxHighlighting = syntaxHighlighting(
+  HighlightStyle.define([
+    {
+      tag: tags.tagName,
+      color: 'var(--pm-syntax-special-variable-macro)',
+    },
+    {
+      tag: tags.bracket,
+      class: 'cm-latex-math-bracket',
+      color: 'var(--pm-latex-math-bracket-color, var(--pm-syntax-atom))',
+    },
+    {
+      tag: tags.number,
+      color: 'var(--pm-syntax-literal)',
+    },
+    {
+      tag: tags.standard(tags.variableName),
+      color: 'var(--pm-syntax-atom)',
     },
   ]),
 );
@@ -672,7 +711,9 @@ const latexMathWidgetTheme = EditorView.theme({
  * **`markdown({ extensions: [...] })`**. Without that, `$...$` / `$$...$$` are not
  * parsed as math and these extensions have nothing to render.
  *
- * Add {@link latexMathSyntaxHighlighting} (via {@link latexMarkdownSyntaxTheme})
+ * Add {@link latexMathNestedHighlightExtension} in the same `extensions` list
+ * for nested TeX (`stexMath`) highlighting inside `MathFormula`. Add
+ * {@link latexMathSyntaxHighlighting} (via {@link latexMarkdownSyntaxTheme})
  * for delimiter/formula source coloring.
  */
 export function latexMarkdownEditorExtensions(
@@ -726,9 +767,11 @@ export function latexMarkdownEditorExtensions(
 
 /**
  * Convenience bundle: source highlighting theme + delimiter/formula tag
- * styles. Does not include {@link latexMarkdownEditorExtensions} (widgets).
+ * styles + nested stex token colors. Does not include
+ * {@link latexMarkdownEditorExtensions} (widgets).
  */
 export const latexMarkdownSyntaxTheme: Extension[] = [
   latexMathSyntaxHighlighting,
+  latexNestedTokenSyntaxHighlighting,
   latexMathSourceTheme,
 ];
