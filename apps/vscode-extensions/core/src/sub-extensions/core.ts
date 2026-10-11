@@ -12,6 +12,7 @@ import type {
 } from '../common';
 import path from 'path';
 import { DocumentChangeEchoGate } from './documentChangeEchoGate';
+import { runDocumentHistoryCommand } from './documentHistoryCommand';
 
 const extId = 'core';
 
@@ -25,6 +26,7 @@ export class Core implements SubExtension<
 > {
   #extensionUri: vscode.Uri;
   #document: vscode.TextDocument;
+  #webviewPanel: vscode.WebviewPanel;
   #callProcAndForget: CallProc<WebviewProcMap>;
   #documentChangeEchoGate = new DocumentChangeEchoGate();
   #pendingWebviewUpdates: Promise<void> = Promise.resolve();
@@ -34,10 +36,12 @@ export class Core implements SubExtension<
     extensionUri: vscode.Uri,
     document: vscode.TextDocument,
     callProcAndForget: CallProc<WebviewProcMap>,
+    webviewPanel: vscode.WebviewPanel,
   ) {
     this.#extensionUri = extensionUri;
     this.#document = document;
     this.#callProcAndForget = callProcAndForget;
+    this.#webviewPanel = webviewPanel;
   }
 
   getExtensionId(): typeof extId {
@@ -108,7 +112,30 @@ export class Core implements SubExtension<
     reportFrontendError: (error) => {
       this.#handleFrontendError(error);
     },
+    undo: () => {
+      this.#enqueueDocumentHistoryCommand('undo');
+    },
+    redo: () => {
+      this.#enqueueDocumentHistoryCommand('redo');
+    },
   };
+
+  #enqueueDocumentHistoryCommand(command: 'undo' | 'redo') {
+    const drain = this.#pendingWebviewUpdates.catch((error: unknown) => {
+      console.error(
+        'Encountered an error in a previous webview update:',
+        error,
+      );
+    });
+    this.#pendingWebviewUpdates = runDocumentHistoryCommand({
+      drain,
+      isPanelActive: () => this.#webviewPanel.active,
+      command,
+      execute: async (cmd) => {
+        await vscode.commands.executeCommand(cmd);
+      },
+    }).then(() => undefined);
+  }
 
   async #updateTextDocument(changes: Change[]) {
     const edit = new vscode.WorkspaceEdit();
@@ -261,7 +288,7 @@ export class Core implements SubExtension<
 export function createCore(
   extensionUri: vscode.Uri,
 ): SubExtensionCallback<typeof extId, unknown, unknown> {
-  return ({ document, callProcAndForget }) => {
-    return new Core(extensionUri, document, callProcAndForget);
+  return ({ document, callProcAndForget, webviewPanel }) => {
+    return new Core(extensionUri, document, callProcAndForget, webviewPanel);
   };
 }

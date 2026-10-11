@@ -1,4 +1,4 @@
-import { EditorView } from '@codemirror/view';
+import { EditorView, keymap } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import * as ProseMarkCore from '@prosemark/core';
@@ -20,6 +20,7 @@ import { GFM } from '@lezer/markdown';
 import {
   Compartment,
   EditorState,
+  Prec,
   StateEffect,
   Transaction,
 } from '@codemirror/state';
@@ -227,6 +228,35 @@ window.addEventListener('unhandledrejection', (event) => {
   });
 });
 
+/** TextDocument owns undo/redo; forward chords instead of using CM history. */
+const forwardDocumentHistory = (command: 'undo' | 'redo') => {
+  callProcAndForget(command);
+  return true;
+};
+
+const vscodeDocumentHistoryExtension = [
+  Prec.highest(
+    keymap.of([
+      { key: 'Mod-z', run: () => forwardDocumentHistory('undo') },
+      { key: 'Mod-y', run: () => forwardDocumentHistory('redo') },
+      { key: 'Mod-Shift-z', run: () => forwardDocumentHistory('redo') },
+    ]),
+  ),
+  EditorView.domEventHandlers({
+    beforeinput(event) {
+      if (event.inputType === 'historyUndo') {
+        event.preventDefault();
+        return forwardDocumentHistory('undo');
+      }
+      if (event.inputType === 'historyRedo') {
+        event.preventDefault();
+        return forwardDocumentHistory('redo');
+      }
+      return false;
+    },
+  }),
+];
+
 // Send updates to VS Code about text changes and word count
 const updateVSCodeExtension = EditorView.updateListener.of((update) => {
   if (update.docChanged || update.selectionSet) {
@@ -284,7 +314,8 @@ const buildEditor = (text: string) => {
           renderHtmlMarkdownSyntaxExtensions,
         ],
       }),
-      prosemarkBasicSetup(),
+      prosemarkBasicSetup({ history: false }),
+      ...vscodeDocumentHistoryExtension,
       prosemarkBaseThemeSetup(),
       clickLinkHandler.of((url) => {
         callProcAndForget('linkClick', url);

@@ -199,6 +199,8 @@ export interface SubExtensionCallbackContext<WebviewPM> {
   callProcAndForget: CallProc<WebviewPM>;
   callProcWithReturnValue: CallProcWithReturnValue<WebviewPM>;
   webview: vscode.Webview;
+  /** Panel for this custom editor instance; used for active-panel checks (e.g. undo). */
+  webviewPanel: vscode.WebviewPanel;
 }
 
 export type SubExtensionCallback<ExtId extends string, WebviewPM, VSCodePM> = (
