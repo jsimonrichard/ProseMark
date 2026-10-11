@@ -18,7 +18,9 @@ import {
 } from '@prosemark/paste-rich-text';
 import { GFM } from '@lezer/markdown';
 import {
+  ChangeSet,
   Compartment,
+  EditorSelection,
   EditorState,
   Prec,
   StateEffect,
@@ -425,8 +427,14 @@ const procs: WebviewProcMap = {
     }
 
     try {
-      window.proseMark.view.dispatch({
+      const view = window.proseMark.view;
+      const changeSet = ChangeSet.of(mappedChanges, view.state.doc.length);
+      const mappedSelection = view.state.selection.map(changeSet, 1);
+      view.dispatch({
         changes: mappedChanges,
+        selection: EditorSelection.create([
+          EditorSelection.cursor(mappedSelection.main.to, 1),
+        ]),
         userEvent: 'updateFromVSCode',
         annotations: Transaction.addToHistory.of(false),
       });

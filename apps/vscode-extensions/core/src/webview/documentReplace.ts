@@ -13,8 +13,9 @@ export type DocumentReplacePlan =
  * and `after`, and map `selection` through that edit.
  *
  * A raw replace of the whole document maps every in-range cursor to offset 0.
- * The contiguous edit keeps a cursor in the shared prefix or suffix, and
- * places a cursor inside the edited span on that span.
+ * The contiguous edit keeps a cursor in the shared prefix or suffix. The
+ * caret is placed at the end of the mapped main range (assoc +1), which
+ * matches natural undo/redo caret placement after an insertion is restored.
  */
 export const planDocumentReplace = (
   before: string,
@@ -27,7 +28,9 @@ export const planDocumentReplace = (
 
   const change = contiguousDocumentChange(before, after);
   const changeSet = ChangeSet.of([change], before.length);
-  const mapped = selection.map(changeSet);
+  // Bias toward the end of the change so a restored insertion leaves the
+  // caret after the text, not before it.
+  const mapped = selection.map(changeSet, 1);
   for (const range of mapped.ranges) {
     if (
       range.from < 0 ||
@@ -41,7 +44,12 @@ export const planDocumentReplace = (
     }
   }
 
-  return { kind: 'replace', changes: change, selection: mapped };
+  const main = mapped.main;
+  return {
+    kind: 'replace',
+    changes: change,
+    selection: EditorSelection.create([EditorSelection.cursor(main.to, 1)]),
+  };
 };
 
 const contiguousDocumentChange = (

@@ -91,6 +91,22 @@ describe('planDocumentReplace', () => {
     expect(plan.selection.main.head).toBe(after.indexOf('stays'));
     expect(plan.selection.main.head).not.toBe(0);
   });
+
+  test('places the caret at the end of a restored insertion', () => {
+    const before = 'alpha gamma';
+    const after = 'alpha beta gamma';
+    const plan = planDocumentReplace(
+      before,
+      EditorSelection.single(before.indexOf('gamma')),
+      after,
+    );
+    if (plan.kind !== 'replace') {
+      throw new Error('expected a replace');
+    }
+    // Restored "beta " — caret at end of that span (start of gamma), not before it.
+    expect(plan.selection.main.head).toBe(after.indexOf('gamma'));
+    expect(plan.selection.main.empty).toBe(true);
+  });
 });
 
 describe('document replace and history', () => {
