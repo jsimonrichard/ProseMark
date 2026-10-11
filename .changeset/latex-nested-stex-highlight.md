@@ -1,5 +1,5 @@
 ---
-'@prosemark/latex': minor
+'@prosemark/latex': patch
 'vscode-prosemark': patch
 ---
 
