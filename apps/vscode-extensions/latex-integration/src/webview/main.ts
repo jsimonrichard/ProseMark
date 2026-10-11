@@ -34,7 +34,7 @@ let latexSetupDone = false;
 
 const procs: WebviewProcMap = {
   // eslint-disable-next-line @typescript-eslint/require-await -- async setup matches other integrations
-  setup: async ({ mathJaxPackageUrl }) => {
+  setup: async ({ mathJaxPackageUrl, enableMathJaxA11y }) => {
     const view = window.proseMark?.view;
     if (!view) {
       console.warn('[ProseMark] latex-integration setup: no view');
@@ -52,6 +52,7 @@ const procs: WebviewProcMap = {
           mathJaxLoadMode: 'url-import',
           mathJaxPackageUrl,
           output: 'svg',
+          enableMathJaxA11y,
         }),
       ]);
     } catch (err: unknown) {

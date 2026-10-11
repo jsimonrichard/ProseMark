@@ -55,6 +55,29 @@ describe('MathJax load helpers', () => {
         }
       ).MathJax?.startup?.typeset,
     ).toBe(false);
+    expect(
+      (
+        globalThis as typeof globalThis & {
+          MathJax?: { options?: unknown };
+        }
+      ).MathJax?.options,
+    ).toBeUndefined();
+  });
+
+  test('preconfigureMathJaxLoader disables a11y when requested', () => {
+    preconfigureMathJaxLoader('https://example.test/mj', { enableA11y: false });
+    const options = (
+      globalThis as typeof globalThis & {
+        MathJax?: {
+          options?: {
+            enableSpeech?: boolean;
+            enableEnrichment?: boolean;
+          };
+        };
+      }
+    ).MathJax?.options;
+    expect(options?.enableSpeech).toBe(false);
+    expect(options?.enableEnrichment).toBe(false);
   });
 });
 

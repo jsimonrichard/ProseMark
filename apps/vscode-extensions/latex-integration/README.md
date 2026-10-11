@@ -20,6 +20,8 @@ This extension does not contribute VS Code settings yet.
 
 ## Known issues
 
+- **MathJax SRE / speech in Visual Studio Code** — unsupported; a11y is disabled so formulas still render. See [Why MathJax SRE (speech) is off in Visual Studio Code](#why-mathjax-sre-speech-is-off-in-visual-studio-code). Cursor keeps SRE on.
+
 Please report bugs on the [GitHub issues page](https://github.com/jsimonrichard/ProseMark/issues).
 
 ## Developing this extension
@@ -28,31 +30,24 @@ After `bun install`, run `bun run build`. **Vite** produces `dist/webview/webvie
 
 ### MathJax load modes
 
-This extension uses **`url-import`**: the extension host passes a webview URL for `dist/webview/mathjax/`, and the webview dynamically imports `tex-svg.js` from there. That keeps `webview.js` small and lets MathJax load `sre/speech-worker.js` as a separate file (copied by the Vite plugin).
+This extension uses **`url-import`**: the extension host passes a webview URL for `dist/webview/mathjax/`, and the webview dynamically imports `tex-svg.js` from there. That keeps `webview.js` small (~47 KB) instead of bundling ~1.8 MB of MathJax into the IIFE.
 
-If you switch to **`static-import`** (`import 'mathjax/tex-svg.js'` bundled into `webview.js`), note that the combined `tex-svg` startup includes MathJax **a11y** support. It tries to load **`sre/speech-worker.js` as a web worker** at runtime. A bundler usually only emits your main bundle, so the worker is missing unless you handle it explicitly.
+### Why MathJax SRE (speech) is off in Visual Studio Code
 
-Pick one approach:
+MathJax’s combined `tex-svg` startup enables accessibility by default. At runtime it starts SRE roughly like this:
 
-1. **Disable a11y** (simplest with `static-import` when you are not copying `sre/`) — set options on `window.MathJax` **before** the static import:
+1. Create a **blob** (or `data:`) worker — VS Code allows this.
+2. Inside that worker, call **`importScripts(<webview-url>/sre/speech-worker.js)`**.
 
-   ```ts
-   window.MathJax = {
-     startup: {
-       typeset: false,
-     },
-     options: {
-       enableSpeech: false,
-       enableBraille: false,
-       enableEnrichment: false,
-       menuOptions: {
-         settings: { enrich: false, speech: false, braille: false },
-       },
-     },
-   };
-   import 'mathjax/tex-svg.js';
-   ```
+Stock VS Code webviews **do not allow** `importScripts` (or dynamic `import`) of extension / webview resource URLs inside workers. Official docs: [Using Web Workers](https://code.visualstudio.com/api/extension-guides/webview#using-web-workers). The failure looks like:
 
-2. **Keep a11y** — copy `sre/` from the `mathjax` npm package next to where `tex-svg.js` is served, and point MathJax at that root (for example with `preconfigureMathJaxLoader` and `loader.paths.mathjax`, or `@prosemark/latex/vite-plugin-mathjax` with `url-import`). The worker cannot be inlined into an IIFE the way the main startup script can.
+```text
+NetworkError: Failed to execute 'importScripts' on 'WorkerGlobalScope':
+The script at 'https://file+.vscode-resource.vscode-cdn.net/…/sre/speech-worker.js' failed to load.
+```
 
-The shipped extension uses **url-import + copied `sre/`** so math renders without bundling ~1.8 MB of MathJax into `webview.js`.
+After that, `tex2svgPromise` never settles, so math widgets stay empty. Copying `sre/` next to `tex-svg.js` (and serving it via `asWebviewUri`) does **not** fix this — the file is already loadable as a normal resource; the block is specifically `importScripts` in a worker.
+
+**Cursor** allows that `importScripts`, so this extension enables MathJax a11y when `vscode.env.appName` contains `"Cursor"` and leaves it disabled for Visual Studio Code and other hosts (fail closed). See `src/host-mathjax-a11y.ts`.
+
+If you switch this extension to **`static-import`**, keep the same host split (or always disable a11y) — see `@prosemark/latex` README.

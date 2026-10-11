@@ -6,6 +6,7 @@ import type {
   SubExtensionCallback,
 } from '@prosemark/vscode-extension-integrator/types';
 import type { VSCodeExtensionProcMap, WebviewProcMap } from './common';
+import { hostSupportsMathJaxSreImportScripts } from './host-mathjax-a11y';
 
 export const extId = 'latex-integration';
 
@@ -68,6 +69,9 @@ export class LatexIntegration implements SubExtension<
   onReady(): void {
     void this.#callProcWithReturnValue('setup', {
       mathJaxPackageUrl: this.#getMathJaxPackageUrl(),
+      enableMathJaxA11y: hostSupportsMathJaxSreImportScripts(
+        vscode.env.appName,
+      ),
     }).catch((e: unknown) => {
       console.error(e);
     });

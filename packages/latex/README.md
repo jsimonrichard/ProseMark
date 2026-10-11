@@ -60,28 +60,24 @@ latexMarkdownEditorExtensions({
 });
 ```
 
-**Accessibility / speech worker:** the combined `tex-svg.js` / `tex-chtml.js` startup includes MathJax a11y extensions. At runtime it loads **`sre/speech-worker.js` as a separate web worker**. Bundlers usually only emit your main bundle, so the worker is missing unless you copy `sre/` from the `mathjax` package and configure `loader.paths.mathjax`, or use **`url-import`** with `@prosemark/latex/vite-plugin-mathjax` instead.
+**Accessibility / speech worker:** the combined `tex-svg.js` / `tex-chtml.js` startup includes MathJax a11y extensions. At runtime it loads **`sre/speech-worker.js` as a separate web worker** (blob worker + `importScripts`). In a normal browser, copy `sre/` next to the startup file (or use `@prosemark/latex/vite-plugin-mathjax`’s default copy list) and point `loader.paths.mathjax` at that root.
 
-If you do not need speech or enrichment and want to avoid shipping the `sre/` worker, disable a11y by setting `window.MathJax.options` **before** the static import:
+**Stock VS Code webviews** cannot `importScripts` extension resource URLs inside workers ([docs](https://code.visualstudio.com/api/extension-guides/webview#using-web-workers)), so copying `sre/` is not enough — pass **`enableMathJaxA11y: false`** (url-import) or disable a11y before a static import; otherwise `tex2svgPromise` may hang forever. (Cursor’s webview allows the `importScripts`; the ProseMark latex VS Code extension enables a11y only there.)
 
 ```ts
-window.MathJax = {
-  startup: {
-    typeset: false,
-  },
-  options: {
-    enableSpeech: false,
-    enableBraille: false,
-    enableEnrichment: false,
-    menuOptions: {
-      settings: { enrich: false, speech: false, braille: false },
-    },
-  },
-};
+// url-import (VS Code webview, etc.)
+latexMarkdownEditorExtensions({
+  mathJaxLoadMode: 'url-import',
+  mathJaxPackageUrl,
+  enableMathJaxA11y: false,
+});
+
+// static-import — before importing tex-svg / tex-chtml:
+preconfigureMathJaxLoader(packageUrl, { enableA11y: false });
 import 'mathjax/tex-svg.js';
 ```
 
-**Note:** `@prosemark/latex` does not read `node_modules` at runtime for `url-import`. Serving a copied tree under `public/` (or similar) is enough for self-hosting. For Vite apps and the VS Code webview, `@prosemark/latex/vite-plugin-mathjax` can copy selected files from the `mathjax` package into your build output. You still need the **parser** section above so `Math` nodes exist.
+**Note:** `@prosemark/latex` does not read `node_modules` at runtime for `url-import`. Serving a copied tree under `public/` (or similar) is enough for self-hosting. `@prosemark/latex/vite-plugin-mathjax` can copy selected files from the `mathjax` package into your build output (the VS Code latex extension copies `tex-svg.js` only). You still need the **parser** section above so `Math` nodes exist.
 
 ## Usage
 
