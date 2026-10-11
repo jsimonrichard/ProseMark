@@ -76,7 +76,7 @@ Hide marks use CSS `font-size: 0`, so the characters stay in the document and in
 There is **no** CodeMirror facet to replace `posAtCoords` itself. ProseMark therefore:
 
 1. Ships [`visiblePosAtCoords`](/api/prosemark/core/functions/visibleposatcoords/) — the same closest-horizontally / midpoint rule as CodeMirror, but only over clusters with a positive client box. Use this anywhere a host would call `view.posAtCoords` (custom handlers, tooltips, etc.).
-2. Installs an internal [`mouseSelectionStyle`](https://codemirror.net/docs/ref/#view.EditorView%5EmouseSelectionStyle) on `hideExtension` so normal clicks and drag-selections use that mapper. That is the supported extension point for pointer → selection; it is not a second “guess” pass over a failed `posAtCoords`.
+2. Installs an internal [`mouseSelectionStyle`](https://codemirror.net/docs/ref/#view.EditorView%5EmouseSelectionStyle) on `hideExtension` so normal clicks and drag-selections use that mapper.
 
 When a line has no collapsed clusters, `visiblePosAtCoords` delegates to CodeMirror unchanged. The pure hit-test helper [`posFromVisibleCharRects`](/api/prosemark/core/functions/posfromvisiblecharrects/) is also exported for tests and advanced hosts.
 

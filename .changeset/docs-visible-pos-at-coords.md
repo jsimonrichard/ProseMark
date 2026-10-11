@@ -2,4 +2,4 @@
 '@prosemark/core': patch
 ---
 
-Document `visiblePosAtCoords` for hide hosts, and drive pointer selection from that mapper without class-name or naive-`posAtCoords` gates.
+Document `visiblePosAtCoords` for hide hosts, and wire pointer selection through that mapper on `hideExtension`.

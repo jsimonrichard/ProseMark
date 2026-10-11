@@ -119,7 +119,7 @@ const collectVisibleCharRects = (
   const text = view.state.doc.sliceString(lineFrom, lineTo);
   const rects: VisibleCharRect[] = [];
   let collapsed = false;
-  for (let i = 0; i < text.length; ) {
+  for (let i = 0; i < text.length;) {
     const next = findClusterBreak(text, i);
     const from = lineFrom + i;
     const to = lineFrom + next;
@@ -193,9 +193,8 @@ const rangeForVisibleClick = (
 
 /**
  * Pointer selection for hide: CodeMirror has no facet to replace
- * `posAtCoords`, so this `mouseSelectionStyle` is the supported way to make
- * clicks/drags use {@link visiblePosAtCoords}. First non-null style wins;
- * returning null would fall through to CM's broken mapper on collapsed lines.
+ * `posAtCoords`, so this `mouseSelectionStyle` makes clicks/drags use
+ * {@link visiblePosAtCoords}. First non-null style wins.
  */
 const hidePointerSelectionExtension = EditorView.mouseSelectionStyle.of(
   (view, event) => {

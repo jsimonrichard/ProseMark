@@ -33,10 +33,11 @@ function getUrlFromLink(view: EditorView, pos: number): string | undefined {
   return url;
 }
 
-/** Resolve a click position, correcting for font-size-0 hidden tokens. */
 function posAtClick(view: EditorView, event: MouseEvent): number | null {
-  const coords = { x: event.clientX, y: event.clientY };
-  return visiblePosAtCoords(view, coords) ?? view.posAtCoords(coords);
+  return visiblePosAtCoords(view, {
+    x: event.clientX,
+    y: event.clientY,
+  });
 }
 
 export type ClickLinkHandler = (link: string) => void;
