@@ -6,7 +6,7 @@ Published on npm: [`@prosemark/paste-rich-text`](https://www.npmjs.com/package/@
 
 ## What it provides
 
-- **`pasteRichTextExtension`** — Intercepts `paste` when the clipboard has `text/html`, converts HTML to Markdown with [Turndown](https://github.com/mixmark-io/turndown), and inserts the result. Skips conversion when the selection is inside a fenced code block.
+- **`pasteRichTextExtension`** — Intercepts `paste` when the clipboard has `text/html`, converts HTML to Markdown with [Turndown](https://github.com/mixmark-io/turndown), and inserts the result. Skips conversion when the selection is inside a fenced code block. Anchors whose visible text equals the `href` become a bare URL (not `[url](url)`), so they can render as GFM autolinks.
 - **`pastePlainTextExtension`** — **`Mod-Shift-V`** reads plain text from the clipboard and inserts it (bypasses rich paste).
 
 Both accept an optional callback after insert (for example to run spellcheck or sync document state).

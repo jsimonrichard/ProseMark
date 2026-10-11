@@ -158,6 +158,7 @@ latexMarkdownEditorExtensions({
   renderCacheSize: 128, // LRU of rendered DOM trees; 0 to disable
   mathJaxLoadMode: 'url-import', // or 'static-import' when you bundle MathJax
   // mathJaxPackageUrl — only for url-import; omit for default jsDelivr
+  // enableMathJaxA11y: false — required in stock VS Code webviews (see above)
 });
 ```
 
