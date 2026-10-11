@@ -167,15 +167,20 @@ case "$EVENT" in
 esac
 
 # --- checks (per repo) ------------------------------------------------------
+# Keep `full` identical to CI "Merge checks" (.github/workflows/ci.yml): same
+# install, then the same turbo invocation. A preliminary check-types-without-
+# install (or without build) can fail when CI would pass after a fresh install.
 preflight() {
   [ -d node_modules ] || { echo "dependencies are not installed - run 'bun install' in the repo root."; return 1; }
 }
 run_checks() {
-  step "check-types+lint" bunx turbo run check-types lint || return 1
-  step "format:check"     bun run format:check            || return 1
-  [ "$MODE" = "full" ] || return 0
-  # The exact set CI runs (.github/workflows/ci.yml "Merge checks"):
-  step "ci merge checks" bun run turbo build check-types lint format:check || return 1
+  if [ "$MODE" = "full" ]; then
+    step "install (frozen)" bun install --frozen-lockfile || return 1
+    step "ci merge checks" bun run turbo build check-types lint format:check || return 1
+    return 0
+  fi
+  step "check-types+lint" bun run turbo run check-types lint || return 1
+  step "format:check" bun run format:check || return 1
 }
 
 # --- an unconfigured gate must not pretend to have checked anything ---------
