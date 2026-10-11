@@ -13,6 +13,9 @@ export interface VSCodeExtensionProcMap {
   linkClick: (link: string) => void;
   requestFullDocument: () => Promise<string>;
   reportFrontendError: (error: FrontendError) => void;
+  /** Forward to the TextDocument undo stack (VS Code owns document history). */
+  undo: () => void;
+  redo: () => void;
 }
 
 export type WebviewMessage = MessageFromProcMap<'core', VSCodeExtensionProcMap>;

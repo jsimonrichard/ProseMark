@@ -1,4 +1,4 @@
-import { EditorView } from '@codemirror/view';
+import { EditorView, keymap } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import * as ProseMarkCore from '@prosemark/core';
@@ -17,7 +17,15 @@ import {
   pasteRichTextExtension,
 } from '@prosemark/paste-rich-text';
 import { GFM } from '@lezer/markdown';
-import { Compartment, EditorState, StateEffect } from '@codemirror/state';
+import {
+  ChangeSet,
+  Compartment,
+  EditorSelection,
+  EditorState,
+  Prec,
+  StateEffect,
+  Transaction,
+} from '@codemirror/state';
 import type {
   Change,
   FrontendError,
@@ -26,6 +34,7 @@ import type {
   WordCountVSCodeProcs,
 } from '../common';
 import './style.css';
+import { planDocumentReplace } from './documentReplace';
 import { indentUnit } from '@codemirror/language';
 import {
   registerWebviewMessageHandler,
@@ -114,33 +123,26 @@ const getDocOffset = (
   return line.from + clampedChar;
 };
 
-const replaceEditorDocumentText = (
-  text: string,
-  options?: { resetSelectionBeforeReplace?: boolean },
-): boolean => {
+const replaceEditorDocumentText = (text: string): boolean => {
   const view = window.proseMark?.view;
   if (!view) {
     return false;
   }
 
-  if (options?.resetSelectionBeforeReplace) {
-    const selection = view.state.selection.main;
-    if (selection.anchor !== 0 || selection.head !== 0) {
-      view.dispatch({
-        selection: { anchor: 0 },
-        userEvent: 'updateFromVSCode',
-      });
-    }
+  const plan = planDocumentReplace(
+    view.state.doc.toString(),
+    view.state.selection,
+    text,
+  );
+  if (plan.kind === 'unchanged') {
+    return true;
   }
 
   view.dispatch({
-    changes: {
-      from: 0,
-      to: view.state.doc.length,
-      insert: text,
-    },
-    selection: { anchor: 0 },
+    changes: plan.changes,
+    selection: plan.selection,
     userEvent: 'updateFromVSCode',
+    annotations: Transaction.addToHistory.of(false),
   });
   return true;
 };
@@ -158,9 +160,7 @@ const recoverFromStateMismatch = async (
 
   try {
     const latestText = await callProcWithReturnValue('requestFullDocument');
-    const didReplaceText = replaceEditorDocumentText(latestText, {
-      resetSelectionBeforeReplace: true,
-    });
+    const didReplaceText = replaceEditorDocumentText(latestText);
     if (!didReplaceText) {
       reportFrontendError({
         source,
@@ -210,6 +210,35 @@ window.addEventListener('unhandledrejection', (event) => {
     details: formatUnknownError(event.reason),
   });
 });
+
+/** TextDocument owns undo/redo; forward chords instead of using CM history. */
+const forwardDocumentHistory = (command: 'undo' | 'redo') => {
+  callProcAndForget(command);
+  return true;
+};
+
+const vscodeDocumentHistoryExtension = [
+  Prec.highest(
+    keymap.of([
+      { key: 'Mod-z', run: () => forwardDocumentHistory('undo') },
+      { key: 'Mod-y', run: () => forwardDocumentHistory('redo') },
+      { key: 'Mod-Shift-z', run: () => forwardDocumentHistory('redo') },
+    ]),
+  ),
+  EditorView.domEventHandlers({
+    beforeinput(event) {
+      if (event.inputType === 'historyUndo') {
+        event.preventDefault();
+        return forwardDocumentHistory('undo');
+      }
+      if (event.inputType === 'historyRedo') {
+        event.preventDefault();
+        return forwardDocumentHistory('redo');
+      }
+      return false;
+    },
+  }),
+];
 
 // Send updates to VS Code about text changes and word count
 const updateVSCodeExtension = EditorView.updateListener.of((update) => {
@@ -268,7 +297,8 @@ const buildEditor = (text: string) => {
           renderHtmlMarkdownSyntaxExtensions,
         ],
       }),
-      prosemarkBasicSetup(),
+      prosemarkBasicSetup({ history: false }),
+      ...vscodeDocumentHistoryExtension,
       prosemarkBaseThemeSetup(),
       clickLinkHandler.of((url) => {
         callProcAndForget('linkClick', url);
@@ -329,11 +359,7 @@ const procs: WebviewProcMap = {
     procs.focus();
   },
   set: (text) => {
-    if (
-      !replaceEditorDocumentText(text, {
-        resetSelectionBeforeReplace: true,
-      })
-    ) {
+    if (!replaceEditorDocumentText(text)) {
       reportFrontendError({
         source: 'core.set',
         severity: 'fatal',
@@ -378,9 +404,16 @@ const procs: WebviewProcMap = {
     }
 
     try {
-      window.proseMark.view.dispatch({
+      const view = window.proseMark.view;
+      const changeSet = ChangeSet.of(mappedChanges, view.state.doc.length);
+      const mappedSelection = view.state.selection.map(changeSet, 1);
+      view.dispatch({
         changes: mappedChanges,
+        selection: EditorSelection.create([
+          EditorSelection.cursor(mappedSelection.main.to, 1),
+        ]),
         userEvent: 'updateFromVSCode',
+        annotations: Transaction.addToHistory.of(false),
       });
     } catch (error: unknown) {
       void recoverFromStateMismatch(

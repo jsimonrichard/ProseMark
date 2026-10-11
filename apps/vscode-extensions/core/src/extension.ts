@@ -74,7 +74,7 @@ class ProseMarkEditor {
 
     this.#subExtensionsManager =
       subExtensionCallbackManager.buildExtensionManager(
-        this.#webviewPanel.webview,
+        this.#webviewPanel,
         this.#document,
         onSubsequentRegister,
       );

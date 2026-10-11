@@ -39,38 +39,51 @@ import { revealBlockOnArrowExtension } from './revealBlockOnArrow';
 import { prosemarkMarkdownFormattingKeymap } from './markdownFormattingKeymap';
 export { prosemarkMarkdownSyntaxExtensions } from './markdown';
 
-export const prosemarkBasicSetup = (): Extension => [
-  // ProseMark Setup
-  defaultHideExtensions,
-  defaultFoldableSyntaxExtensions,
-  revealBlockOnArrowExtension,
-  clickLinkExtension,
-  defaultClickLinkHandler,
-  fixedTabWidthExtension,
-  softIndentExtension,
-  codeBlockDecorationsExtension,
+export interface ProsemarkBasicSetupOptions {
+  /**
+   * Include CodeMirror document history and its keybindings.
+   * Default true. Pass false when a host (e.g. VS Code TextDocument) owns undo/redo.
+   */
+  history?: boolean;
+}
 
-  // Basic CodeMirror Setup
-  history(),
-  dropCursor(),
-  indentOnInput(),
-  bracketMatching(),
-  closeBrackets(),
-  autocompletion(),
-  keymap.of([
-    ...prosemarkMarkdownFormattingKeymap,
-    ...closeBracketsKeymap,
-    ...defaultKeymap,
-    ...searchKeymap,
-    ...historyKeymap,
-    ...foldKeymap,
-    ...completionKeymap,
-    ...lintKeymap,
-    indentWithTab,
-  ]),
-  foldGutter(),
-  EditorView.lineWrapping,
-];
+export const prosemarkBasicSetup = (
+  options: ProsemarkBasicSetupOptions = {},
+): Extension => {
+  const includeHistory = options.history !== false;
+  return [
+    // ProseMark Setup
+    defaultHideExtensions,
+    defaultFoldableSyntaxExtensions,
+    revealBlockOnArrowExtension,
+    clickLinkExtension,
+    defaultClickLinkHandler,
+    fixedTabWidthExtension,
+    softIndentExtension,
+    codeBlockDecorationsExtension,
+
+    // Basic CodeMirror Setup
+    ...(includeHistory ? [history()] : []),
+    dropCursor(),
+    indentOnInput(),
+    bracketMatching(),
+    closeBrackets(),
+    autocompletion(),
+    keymap.of([
+      ...prosemarkMarkdownFormattingKeymap,
+      ...closeBracketsKeymap,
+      ...defaultKeymap,
+      ...searchKeymap,
+      ...(includeHistory ? historyKeymap : []),
+      ...foldKeymap,
+      ...completionKeymap,
+      ...lintKeymap,
+      indentWithTab,
+    ]),
+    foldGutter(),
+    EditorView.lineWrapping,
+  ];
+};
 
 export const prosemarkBaseThemeSetup = (): Extension => [
   baseSyntaxHighlights,

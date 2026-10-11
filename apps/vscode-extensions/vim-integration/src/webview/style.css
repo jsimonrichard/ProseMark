@@ -11,6 +11,16 @@
     color: transparent !important;
 }
 
+/* Insert mode removes `.cm-vimMode`, so the thin caret comes from `drawSelection`.
+   Pin its color to the same VS Code cursor token the fat cursor uses. */
+#codemirror-container .cm-cursor,
+#codemirror-container .cm-dropCursor {
+    border-left-color: var(--pm-cursor-color) !important;
+}
+#codemirror-container .cm-content {
+    caret-color: var(--pm-cursor-color);
+}
+
 /* Vim makes native ::selection transparent; CM drawSelection uses this layer. */
 #codemirror-container {
     --pm-selection-background-color: var(--vscode-editor-selectionBackground);

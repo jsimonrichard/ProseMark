@@ -11,8 +11,14 @@ import type {
   WebviewProcMap,
 } from '../common';
 import path from 'path';
+import { DocumentChangeEchoGate } from './documentChangeEchoGate';
+import { runDocumentHistoryCommand } from './documentHistoryCommand';
 
 const extId = 'core';
+
+const scheduleMacrotask = (fn: () => void) => {
+  setTimeout(fn, 0);
+};
 
 export class Core implements SubExtension<
   typeof extId,
@@ -20,8 +26,9 @@ export class Core implements SubExtension<
 > {
   #extensionUri: vscode.Uri;
   #document: vscode.TextDocument;
+  #webviewPanel: vscode.WebviewPanel;
   #callProcAndForget: CallProc<WebviewProcMap>;
-  #isApplyingWebviewUpdate = false;
+  #documentChangeEchoGate = new DocumentChangeEchoGate();
   #pendingWebviewUpdates: Promise<void> = Promise.resolve();
   #hasShownFatalErrorMessage = false;
 
@@ -29,10 +36,12 @@ export class Core implements SubExtension<
     extensionUri: vscode.Uri,
     document: vscode.TextDocument,
     callProcAndForget: CallProc<WebviewProcMap>,
+    webviewPanel: vscode.WebviewPanel,
   ) {
     this.#extensionUri = extensionUri;
     this.#document = document;
     this.#callProcAndForget = callProcAndForget;
+    this.#webviewPanel = webviewPanel;
   }
 
   getExtensionId(): typeof extId {
@@ -79,9 +88,15 @@ export class Core implements SubExtension<
   }
 
   onTextDocumentChange(changes: Change[]): void {
-    if (!this.#isApplyingWebviewUpdate && changes.length) {
-      this.#callProcAndForget('update', changes);
+    if (
+      !this.#documentChangeEchoGate.shouldForward(
+        this.#document.version,
+        changes.length,
+      )
+    ) {
+      return;
     }
+    this.#callProcAndForget('update', changes);
   }
 
   procMap: VSCodeExtensionProcMap = {
@@ -97,7 +112,30 @@ export class Core implements SubExtension<
     reportFrontendError: (error) => {
       this.#handleFrontendError(error);
     },
+    undo: () => {
+      this.#enqueueDocumentHistoryCommand('undo');
+    },
+    redo: () => {
+      this.#enqueueDocumentHistoryCommand('redo');
+    },
   };
+
+  #enqueueDocumentHistoryCommand(command: 'undo' | 'redo') {
+    const drain = this.#pendingWebviewUpdates.catch((error: unknown) => {
+      console.error(
+        'Encountered an error in a previous webview update:',
+        error,
+      );
+    });
+    this.#pendingWebviewUpdates = runDocumentHistoryCommand({
+      drain,
+      isPanelActive: () => this.#webviewPanel.active,
+      command,
+      execute: async (cmd) => {
+        await vscode.commands.executeCommand(cmd);
+      },
+    }).then(() => undefined);
+  }
 
   async #updateTextDocument(changes: Change[]) {
     const edit = new vscode.WorkspaceEdit();
@@ -130,25 +168,30 @@ export class Core implements SubExtension<
         );
       })
       .then(async () => {
-        this.#isApplyingWebviewUpdate = true;
+        this.#documentChangeEchoGate.beginApply();
         try {
           const result = await this.#updateTextDocument(changes);
           if (!result) {
+            this.#documentChangeEchoGate.endApplyFailed(scheduleMacrotask);
             this.#recoverFromStateMismatch(
               'VS Code rejected an update from the ProseMark webview.',
             );
+            return;
           }
+          this.#documentChangeEchoGate.endApply(
+            this.#document.version,
+            scheduleMacrotask,
+          );
         } catch (error: unknown) {
           console.error(
             'Encountered an error while trying to update the document:',
             error,
           );
+          this.#documentChangeEchoGate.endApplyFailed(scheduleMacrotask);
           this.#recoverFromStateMismatch(
             'Applying an update from the ProseMark webview failed.',
             error,
           );
-        } finally {
-          this.#isApplyingWebviewUpdate = false;
         }
       });
   }
@@ -245,7 +288,7 @@ export class Core implements SubExtension<
 export function createCore(
   extensionUri: vscode.Uri,
 ): SubExtensionCallback<typeof extId, unknown, unknown> {
-  return ({ document, callProcAndForget }) => {
-    return new Core(extensionUri, document, callProcAndForget);
+  return ({ document, callProcAndForget, webviewPanel }) => {
+    return new Core(extensionUri, document, callProcAndForget, webviewPanel);
   };
 }

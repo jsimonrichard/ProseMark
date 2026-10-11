@@ -71,7 +71,7 @@ export class SubExtensionCallbackManager {
   }
 
   buildExtensionManager(
-    webview: vscode.Webview,
+    webviewPanel: vscode.WebviewPanel,
     document: vscode.TextDocument,
     onSubsequentRegister?: (nextExtensionIds: string[]) => void,
   ): SubExtensionManager {
@@ -81,7 +81,7 @@ export class SubExtensionCallbackManager {
 
     return new SubExtensionManager(
       this.#subExtensionCallbacks,
-      webview,
+      webviewPanel,
       document,
     );
   }
@@ -103,10 +103,10 @@ export class SubExtensionManager {
       string,
       SubExtensionCallback<string, unknown, unknown>
     >,
-    webview: vscode.Webview,
+    webviewPanel: vscode.WebviewPanel,
     document: vscode.TextDocument,
   ) {
-    this.#webview = webview;
+    this.#webview = webviewPanel.webview;
 
     const extensions: Record<string, UnknownSubExtension> = {};
     for (const [key, callback] of Object.entries(subExtensionCallbacks)) {
@@ -115,6 +115,7 @@ export class SubExtensionManager {
         callProcAndForget: this.#callProcAndForget(key),
         callProcWithReturnValue: this.#callProcWithReturnValue(key),
         webview: this.#webview,
+        webviewPanel,
       });
     }
 
