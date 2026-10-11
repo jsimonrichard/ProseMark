@@ -37,9 +37,6 @@ export const hideBlockDecoration = Decoration.replace({
   block: true,
 });
 
-const isZeroSizeHiddenDecoration = (deco: Decoration): boolean =>
-  (deco.spec as { class?: string }).class === HIDDEN_TOKEN_CLASS;
-
 /** Positive-width cluster geometry for visible hit-testing. */
 export interface VisibleCharRect {
   from: number;
@@ -109,28 +106,19 @@ export function posFromVisibleCharRects(
   return after ? closest.to : closest.from;
 }
 
-const lineHasZeroSizeHidden = (
-  decorations: DecorationSet,
-  from: number,
-  to: number,
-): boolean => {
-  let found = false;
-  decorations.between(from, to, (_from, _to, value) => {
-    if (isZeroSizeHiddenDecoration(value)) {
-      found = true;
-      return false;
-    }
-  });
-  return found;
-};
-
+/**
+ * Collect positive-width clusters on a line. `collapsed` is true when at least
+ * one document cluster has no positive client box (typical for `font-size: 0`
+ * hide marks) — then hit-testing should use only `rects`, not CM `posAtCoords`.
+ */
 const collectVisibleCharRects = (
   view: EditorView,
   lineFrom: number,
   lineTo: number,
-): VisibleCharRect[] => {
+): { rects: VisibleCharRect[]; collapsed: boolean } => {
   const text = view.state.doc.sliceString(lineFrom, lineTo);
   const rects: VisibleCharRect[] = [];
+  let collapsed = false;
   for (let i = 0; i < text.length; ) {
     const next = findClusterBreak(text, i);
     const from = lineFrom + i;
@@ -145,25 +133,28 @@ const collectVisibleCharRects = (
         top: rect.top,
         bottom: rect.bottom,
       });
+    } else {
+      collapsed = true;
     }
     i = next;
   }
-  return rects;
+  return { rects, collapsed };
 };
 
 /**
- * Map screen coordinates to a document position, ignoring font-size-0 hide
- * marks. CodeMirror's `posAtCoords` includes sole width-0 `getClientRects()`
- * in InlineCoordsScan, so many hidden offsets share dx=0 and the caret walks.
- * When the line has zero-size hide marks, hit-test only positive-width
- * `coordsForChar` clusters (no pixel drift threshold).
+ * Map screen coordinates to a document position, ignoring collapsed
+ * (`font-size: 0`) hide marks. CodeMirror's `posAtCoords` cannot be replaced
+ * globally — use this (or the hide extension's `mouseSelectionStyle`) wherever
+ * a host would call `view.posAtCoords`. When every cluster on the line has a
+ * positive box, delegates to CodeMirror unchanged.
  */
 export function visiblePosAtCoords(
   view: EditorView,
   coords: { x: number; y: number },
 ): number | null {
-  const decorations = view.state.field(hideExtension, false);
-  if (!decorations) return view.posAtCoords(coords);
+  if (!view.state.field(hideExtension, false)) {
+    return view.posAtCoords(coords);
+  }
 
   const content = view.contentDOM.getBoundingClientRect();
   const yOffset = coords.y - content.top - view.documentPadding.top;
@@ -172,12 +163,13 @@ export function visiblePosAtCoords(
   }
 
   const block = view.lineBlockAtHeight(yOffset);
-  if (!lineHasZeroSizeHidden(decorations, block.from, block.to)) {
-    return view.posAtCoords(coords);
-  }
-
   const line = view.state.doc.lineAt(block.from);
-  const rects = collectVisibleCharRects(view, line.from, line.to);
+  const { rects, collapsed } = collectVisibleCharRects(
+    view,
+    line.from,
+    line.to,
+  );
+  if (!collapsed) return view.posAtCoords(coords);
   if (rects.length === 0) return null;
 
   const ltr = view.textDirectionAt(line.from) === Direction.LTR;
@@ -200,22 +192,21 @@ const rangeForVisibleClick = (
 };
 
 /**
- * Prefer visible positions for pointer selection. Uses mouseSelectionStyle
- * (not a mousedown handler that returns true) so other handlers such as
- * rendered-link clicks still run.
+ * Pointer selection for hide: CodeMirror has no facet to replace
+ * `posAtCoords`, so this `mouseSelectionStyle` is the supported way to make
+ * clicks/drags use {@link visiblePosAtCoords}. First non-null style wins;
+ * returning null would fall through to CM's broken mapper on collapsed lines.
  */
-const hideClickCorrectionExtension = EditorView.mouseSelectionStyle.of(
+const hidePointerSelectionExtension = EditorView.mouseSelectionStyle.of(
   (view, event) => {
     if (event.button !== 0) return null;
+    if (!view.state.field(hideExtension, false)) return null;
 
     const coords = { x: event.clientX, y: event.clientY };
-    const naive = view.posAtCoords(coords);
-    if (naive == null) return null;
+    const start = visiblePosAtCoords(view, coords);
+    if (start == null) return null;
 
-    const corrected = visiblePosAtCoords(view, coords);
-    if (corrected == null || corrected === naive) return null;
-
-    let startPos = corrected;
+    let startPos = start;
     let startSel = view.state.selection;
     const clickType = event.detail;
 
@@ -228,10 +219,7 @@ const hideClickCorrectionExtension = EditorView.mouseSelectionStyle.of(
       },
       get(curEvent, extend, multiple) {
         const curCoords = { x: curEvent.clientX, y: curEvent.clientY };
-        const cur =
-          visiblePosAtCoords(view, curCoords) ??
-          view.posAtCoords(curCoords) ??
-          startPos;
+        const cur = visiblePosAtCoords(view, curCoords) ?? startPos;
         const range = rangeForVisibleClick(view, cur, clickType);
 
         if (extend) {
@@ -348,7 +336,7 @@ export const hideExtension = StateField.define<DecorationSet>({
   provide: (f) => [
     EditorView.decorations.from(f),
     hideTheme,
-    hideClickCorrectionExtension,
+    hidePointerSelectionExtension,
   ],
 });
 
