@@ -196,7 +196,7 @@
     },
     "apps/vscode-extensions/vim-integration": {
       "name": "vscode-prosemark-vim-integration",
-      "version": "0.0.1",
+      "version": "0.0.0",
       "dependencies": {
         "@codemirror/commands": "^6.10.1",
         "@codemirror/language": "^6.11.3",
