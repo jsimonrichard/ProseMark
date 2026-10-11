@@ -7,6 +7,7 @@ import {
 import { eventHandlersWithClass, iterChildren } from './utils';
 import { markdownTags } from './markdown/tags';
 import { Facet } from '@codemirror/state';
+import { visiblePosAtCoords } from './hide/core';
 
 function getUrlFromLink(view: EditorView, pos: number): string | undefined {
   const tree = syntaxTree(view.state);
@@ -30,6 +31,13 @@ function getUrlFromLink(view: EditorView, pos: number): string | undefined {
   });
 
   return url;
+}
+
+function posAtClick(view: EditorView, event: MouseEvent): number | null {
+  return visiblePosAtCoords(view, {
+    x: event.clientX,
+    y: event.clientY,
+  });
 }
 
 export type ClickLinkHandler = (link: string) => void;
@@ -63,7 +71,7 @@ const clickFullLinkExtension = EditorView.domEventHandlers(
   eventHandlersWithClass({
     mousedown: {
       'cm-rendered-link': (e: MouseEvent, view: EditorView) => {
-        const pos = view.posAtCoords(e);
+        const pos = posAtClick(view, e);
         if (pos === null) {
           return;
         }
@@ -112,7 +120,7 @@ const clickRawUrlExtension = EditorView.domEventHandlers(
   eventHandlersWithClass({
     mousedown: {
       'cm-url': (e: MouseEvent, view: EditorView) => {
-        const pos = view.posAtCoords(e);
+        const pos = posAtClick(view, e);
         if (pos === null) {
           return;
         }

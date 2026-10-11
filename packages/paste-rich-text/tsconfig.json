@@ -1,7 +1,8 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "allowImportingTsExtensions": true
   },
-  "include": ["lib", "*.config.ts"]
+  "include": ["lib", "tests", "*.config.ts"]
 }

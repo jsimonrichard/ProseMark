@@ -32,6 +32,40 @@ const isSelectionInsideFencedCode = (view: EditorView): boolean => {
   return isInsideAtPos(from, 1) || isInsideAtPos(to, -1);
 };
 
+/** True when the anchor's visible text is the same URL as its href. */
+export const isUrlAsLabelAnchor = (node: HTMLElement): boolean => {
+  if (node.nodeName !== 'A') return false;
+  const href = node.getAttribute('href')?.trim() ?? '';
+  if (!href) return false;
+  return node.textContent.trim() === href;
+};
+
+/**
+ * Turndown configured for ProseMark paste. Anchors whose label equals the
+ * href become a bare URL instead of `[url](url)`.
+ */
+export const createPasteTurndownService = (): TurndownService => {
+  const turndown = new TurndownService({
+    headingStyle: 'atx',
+  });
+
+  turndown.addRule('bareUrlLink', {
+    filter: (node, options) => {
+      return (
+        options.linkStyle === 'inlined' &&
+        node.nodeName === 'A' &&
+        !!node.getAttribute('href') &&
+        isUrlAsLabelAnchor(node)
+      );
+    },
+    replacement: (_content, node) => {
+      return node.getAttribute('href')?.trim() ?? '';
+    },
+  });
+
+  return turndown;
+};
+
 export const pastePlainTextExtension = (
   extraCallback?: (
     view: EditorView,
@@ -73,9 +107,7 @@ export const pasteRichTextExtension = (
     pastedRangeTo: number,
   ) => void,
 ): Extension => {
-  const turndown = new TurndownService({
-    headingStyle: 'atx',
-  });
+  const turndown = createPasteTurndownService();
 
   return EditorView.domEventHandlers({
     paste(event, view) {

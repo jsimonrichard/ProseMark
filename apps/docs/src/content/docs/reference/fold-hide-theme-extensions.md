@@ -69,6 +69,17 @@ export const myHideExtension = hidableNodeFacet.of({
 
 This extension hides all `EmphasisMark` nodes that are inside `StrongEmphasis` or `Emphasis` (italics) nodes.
 
+### Pointer coordinates (`visiblePosAtCoords`)
+
+Hide marks use CSS `font-size: 0`, so the characters stay in the document and in CodeMirror’s tile tree, but they collapse to zero width. CodeMirror’s [`posAtCoords`](https://codemirror.net/docs/ref/#view.EditorView.posAtCoords) still treats those zero-width boxes as hit targets, which makes caret placement on busy lines (links, nested emphasis) unstable.
+
+There is **no** CodeMirror facet to replace `posAtCoords` itself. ProseMark therefore:
+
+1. Ships [`visiblePosAtCoords`](/api/prosemark/core/functions/visibleposatcoords/) — the same closest-horizontally / midpoint rule as CodeMirror, but only over clusters with a positive client box. Use this anywhere a host would call `view.posAtCoords` (custom handlers, tooltips, etc.).
+2. Installs an internal [`mouseSelectionStyle`](https://codemirror.net/docs/ref/#view.EditorView%5EmouseSelectionStyle) on `hideExtension` so normal clicks and drag-selections use that mapper.
+
+When a line has no collapsed clusters, `visiblePosAtCoords` delegates to CodeMirror unchanged. The pure hit-test helper [`posFromVisibleCharRects`](/api/prosemark/core/functions/posfromvisiblecharrects/) is also exported for tests and advanced hosts.
+
 ## Theme Extensions
 
 Hiding syntax isn't enough to make markdown text look "rendered." We also need to give it some style. This can be done using theme extensions and syntax highlighting extensions.

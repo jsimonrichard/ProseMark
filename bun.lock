@@ -313,6 +313,7 @@
       },
       "devDependencies": {
         "@prosemark/eslint-config": "workspace:*",
+        "@types/bun": "^1.3.13",
         "eslint": "^9.39.2",
       },
     },
