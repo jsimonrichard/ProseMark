@@ -45,9 +45,11 @@
   },
   "dependencies": {
     "@codemirror/language": "^6.11.3",
+    "@codemirror/legacy-modes": "^6.5.0",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.42.1",
     "@lezer/common": "^1.5.2",
+    "@lezer/highlight": "^1.2.3",
     "@lezer/markdown": "^1.6.3",
     "@prosemark/core": "workspace:*"
   },
@@ -64,6 +66,7 @@
     }
   },
   "devDependencies": {
+    "@codemirror/lang-markdown": "^6.5.0",
     "@prosemark/eslint-config": "workspace:*",
     "@types/bun": "^1.4.2",
     "@types/node": "^24.10.4",

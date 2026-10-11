@@ -16,6 +16,7 @@ import {
   pastePlainTextExtension,
   pasteRichTextExtension,
 } from '@prosemark/paste-rich-text';
+import { latexMathNestedHighlightExtension } from '@prosemark/latex';
 import { GFM } from '@lezer/markdown';
 import {
   ChangeSet,
@@ -294,6 +295,7 @@ const buildEditor = (text: string) => {
         extensions: [
           GFM,
           prosemarkMarkdownSyntaxExtensions,
+          latexMathNestedHighlightExtension,
           renderHtmlMarkdownSyntaxExtensions,
         ],
       }),

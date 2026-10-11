@@ -47,7 +47,7 @@ These features are illustrated in our [Demo](/demo).
 
 ## `@prosemark/latex`
 
-- Dollar-delimited math (`$...$` / `$$...$$`) is parsed as `Math` nodes when [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/) is enabled (included in [`prosemarkMarkdownSyntaxExtensions`](/api/prosemark/core/variables/prosemarkmarkdownsyntaxextensions/)). `latexMathMarkdownSyntaxExtension` is a re-export of that extension.
+- Dollar-delimited math (`$...$` / `$$...$$`) is parsed as `Math` nodes when [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/) is enabled (included in [`prosemarkMarkdownSyntaxExtensions`](/api/prosemark/core/variables/prosemarkmarkdownsyntaxextensions/)). `latexMathMarkdownSyntaxExtension` is a re-export of that extension. Add [`latexMathNestedHighlightExtension`](/api/prosemark/latex/variables/latexmathnestedhighlightextension/) from `@prosemark/latex` for nested TeX (`stexMath`) highlighting inside `MathFormula`.
 
 - Rendered with MathJax via `latexMarkdownEditorExtensions()` and `latexMarkdownSyntaxTheme`.
 

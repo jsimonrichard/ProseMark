@@ -4,3 +4,10 @@ export {
   mathFormulaTag as latexMathFormulaTag,
   mathMarkdownSyntaxExtension as latexMathMarkdownSyntaxExtension,
 } from '@prosemark/core';
+
+export {
+  latexLanguageDescription,
+  latexMathNestedHighlightExtension,
+  latexMathStreamLanguage,
+  latexStreamLanguage,
+} from './nestedHighlight';

@@ -4,7 +4,7 @@ LaTeX-style math for ProseMark’s Markdown editor: `$...$` and `$$...$$`, rende
 
 **Full setup guide:** [prosemark.com/guides/latex-math](https://prosemark.com/guides/latex-math/)
 
-**`Math` / `MathMark` / `MathFormula`** and **`mathMarkdownSyntaxExtension`** live in **`@prosemark/core`** (included in **`prosemarkMarkdownSyntaxExtensions`**). This package adds MathJax widgets and theme helpers. **`latexMath*`** exports are re-exports of the core math parser symbols.
+**`Math` / `MathMark` / `MathFormula`** and **`mathMarkdownSyntaxExtension`** live in **`@prosemark/core`** (included in **`prosemarkMarkdownSyntaxExtensions`**). This package adds MathJax widgets, nested TeX source highlighting (`latexMathNestedHighlightExtension`), fenced-language helpers, and theme helpers. **`latexMathMarkdownSyntaxExtension`** (and related tag re-exports) come from the core math parser.
 
 ### Parser: you must enable math in Markdown
 
@@ -90,6 +90,7 @@ import { prosemarkMarkdownSyntaxExtensions } from '@prosemark/core';
 import {
   latexMarkdownSyntaxTheme,
   latexMarkdownEditorExtensions,
+  latexMathNestedHighlightExtension,
 } from '@prosemark/latex';
 
 const extensions = [
@@ -97,6 +98,7 @@ const extensions = [
     extensions: [
       GFM,
       prosemarkMarkdownSyntaxExtensions, // includes mathMarkdownSyntaxExtension → Math nodes
+      latexMathNestedHighlightExtension, // stexMath inside MathFormula
     ],
   }),
   ...latexMarkdownSyntaxTheme,
@@ -109,11 +111,13 @@ const extensions = [
 ```ts
 import { mathMarkdownSyntaxExtension } from '@prosemark/core';
 // or: import { latexMathMarkdownSyntaxExtension } from '@prosemark/latex';
+import { latexMathNestedHighlightExtension } from '@prosemark/latex';
 
 markdown({
   extensions: [
     GFM,
     mathMarkdownSyntaxExtension,
+    latexMathNestedHighlightExtension,
     // …your other markdown extensions
   ],
 });
@@ -122,20 +126,33 @@ markdown({
 Then add **`latexMarkdownSyntaxTheme`** and **`latexMarkdownEditorExtensions()`** as in the first example.
 
 - **`latexMathMarkdownSyntaxExtension`** — re-export of **`mathMarkdownSyntaxExtension`** from core.
+- **`latexMathNestedHighlightExtension`** — nested TeX (`stexMath`) highlighting inside `MathFormula` via `parseMixed`.
+- **`latexLanguageDescription`** — optional `codeLanguages` entry for fenced ` ```latex ` / ` ```tex ` / ` ```stex ` (not needed if you already pass `@codemirror/language-data`’s `languages`).
 - **`latexMarkdownSyntaxTheme`** — delimiter and formula highlighting.
 - **`latexMarkdownEditorExtensions()`** — fold widgets with MathJax.
+
+**Fenced LaTeX only** (without full `language-data`):
+
+```ts
+import { latexLanguageDescription } from '@prosemark/latex';
+
+markdown({
+  codeLanguages: [latexLanguageDescription],
+  extensions: [/* … */],
+});
+```
 
 ### Styling (CSS variables)
 
 Rendered math widgets and source highlighting use `--pm-*` variables on the editor root:
 
-| Variable                                 | Purpose                                                           |
-| ---------------------------------------- | ----------------------------------------------------------------- |
-| `--pm-latex-math-delimiter-color`        | `$` / `$$` delimiter color (defaults to `--pm-link-color`)        |
-| `--pm-latex-math-formula-color`          | Raw formula text before render                                    |
-| `--pm-latex-math-formula-font`           | Monospace stack for formula source (defaults to `--pm-code-font`) |
-| `--pm-latex-math-error-color`            | Failed render message (defaults to `--pm-syntax-invalid`)         |
-| `--pm-latex-math-error-background-color` | Failed render background (defaults to semi-transparent gray)      |
+| Variable                                 | Purpose                                                                    |
+| ---------------------------------------- | -------------------------------------------------------------------------- |
+| `--pm-latex-math-delimiter-color`        | `$` / `$$` delimiter color (defaults to `--pm-syntax-keyword`)             |
+| `--pm-latex-math-formula-font`           | Monospace stack for formula source (defaults to `--pm-code-font`)          |
+| `--pm-latex-math-bracket-color`          | `{` `}` / `[` `]` / `(` `)` in nested TeX (defaults to `--pm-syntax-atom`) |
+| `--pm-latex-math-error-color`            | Failed render message (defaults to `--pm-syntax-invalid`)                  |
+| `--pm-latex-math-error-background-color` | Failed render background (defaults to semi-transparent gray)               |
 
 When MathJax rejects a formula, the widget shows the error message inline (no console required).
 

@@ -7,7 +7,7 @@ description: Set up @prosemark/latex to parse and render $...$ and $$...$$ math 
 
 This guide covers install, enabling the Markdown **parser**, wiring **editor extensions**, and choosing how **MathJax** loads. API details are in the [`@prosemark/latex` TypeDoc](/api/prosemark/latex/).
 
-Parsing (`Math` / `MathMark` / `MathFormula` and [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/)) lives in **`@prosemark/core`**, included in [`prosemarkMarkdownSyntaxExtensions`](/api/prosemark/core/variables/prosemarkmarkdownsyntaxextensions/). **`@prosemark/latex`** adds MathJax widgets, delimiter highlighting, and related theme helpers. **`latexMathMarkdownSyntaxExtension`** is a re-export of core’s `mathMarkdownSyntaxExtension` if you prefer to import the parser from the same package as the renderer.
+Parsing (`Math` / `MathMark` / `MathFormula` and [`mathMarkdownSyntaxExtension`](/api/prosemark/core/variables/mathmarkdownsyntaxextension/)) lives in **`@prosemark/core`**, included in [`prosemarkMarkdownSyntaxExtensions`](/api/prosemark/core/variables/prosemarkmarkdownsyntaxextensions/). **`@prosemark/latex`** adds MathJax widgets, delimiter highlighting, nested TeX source highlighting inside formulas, and related theme helpers. **`latexMathMarkdownSyntaxExtension`** is a re-export of core’s `mathMarkdownSyntaxExtension` if you prefer to import the parser from the same package as the renderer.
 
 ## Install
 
@@ -46,16 +46,18 @@ import {
 import {
   latexMarkdownSyntaxTheme,
   latexMarkdownEditorExtensions,
+  latexMathNestedHighlightExtension,
 } from '@prosemark/latex';
 
 const editor = new EditorView({
   parent: document.getElementById('codemirror-container'),
   extensions: [
     markdown({
-      codeLanguages: languages,
+      codeLanguages: languages, // includes LaTeX/sTeX for fenced blocks
       extensions: [
         GFM,
         prosemarkMarkdownSyntaxExtensions, // includes math → Math nodes
+        latexMathNestedHighlightExtension, // stexMath inside MathFormula
       ],
     }),
     prosemarkBasicSetup(),
@@ -66,13 +68,17 @@ const editor = new EditorView({
 });
 ```
 
-If you assemble markdown extensions yourself (without `prosemarkMarkdownSyntaxExtensions`), import `mathMarkdownSyntaxExtension` from `@prosemark/core` or `latexMathMarkdownSyntaxExtension` from `@prosemark/latex`, then add `latexMarkdownSyntaxTheme` and `latexMarkdownEditorExtensions()` as above.
+If you assemble markdown extensions yourself (without `prosemarkMarkdownSyntaxExtensions`), import `mathMarkdownSyntaxExtension` from `@prosemark/core` or `latexMathMarkdownSyntaxExtension` from `@prosemark/latex`, add `latexMathNestedHighlightExtension` for nested TeX highlighting inside `$...$` / `$$...$$`, then add `latexMarkdownSyntaxTheme` and `latexMarkdownEditorExtensions()` as above.
 
-| Export                             | Role                                                 |
-| ---------------------------------- | ---------------------------------------------------- |
-| `latexMathMarkdownSyntaxExtension` | Re-export of `mathMarkdownSyntaxExtension` from core |
-| `latexMarkdownSyntaxTheme`         | Delimiter and formula source highlighting            |
-| `latexMarkdownEditorExtensions()`  | Fold widgets that render with MathJax                |
+Without `@codemirror/language-data`, pass [`latexLanguageDescription`](/api/prosemark/latex/variables/latexlanguagedescription/) to `markdown({ codeLanguages: [...] })` for fenced ` ```latex ` / ` ```tex ` / ` ```stex ` highlighting.
+
+| Export                              | Role                                                                                                        |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `latexMathMarkdownSyntaxExtension`  | Re-export of `mathMarkdownSyntaxExtension` from core                                                        |
+| `latexMathNestedHighlightExtension` | Nested TeX (`stexMath`) highlighting inside `MathFormula`                                                   |
+| `latexLanguageDescription`          | Optional `codeLanguages` entry for fenced LaTeX (if not using `languages` from `@codemirror/language-data`) |
+| `latexMarkdownSyntaxTheme`          | Delimiter and formula source highlighting                                                                   |
+| `latexMarkdownEditorExtensions()`   | Fold widgets that render with MathJax                                                                       |
 
 ## How MathJax is loaded
 

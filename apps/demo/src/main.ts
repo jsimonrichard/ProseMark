@@ -16,6 +16,7 @@ import {
 import {
   latexMarkdownEditorExtensions,
   latexMarkdownSyntaxTheme,
+  latexMathNestedHighlightExtension,
 } from '@prosemark/latex';
 import { GFM } from '@lezer/markdown';
 import { indentUnit, syntaxTree } from '@codemirror/language';
@@ -41,6 +42,7 @@ const editor = new EditorView({
       extensions: [
         GFM,
         prosemarkMarkdownSyntaxExtensions,
+        latexMathNestedHighlightExtension,
         renderHtmlMarkdownSyntaxExtensions,
       ],
     }),
