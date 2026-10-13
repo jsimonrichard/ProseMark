@@ -1,5 +1,14 @@
 # vscode-prosemark
 
+## 0.0.13
+
+### Patch Changes
+
+- Updated dependencies [c2ba715]
+  - @prosemark/core@0.0.11
+  - @prosemark/latex@0.0.6
+  - @prosemark/render-html@0.0.12
+
 ## 0.0.12
 
 ### Patch Changes

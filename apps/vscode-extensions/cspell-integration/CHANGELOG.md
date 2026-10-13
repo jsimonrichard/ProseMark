@@ -1,5 +1,11 @@
 # vscode-prosemark-cspell-integration
 
+## 0.0.9
+
+### Patch Changes
+
+- @prosemark/spellcheck-frontend@0.0.8
+
 ## 0.0.8
 
 ### Patch Changes

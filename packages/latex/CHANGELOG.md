@@ -1,5 +1,12 @@
 # @prosemark/latex
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies [c2ba715]
+  - @prosemark/core@0.0.11
+
 ## 0.0.5
 
 ### Patch Changes
