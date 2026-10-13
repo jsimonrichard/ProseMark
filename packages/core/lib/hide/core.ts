@@ -10,6 +10,7 @@ import {
   Facet,
   findClusterBreak,
   type Range,
+  type SelectionRange,
   StateField,
 } from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
@@ -180,7 +181,7 @@ const rangeForVisibleClick = (
   view: EditorView,
   pos: number,
   clickType: number,
-): ReturnType<typeof EditorSelection.cursor> => {
+): SelectionRange => {
   if (clickType >= 3) {
     const line = view.state.doc.lineAt(pos);
     return EditorSelection.range(line.from, line.to);
@@ -192,9 +193,25 @@ const rangeForVisibleClick = (
 };
 
 /**
+ * Span from the mousedown range to the current pointer range — same rule as
+ * CodeMirror's `basicMouseSelection` in `@codemirror/view` `input.ts`.
+ */
+export function rangeForVisiblePointerDrag(
+  startRange: SelectionRange,
+  curRange: SelectionRange,
+): SelectionRange {
+  const from = Math.min(startRange.from, curRange.from);
+  const to = Math.max(startRange.to, curRange.to);
+  return from < curRange.from
+    ? EditorSelection.range(from, to, curRange.assoc)
+    : EditorSelection.range(to, from, curRange.assoc);
+}
+
+/**
  * Pointer selection for hide: CodeMirror has no facet to replace
  * `posAtCoords`, so this `mouseSelectionStyle` makes clicks/drags use
- * {@link visiblePosAtCoords}. First non-null style wins.
+ * {@link visiblePosAtCoords}. First non-null style wins, so drag-range
+ * expansion must match CodeMirror's default (not cursor-only updates).
  */
 const hidePointerSelectionExtension = EditorView.mouseSelectionStyle.of(
   (view, event) => {
@@ -219,7 +236,16 @@ const hidePointerSelectionExtension = EditorView.mouseSelectionStyle.of(
       get(curEvent, extend, multiple) {
         const curCoords = { x: curEvent.clientX, y: curEvent.clientY };
         const cur = visiblePosAtCoords(view, curCoords) ?? startPos;
-        const range = rangeForVisibleClick(view, cur, clickType);
+        let range = rangeForVisibleClick(view, cur, clickType);
+
+        // Upstream basicMouseSelection: while dragging (and not shift-extend),
+        // span from the original click range to the current one.
+        if (startPos != cur && !extend) {
+          range = rangeForVisiblePointerDrag(
+            rangeForVisibleClick(view, startPos, clickType),
+            range,
+          );
+        }
 
         if (extend) {
           return startSel.replaceRange(
