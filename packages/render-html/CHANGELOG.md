@@ -1,5 +1,12 @@
 # @prosemark/render-html
 
+## 0.0.12
+
+### Patch Changes
+
+- Updated dependencies [c2ba715]
+  - @prosemark/core@0.0.11
+
 ## 0.0.11
 
 ### Patch Changes

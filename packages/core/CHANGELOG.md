@@ -1,5 +1,11 @@
 # @prosemark/core
 
+## 0.0.11
+
+### Patch Changes
+
+- c2ba715: Fix click-and-drag text selection when `hideExtension` is active: the hide `mouseSelectionStyle` now expands the range like CodeMirror's default instead of only moving the cursor.
+
 ## 0.0.10
 
 ### Patch Changes
